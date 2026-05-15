@@ -1,0 +1,308 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  image      String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  employee Employee?
+  orders   Order[]   @relation("OrderCustomer")
+
+  @@map("users")
+}
+
+model Business {
+  id         String   @id @default(cuid())
+  name       String
+  logo       String?
+  email      String?
+  phone      String?
+  address    String?
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  branches Branch[]
+
+  @@map("businesses")
+}
+
+model Branch {
+  id          String   @id @default(cuid())
+  name        String
+  business_id String
+  address     String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  business    Business     @relation(fields: [business_id], references: [id])
+  departments Department[]
+  shifts      Shift[]
+  roles       Role[]
+  employees   Employee[]
+  products    Product[]
+  orders      Order[]
+
+  @@map("branches")
+}
+
+model Department {
+  id         String   @id @default(cuid())
+  name       String
+  branch_id  String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  branch Branch @relation(fields: [branch_id], references: [id])
+  posts  Post[]
+
+  @@map("departments")
+}
+
+model Post {
+  id            String   @id @default(cuid())
+  name          String
+  department_id String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+
+  department Department @relation(fields: [department_id], references: [id])
+  employees  Employee[]
+
+  @@map("posts")
+}
+
+enum ShiftBasis {
+  DAY
+  MONTH
+  YEAR
+}
+
+enum ShiftType {
+  MORNING
+  AFTERNOON
+  EVENING
+  NIGHT
+  GENERAL
+}
+
+model Shift {
+  id         String     @id @default(cuid())
+  branch_id  String
+  name       String
+  start_time String
+  end_time   String
+  basis      ShiftBasis
+  type       ShiftType
+  created_at DateTime   @default(now())
+  updated_at DateTime   @default(now())
+
+  branch    Branch     @relation(fields: [branch_id], references: [id])
+  employees Employee[]
+
+  @@map("shifts")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  branch_id   String
+  name        String
+  permissions String[]
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  branch    Branch     @relation(fields: [branch_id], references: [id])
+  employees Employee[]
+
+  @@map("roles")
+}
+
+model Employee {
+  id           String   @id @default(cuid())
+  user_id      String   @unique
+  name         String
+  email        String
+  phone        String?
+  bank_details Json
+  address      Json
+  branch_id    String
+  role_id      String
+  shift_id     String
+  post_id      String
+  created_at   DateTime @default(now())
+  updated_at   DateTime @default(now())
+
+  user   User   @relation(fields: [user_id], references: [id])
+  branch Branch @relation(fields: [branch_id], references: [id])
+  role   Role   @relation(fields: [role_id], references: [id])
+  shift  Shift  @relation(fields: [shift_id], references: [id])
+  post   Post   @relation(fields: [post_id], references: [id])
+
+  orders Order[]
+  rider  Rider?
+
+  @@map("employees")
+}
+
+enum OrderType {
+  DINE_IN
+  TAKEAWAY
+  DELIVERY
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  DISPATCHED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  UPI
+  ONLINE
+}
+
+enum DeliveryStatus {
+  PENDING
+  ASSIGNED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+}
+
+model Product {
+  id               String   @id @default(cuid())
+  branch_id        String
+  name             String
+  description      String?
+  price            Float
+  stock            Int
+  category         String?
+  images           String[]
+  is_veg           Boolean  @default(false)
+  preparation_time Int      @default(0)
+  variants         Json
+  is_available     Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @default(now())
+
+  branch Branch      @relation(fields: [branch_id], references: [id])
+  items  OrderItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id           String      @id @default(cuid())
+  branch_id    String
+  employee_id  String?
+  customer_id  String?
+  type         OrderType
+  table_number String?
+  status       OrderStatus
+  total_amount Float
+  notes        String?
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @default(now())
+
+  branch   Branch      @relation(fields: [branch_id], references: [id])
+  employee Employee?   @relation(fields: [employee_id], references: [id])
+  customer User?       @relation("OrderCustomer", fields: [customer_id], references: [id])
+  items    OrderItem[]
+  bill     Bill?
+  delivery Delivery?
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  order_id   String
+  product_id String
+  quantity   Int
+  price      Float
+  variants   Json
+  notes      String?
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  order   Order   @relation(fields: [order_id], references: [id])
+  product Product @relation(fields: [product_id], references: [id])
+
+  @@map("order_items")
+}
+
+model Bill {
+  id              String        @id @default(cuid())
+  order_id        String        @unique
+  bill_number     String        @unique
+  sub_total       Float
+  tax             Float
+  discount        Float
+  order_amount    Float
+  delivery_amount Float
+  total_amount    Float
+  payment_status  PaymentStatus
+  payment_method  PaymentMethod
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @default(now())
+
+  order Order @relation(fields: [order_id], references: [id])
+
+  @@map("bills")
+}
+
+model Rider {
+  id               String   @id @default(cuid())
+  employee_id      String   @unique
+  vehicle_number   String?
+  vehicle_type     String?
+  is_available     Boolean  @default(true)
+  current_location String?
+  created_at       DateTime @default(now())
+  updated_at       DateTime @default(now())
+
+  employee   Employee   @relation(fields: [employee_id], references: [id])
+  deliveries Delivery[]
+
+  @@map("riders")
+}
+
+model Delivery {
+  id              String         @id @default(cuid())
+  order_id        String         @unique
+  rider_id        String?
+  status          DeliveryStatus
+  tracking_number String?
+  address         String
+  delivery_fee    Float
+  estimated_time  DateTime?
+  actual_time     DateTime?
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @default(now())
+
+  order Order  @relation(fields: [order_id], references: [id])
+  rider Rider? @relation(fields: [rider_id], references: [id])
+
+  @@map("deliveries")
+}
