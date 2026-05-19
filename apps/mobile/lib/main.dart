@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:mobile/core/config.dart';
+import 'package:mobile/core/di.dart';
 import 'package:mobile/core/theme.dart';
 import 'package:mobile/core/routes.dart';
+import 'package:mobile/features/auth/cubit/auth_cubit.dart';
+import 'package:mobile/features/business/cubit/business_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: AppConfig.envFileName);
+  await setupDependencies();
   runApp(const MyApp());
 }
 
@@ -18,11 +26,21 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          initialRoute: AppRoutes.login,
-          routes: AppRoutes.routes,
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider<AuthCubit>(
+              create: (context) => AppDependencies.authCubit(),
+            ),
+            BlocProvider<BusinessCubit>(
+              create: (context) => AppDependencies.businessCubit(),
+            ),
+          ],
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            initialRoute: AppRoutes.session,
+            routes: AppRoutes.routes,
+          ),
         );
       },
     );

@@ -12,7 +12,7 @@ type User  = {
 
 type UserActivity = {
     readonly id: string;
-    readonly username: string;
+    readonly user_id: string;
     readonly type: string;
     readonly module: string;
     readonly title: string;

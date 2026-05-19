@@ -7,12 +7,14 @@ class AuthState {
   final List<UserActivityModel>? userActivities;
   final OperationInfo loginInfo;
   final OperationInfo logoutInfo;
+  final OperationInfo sessionInfo;
 
   const AuthState({
     this.user,
     this.userActivities,
     this.loginInfo = const OperationInfo(status: OperationStatus.initial),
     this.logoutInfo = const OperationInfo(status: OperationStatus.initial),
+    this.sessionInfo = const OperationInfo(status: OperationStatus.initial),
   });
 
   AuthState copyWith({
@@ -20,12 +22,14 @@ class AuthState {
     List<UserActivityModel>? userActivities,
     OperationInfo? loginInfo,
     OperationInfo? logoutInfo,
+    OperationInfo? sessionInfo,
   }) {
     return AuthState(
       user: user ?? this.user,
       userActivities: userActivities ?? this.userActivities,
       loginInfo: loginInfo ?? this.loginInfo,
       logoutInfo: logoutInfo ?? this.logoutInfo,
+      sessionInfo: sessionInfo ?? this.sessionInfo,
     );
   }
 
@@ -37,7 +41,8 @@ class AuthState {
         other.user == user &&
         other.userActivities == userActivities &&
         other.loginInfo == loginInfo &&
-        other.logoutInfo == logoutInfo;
+        other.logoutInfo == logoutInfo &&
+        other.sessionInfo == sessionInfo;
   }
 
   @override
@@ -45,5 +50,6 @@ class AuthState {
       user.hashCode ^
       userActivities.hashCode ^
       loginInfo.hashCode ^
-      logoutInfo.hashCode;
+      logoutInfo.hashCode ^
+      sessionInfo.hashCode;
 }

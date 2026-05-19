@@ -1,19 +1,41 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/auth/cubit/auth_state.dart';
 import 'package:mobile/features/auth/repo/auth_repo.dart';
+import 'package:mobile/services/google_auth_service.dart';
 import 'package:mobile/utils/error.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepo _authRepo;
+  final GoogleAuthService _googleAuthService;
 
-  AuthCubit(this._authRepo) : super(const AuthState());
+  AuthCubit({
+    required AuthRepo authRepo,
+    required GoogleAuthService googleAuthService,
+  }) : _authRepo = authRepo,
+       _googleAuthService = googleAuthService,
+       super(const AuthState());
 
-  Future<void> loginWithGoogle(String idToken) async {
+  Future<void> loginWithGoogle() async {
     emit(
       state.copyWith(
         loginInfo: const OperationInfo(status: OperationStatus.loading),
       ),
     );
+
+    late final String idToken;
+    try {
+      idToken = await _googleAuthService.getIdToken();
+    } on AuthException catch (error) {
+      emit(
+        state.copyWith(
+          loginInfo: OperationInfo(
+            status: OperationStatus.error,
+            error: AuthFailure(error.message, statusCode: error.statusCode),
+          ),
+        ),
+      );
+      return;
+    }
 
     final result = await _authRepo.loginWithGoogle(idToken);
 
@@ -42,6 +64,7 @@ class AuthCubit extends Cubit<AuthState> {
       ),
     );
 
+    await _googleAuthService.signOut();
     final result = await _authRepo.logout();
 
     result.fold(
@@ -62,8 +85,29 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   Future<void> getCurrentUser() async {
+    emit(
+      state.copyWith(
+        sessionInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+
     final result = await _authRepo.getCurrentUser();
 
-    result.fold((failure) => null, (user) => emit(state.copyWith(user: user)));
+    result.fold(
+      (failure) => emit(
+        state.copyWith(
+          sessionInfo: OperationInfo(
+            status: OperationStatus.error,
+            error: failure,
+          ),
+        ),
+      ),
+      (user) => emit(
+        state.copyWith(
+          user: user,
+          sessionInfo: const OperationInfo(status: OperationStatus.success),
+        ),
+      ),
+    );
   }
 }

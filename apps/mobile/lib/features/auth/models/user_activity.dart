@@ -1,9 +1,8 @@
-// ignore_for_file: non_constant_identifier_names
-
 import 'package:mobile/features/auth/models/user.dart';
 
 class UserActivityModel {
   final String id;
+  final String user_id;
   final UserModel user;
   final String type;
   final String module;
@@ -14,6 +13,7 @@ class UserActivityModel {
 
   const UserActivityModel({
     required this.id,
+    required this.user_id,
     required this.user,
     required this.type,
     required this.module,
@@ -25,6 +25,7 @@ class UserActivityModel {
 
   UserActivityModel copyWith({
     String? id,
+    String? user_id,
     UserModel? user,
     String? type,
     String? module,
@@ -35,6 +36,7 @@ class UserActivityModel {
   }) {
     return UserActivityModel(
       id: id ?? this.id,
+      user_id: user_id ?? this.user_id,
       user: user ?? this.user,
       type: type ?? this.type,
       module: module ?? this.module,
@@ -47,20 +49,22 @@ class UserActivityModel {
 
   factory UserActivityModel.fromJson(Map<String, dynamic> json) {
     return UserActivityModel(
-      id: json['_id'] ?? '',
-      user: UserModel.fromJson(json['user']),
-      type: json['type'] ?? '',
-      module: json['module'] ?? '',
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      created_at: json['created_at'] ?? '',
-      updated_at: json['updated_at'] ?? '',
+      id: (json['_id'] ?? json['id'] ?? '').toString(),
+      user_id: (json['user_id'] ?? '').toString(),
+      user: UserModel.fromJson(Map<String, dynamic>.from(json['user'] ?? {})),
+      type: (json['type'] ?? '').toString(),
+      module: (json['module'] ?? '').toString(),
+      title: (json['title'] ?? '').toString(),
+      description: (json['description'] ?? '').toString(),
+      created_at: (json['created_at'] ?? '').toString(),
+      updated_at: (json['updated_at'] ?? '').toString(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      '_id': id,
+      'id': id,
+      'user_id': user_id,
       'user': user.toJson(),
       'type': type,
       'module': module,

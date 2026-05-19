@@ -17,16 +17,17 @@ model User {
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
 
-  employee Employee?
-  orders   Order[]        @relation("OrderCustomer")
-  activities UserActivity[]
+  employee      Employee?
+  orders        Order[]               @relation("OrderCustomer")
+  activities    UserActivity[]
+  join_requests BusinessJoinRequest[]
 
   @@map("users")
 }
 
 model UserActivity {
   id          String   @id @default(cuid())
-  username    String
+  user_id     String
   type        String
   module      String
   title       String
@@ -34,7 +35,7 @@ model UserActivity {
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now())
 
-  user User @relation(fields: [username], references: [username], onDelete: Cascade)
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@map("user_activities")
 }
@@ -49,7 +50,8 @@ model Business {
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
 
-  branches Branch[]
+  branches      Branch[]
+  join_requests BusinessJoinRequest[]
 
   @@map("businesses")
 }
@@ -62,13 +64,14 @@ model Branch {
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now())
 
-  business    Business     @relation(fields: [business_id], references: [id])
-  departments Department[]
-  shifts      Shift[]
-  roles       Role[]
-  employees   Employee[]
-  products    Product[]
-  orders      Order[]
+  business      Business              @relation(fields: [business_id], references: [id])
+  departments   Department[]
+  shifts        Shift[]
+  roles         Role[]
+  employees     Employee[]
+  products      Product[]
+  orders        Order[]
+  join_requests BusinessJoinRequest[]
 
   @@map("branches")
 }
@@ -138,8 +141,9 @@ model Role {
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now())
 
-  branch    Branch     @relation(fields: [branch_id], references: [id])
-  employees Employee[]
+  branch        Branch                @relation(fields: [branch_id], references: [id])
+  employees     Employee[]
+  join_requests BusinessJoinRequest[]
 
   @@map("roles")
 }
@@ -169,6 +173,31 @@ model Employee {
   rider  Rider?
 
   @@map("employees")
+}
+
+enum BusinessJoinRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model BusinessJoinRequest {
+  id                String                    @id @default(cuid())
+  user_id           String
+  business_id       String
+  branch_id         String
+  requested_role_id String?
+  status            BusinessJoinRequestStatus @default(PENDING)
+  reviewed_by_id    String?
+  created_at        DateTime                  @default(now())
+  updated_at        DateTime                  @default(now())
+
+  user           User     @relation(fields: [user_id], references: [id])
+  business       Business @relation(fields: [business_id], references: [id])
+  branch         Branch   @relation(fields: [branch_id], references: [id])
+  requested_role Role?    @relation(fields: [requested_role_id], references: [id])
+
+  @@map("business_join_requests")
 }
 
 enum OrderType {

@@ -14,6 +14,12 @@ export class UserRepo {
         });
     }
 
+    async findByUsername(username: string): Promise<User | null> {
+        return prisma.user.findUnique({
+            where: { username }
+        });
+    }
+
     async create(data: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
         return prisma.user.create({
             data
@@ -39,9 +45,9 @@ export class UserRepo {
         });
     }
 
-    async getUserActivities(username: string) {
+    async getUserActivities(user_id: string) {
         return prisma.userActivity.findMany({
-            where: { username },
+            where: { user_id },
             orderBy: { created_at: 'desc' },
             include: { user: true }
         });

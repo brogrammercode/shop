@@ -20,11 +20,37 @@ export const BUSINESS_MESSAGES = {
     EMPLOYEE_CREATED: 'Employee created successfully',
     EMPLOYEE_UPDATED: 'Employee updated successfully',
     EMPLOYEE_DELETED: 'Employee deleted successfully',
+    JOIN_REQUEST_CREATED: 'Join request submitted successfully',
+    JOIN_REQUESTS_FETCHED: 'Join requests fetched successfully',
+    JOIN_REQUEST_APPROVED: 'Join request approved successfully',
+    JOIN_REQUEST_REJECTED: 'Join request rejected successfully',
     INITIALIZE_SUCCESS: 'Business and branch initialized successfully',
     CONTEXT_FETCHED: 'User context fetched successfully',
     NOT_FOUND: 'Resource not found in business module',
     FORBIDDEN: 'You do not have permission to perform this action',
+    ALREADY_JOINED: 'User is already associated with a business',
+    JOIN_REQUEST_ALREADY_EXISTS: 'A pending join request already exists for this branch',
+    JOIN_REQUEST_NOT_FOUND: 'Join request not found',
+    JOIN_REQUEST_NOT_PENDING: 'Join request is not pending',
+    BRANCH_NOT_FOUND: 'Branch not found',
+    ROLE_NOT_FOUND: 'Role not found',
 };
+
+export const BUSINESS_DEFAULTS = {
+    OWNER_ROLE: 'Owner',
+    EMPLOYEE_ROLE: 'Employee',
+    EMPLOYEE_POST: 'Employee',
+    EMPLOYEE_DEPARTMENT: 'Operations',
+    OWNER_POST: 'Owner',
+    OWNER_DEPARTMENT: 'Management',
+    GENERAL_SHIFT: 'General',
+    GENERAL_SHIFT_START: '09:00',
+    GENERAL_SHIFT_END: '18:00',
+    ALL_PERMISSION: 'ALL',
+    EMPLOYEE_PERMISSIONS: ['business:read', 'branch:read'] as readonly string[],
+    EMPTY_BANK_DETAILS: { account_name: '', account_number: '', bank_name: '', ifsc_code: '' },
+    EMPTY_ADDRESS: { street: '', city: '', state: '', zip: '', country: '' },
+} as const;
 
 export const BUSINESS_PERMISSIONS = [
     'business:read',

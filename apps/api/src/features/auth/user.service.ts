@@ -1,7 +1,8 @@
 import { UserRepo } from './user.repo';
-import { User } from './user.type';
+import { User, UserActivity } from './user.type';
 import { Jwt } from '../../infra/security/jwt';
 import config from '../../core/config';
+import { BadRequestError } from '../../utils/error';
 
 export class UserService {
     private userRepo: UserRepo;
@@ -50,11 +51,29 @@ export class UserService {
         return Jwt.verify<T>(token, secret);
     }
 
-    async logActivity(data: Omit<import('./user.type').UserActivity, 'id' | 'created_at' | 'updated_at'>) {
-        return this.userRepo.createUserActivity(data);
+    async logActivity(data: Omit<UserActivity, 'id' | 'created_at' | 'updated_at'> & { username?: string, userId?: string }) {
+        const userId = data.user_id || data.userId || await this.resolveUserId(data.username);
+        if (!userId) {
+            throw new BadRequestError('user_id is required');
+        }
+
+        const { username, userId: _userId, ...activity } = data;
+        return this.userRepo.createUserActivity({
+            ...activity,
+            user_id: userId,
+        });
     }
 
-    async getActivities(username: string) {
-        return this.userRepo.getUserActivities(username);
+    async getActivities(user_id: string) {
+        return this.userRepo.getUserActivities(user_id);
+    }
+
+    private async resolveUserId(username?: string): Promise<string> {
+        if (!username) {
+            return '';
+        }
+
+        const user = await this.userRepo.findByUsername(username);
+        return user?.id || '';
     }
 }

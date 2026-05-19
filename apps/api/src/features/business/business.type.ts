@@ -89,6 +89,30 @@ type Employee = {
     readonly updated_at: Date;
 }
 
+type BusinessJoinRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+type BusinessJoinRequest = {
+    readonly id: string;
+    readonly user_id: string;
+    readonly business_id: string;
+    readonly branch_id: string;
+    readonly requested_role_id?: string;
+    readonly status: BusinessJoinRequestStatus;
+    readonly reviewed_by_id?: string;
+    readonly created_at: Date;
+    readonly updated_at: Date;
+    readonly user?: {
+        readonly id: string;
+        readonly name: string;
+        readonly email: string;
+        readonly username: string;
+        readonly image: string;
+    };
+    readonly business?: Business;
+    readonly branch?: Branch;
+    readonly requested_role?: Role;
+}
+
 export {
     Business,
     Branch,
@@ -100,5 +124,7 @@ export {
     Role,
     BankDetails,
     Address,
-    Employee
+    Employee,
+    BusinessJoinRequestStatus,
+    BusinessJoinRequest
 };

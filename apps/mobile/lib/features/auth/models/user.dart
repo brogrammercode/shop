@@ -1,11 +1,9 @@
-// ignore_for_file: non_constant_identifier_names
-
 class UserModel {
   final String id;
   final String email;
   final String name;
   final String token;
-  final String username; // username
+  final String username;
   final String image;
   final String cover;
   final String bio;
@@ -53,16 +51,16 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['_id'],
-      email: json['email'],
-      name: json['name'],
-      token: json['token'],
-      username: json['username'],
-      image: json['image'],
-      cover: json['cover'],
-      bio: json['bio'],
-      created_at: json['created_at'],
-      updated_at: json['updated_at'],
+      id: (json['_id'] ?? json['id'] ?? '').toString(),
+      email: (json['email'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      token: (json['token'] ?? json['accessToken'] ?? '').toString(),
+      username: (json['username'] ?? '').toString(),
+      image: (json['image'] ?? '').toString(),
+      cover: (json['cover'] ?? '').toString(),
+      bio: (json['bio'] ?? '').toString(),
+      created_at: (json['created_at'] ?? '').toString(),
+      updated_at: (json['updated_at'] ?? '').toString(),
     );
   }
 

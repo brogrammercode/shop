@@ -1,11 +1,10 @@
 import prisma from '../../infra/database/client';
 import { 
     Business, Branch, Department, Post, 
-    Shift, Role, Employee, ShiftBasis, ShiftType 
+    Shift, Role, Employee, BusinessJoinRequest 
 } from './business.type';
 
 export class BusinessRepo {
-    // Business
     async findBusinessById(id: string): Promise<Business | null> {
         return prisma.business.findUnique({ where: { id } }) as any;
     }
@@ -22,7 +21,6 @@ export class BusinessRepo {
         return prisma.business.delete({ where: { id } }) as any;
     }
 
-    // Branch
     async findBranchById(id: string): Promise<Branch | null> {
         return prisma.branch.findUnique({ where: { id } }) as any;
     }
@@ -43,7 +41,6 @@ export class BusinessRepo {
         return prisma.branch.delete({ where: { id } }) as any;
     }
 
-    // Department
     async findDepartmentById(id: string): Promise<Department | null> {
         return prisma.department.findUnique({ where: { id } }) as any;
     }
@@ -64,7 +61,6 @@ export class BusinessRepo {
         return prisma.department.delete({ where: { id } }) as any;
     }
 
-    // Post
     async findPostById(id: string): Promise<Post | null> {
         return prisma.post.findUnique({ where: { id } }) as any;
     }
@@ -85,7 +81,6 @@ export class BusinessRepo {
         return prisma.post.delete({ where: { id } }) as any;
     }
 
-    // Shift
     async findShiftById(id: string): Promise<Shift | null> {
         return prisma.shift.findUnique({ where: { id } }) as any;
     }
@@ -106,7 +101,6 @@ export class BusinessRepo {
         return prisma.shift.delete({ where: { id } }) as any;
     }
 
-    // Role
     async findRoleById(id: string): Promise<Role | null> {
         return prisma.role.findUnique({ where: { id } }) as any;
     }
@@ -127,7 +121,6 @@ export class BusinessRepo {
         return prisma.role.delete({ where: { id } }) as any;
     }
 
-    // Employee
     async findEmployeeById(id: string): Promise<Employee | null> {
         return prisma.employee.findUnique({ where: { id } }) as any;
     }
@@ -150,5 +143,108 @@ export class BusinessRepo {
 
     async deleteEmployee(id: string): Promise<Employee> {
         return prisma.employee.delete({ where: { id } }) as any;
+    }
+
+    async findJoinRequestById(id: string): Promise<BusinessJoinRequest | null> {
+        return prisma.businessJoinRequest.findUnique({
+            where: { id },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        username: true,
+                        image: true,
+                    },
+                },
+                business: true,
+                branch: true,
+                requested_role: true,
+            },
+        }) as any;
+    }
+
+    async findPendingJoinRequestByUserAndBranch(user_id: string, branch_id: string): Promise<BusinessJoinRequest | null> {
+        return prisma.businessJoinRequest.findFirst({
+            where: {
+                user_id,
+                branch_id,
+                status: 'PENDING',
+            },
+        }) as any;
+    }
+
+    async findJoinRequestsByBranchId(branch_id: string): Promise<BusinessJoinRequest[]> {
+        return prisma.businessJoinRequest.findMany({
+            where: {
+                branch_id,
+                status: 'PENDING',
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        username: true,
+                        image: true,
+                    },
+                },
+                business: true,
+                branch: true,
+                requested_role: true,
+            },
+            orderBy: { created_at: 'desc' },
+        }) as any;
+    }
+
+    async findJoinRequestsByUserId(user_id: string): Promise<BusinessJoinRequest[]> {
+        return prisma.businessJoinRequest.findMany({
+            where: { user_id },
+            include: {
+                business: true,
+                branch: true,
+                requested_role: true,
+            },
+            orderBy: { created_at: 'desc' },
+        }) as any;
+    }
+
+    async createJoinRequest(data: Pick<BusinessJoinRequest, 'user_id' | 'business_id' | 'branch_id' | 'requested_role_id'>): Promise<BusinessJoinRequest> {
+        return prisma.businessJoinRequest.create({
+            data: {
+                user_id: data.user_id,
+                business_id: data.business_id,
+                branch_id: data.branch_id,
+                requested_role_id: data.requested_role_id,
+            },
+            include: {
+                business: true,
+                branch: true,
+                requested_role: true,
+            },
+        }) as any;
+    }
+
+    async updateJoinRequest(id: string, data: Partial<Pick<BusinessJoinRequest, 'status' | 'requested_role_id' | 'reviewed_by_id'>>): Promise<BusinessJoinRequest> {
+        return prisma.businessJoinRequest.update({
+            where: { id },
+            data: data as any,
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        username: true,
+                        image: true,
+                    },
+                },
+                business: true,
+                branch: true,
+                requested_role: true,
+            },
+        }) as any;
     }
 }

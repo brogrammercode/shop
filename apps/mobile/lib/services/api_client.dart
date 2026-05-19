@@ -5,26 +5,33 @@ import 'package:mobile/utils/error.dart';
 
 class ApiClient {
   late final Dio dio;
-  final LocalStorage _localStorage = LocalStorage();
+  final LocalStorage _localStorage;
 
-  ApiClient() {
+  ApiClient({LocalStorage? localStorage})
+    : _localStorage = localStorage ?? LocalStorage() {
     dio = Dio(
       BaseOptions(
-        baseUrl: ApiConstants.BASE_URL,
-        connectTimeout: const Duration(milliseconds: ApiConstants.CONNECT_TIMEOUT),
-        receiveTimeout: const Duration(milliseconds: ApiConstants.RECEIVE_TIMEOUT),
+        baseUrl: ApiConstants.baseUrl,
+        connectTimeout: const Duration(
+          milliseconds: ApiConstants.connectTimeout,
+        ),
+        receiveTimeout: const Duration(
+          milliseconds: ApiConstants.receiveTimeout,
+        ),
         contentType: 'application/json',
       ),
     );
 
-    dio.interceptors.add(LogInterceptor(
-      request: true,
-      requestHeader: true,
-      requestBody: true,
-      responseHeader: true,
-      responseBody: true,
-      error: true,
-    ));
+    dio.interceptors.add(
+      LogInterceptor(
+        request: true,
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: true,
+        responseBody: true,
+        error: true,
+      ),
+    );
 
     dio.interceptors.add(
       InterceptorsWrapper(
@@ -130,7 +137,7 @@ class ApiClient {
     if (e.response != null) {
       final statusCode = e.response?.statusCode;
       final data = e.response?.data;
-      
+
       String message = "Server Error";
       if (data is Map) {
         message = data['message'] ?? data['error'] ?? "Something went wrong";

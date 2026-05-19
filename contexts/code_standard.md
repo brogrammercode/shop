@@ -7,6 +7,7 @@ This document outlines the sequential steps for creating, updating, or fixing an
 - **Strict Layering**: Follow the defined architecture for each app type.
 - **Type Safety**: Maintain strict TypeScript/Dart typing throughout.
 - **Centralized Constants**: Never use hardcoded strings; use feature-specific constant files.
+- **Consistent Timestamps**: Always use `created_at` and `updated_at` (snake_case) throughout the entire codebase (both backend API and mobile models) instead of camelCase `createdAt` and `updatedAt`.
 
 ---
 
@@ -248,9 +249,29 @@ Standards:
 - Never duplicate route paths, endpoint paths, asset paths, permission strings, module names, or status values in feature code.
 - Endpoint constants live beside their repository in `features/[feature]/repo/[feature]_endpoints.dart`.
 - App-wide constants live in `constants`.
-- Feature-specific user-facing copy should live in a feature constants file when reused.
+- Feature-specific user-facing copy, statuses, permission strings, default role names, and workflow labels live in `features/[feature]/constants/[feature].dart` on mobile or `[feature].constant.ts` on API.
+- Constants must stay module-scoped. Do not put business constants in auth constants, auth constants in global constants, or endpoint paths in page files.
 - Prefer Dart-style lowerCamelCase constant names for new code unless matching an existing all-caps backend enum collection.
 - Backend enum values can stay uppercase when the server contract requires uppercase strings.
+
+## 6.1 Environment Configuration
+
+Environment values must be centralized and typed through configuration wrappers.
+
+Mobile standards:
+
+- Load `.env` before dependency setup in `main.dart`.
+- Mobile `.env` must be registered under `flutter.assets` in `pubspec.yaml`.
+- Read mobile environment values through `core/config.dart`.
+- API base URL, Google client ID, and Google server client ID must not be hardcoded in feature code.
+- Constants such as `ApiConstants.baseUrl` may delegate to `AppConfig`, but repositories and pages must not read `dotenv` directly.
+
+API standards:
+
+- API environment values are parsed in `src/core/config.ts`.
+- Prisma reads `DB_STRING` through `prisma.config.ts`.
+- New required environment variables must be added to the Zod schema with explicit validation.
+- Feature code must import `config` instead of reading `process.env` directly.
 
 ## 7. Models
 
@@ -274,6 +295,8 @@ Model standards:
 - Parse arrays with explicit typing, for example `map<String>((x) => x.toString()).toList()`.
 - Use default fallback values when the API field can be missing.
 - Avoid putting UI labels, formatting, storage calls, HTTP calls, or Cubit logic inside models.
+- Every mobile model field that mirrors a backend/database column must use the same snake_case name as the backend, for example `user_id`, `business_id`, `branch_id`, `role_id`, `shift_id`, `post_id`, `bank_details`, `requested_role_id`, and `reviewed_by_id`.
+- Do not expose backend parity fields as lowerCamelCase aliases such as `userId`, `businessId`, `branchId`, `roleId`, `shiftId`, `postId`, `bankDetails`, `requestedRoleId`, or `reviewedById`.
 
 Preferred new model style:
 
@@ -283,24 +306,24 @@ class UserModel {
   final String email;
   final String name;
   final String token;
-  final String userId;
+  final String user_id;
   final String image;
   final String cover;
   final String bio;
-  final String createdAt;
-  final String updatedAt;
+  final String created_at;
+  final String updated_at;
 
   const UserModel({
     required this.id,
     required this.email,
     required this.name,
     required this.token,
-    required this.userId,
+    required this.user_id,
     required this.image,
     required this.cover,
     required this.bio,
-    required this.createdAt,
-    required this.updatedAt,
+    required this.created_at,
+    required this.updated_at,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -309,18 +332,18 @@ class UserModel {
       email: json['email'] ?? '',
       name: json['name'] ?? '',
       token: json['token'] ?? '',
-      userId: json['user_id'] ?? '',
+      user_id: json['user_id'] ?? '',
       image: json['image'] ?? '',
       cover: json['cover'] ?? '',
       bio: json['bio'] ?? '',
-      createdAt: json['created_at'] ?? '',
-      updatedAt: json['updated_at'] ?? '',
+      created_at: json['created_at'] ?? '',
+      updated_at: json['updated_at'] ?? '',
     );
   }
 }
 ```
 
-Existing models expose some snake_case Dart fields because the backend uses snake_case JSON. For new models, prefer lowerCamelCase Dart fields and map backend keys inside `fromJson` and `toJson`.
+Every model must strictly expose snake_case backend fields, including `created_at` and `updated_at`. This enforces total database/backend API parity throughout the codebase, making serialization and deserialization extremely seamless. Do not use lowerCamelCase aliases for backend fields.
 
 ## 8. API Client
 
@@ -617,7 +640,7 @@ Component standards:
 
 ## 15. Dependency Injection
 
-`core/di.dart` currently exists but is empty. Use it as the standard location for shared dependency creation.
+`core/di.dart` is the standard location for shared dependency creation.
 
 DI standards:
 
@@ -626,6 +649,10 @@ DI standards:
 - Pages should receive Cubits through `BlocProvider` or route-level providers.
 - Avoid creating a new `ApiClient` in multiple widgets.
 - Avoid hidden global mutable state.
+- New repositories, Cubits, and shared services must be registered in `setupDependencies`.
+- Use `registerLazySingleton` for shared services such as `LocalStorage`, `ApiClient`, and external auth services.
+- Use `registerFactory` for repositories and Cubits unless a feature has a clear need for a long-lived instance.
+- Keep app root providers in `main.dart` limited to Cubits that are needed across startup, auth, routing, or multiple feature flows.
 
 Recommended direction:
 
@@ -644,6 +671,8 @@ class AppDependencies {
 ```
 
 When this grows, move to a proper DI package only if the app complexity justifies it.
+
+Current DI uses `GetIt` through `serviceLocator` and `AppDependencies`. New functionality must be exposed through `AppDependencies` only when pages or app root wiring need a clean construction entry point.
 
 ## 16. Feature Development Workflow
 
@@ -714,6 +743,46 @@ Do not:
 - Read tokens inside widgets.
 - Parse Firebase or backend auth responses in pages.
 
+### Returning authenticated user
+
+Use a startup session gate page as the initial route.
+
+Do:
+
+- Verify the secure token through a protected backend endpoint such as `/auth/me`.
+- Load business context through the business repository after the user session is verified.
+- Save verified user and business context through `LocalStorage`.
+- Redirect associated users directly to the dashboard.
+- Redirect users with pending join requests to the pending request screen.
+- Redirect users without business context or pending requests to onboarding.
+
+Do not:
+
+- Open the login page first when a valid token can be verified.
+- Trust cached business context without refreshing permissions from the backend.
+- Navigate from repositories or Cubits.
+
+### Joining an existing business
+
+Use the business feature end to end.
+
+Do:
+
+- Search businesses through `BusinessRepo.searchBusinesses`.
+- Load branch options through `BusinessRepo.getBranches`.
+- Submit join requests through a typed repository method.
+- Store join request status strings in business constants.
+- Keep approval endpoints protected on the backend.
+- Check reviewer permissions server-side using `ALL` or `employee:write`.
+- Create or assign the default `Employee` role during approval when no role is provided.
+- Keep approval UI permission-gated from `BusinessContextModel.permissions`.
+
+Do not:
+
+- Let mobile decide whether approval is authorized.
+- Create default roles, shifts, departments, or posts in mobile code.
+- Hardcode request statuses or permission strings in pages.
+
 ### List screen
 
 Use a list model in state and one operation for loading. Add separate operations for item-level actions when needed.
@@ -777,6 +846,7 @@ Classes:
 Methods and variables:
 
 - `lowerCamelCase`
+- Backend parity fields inside mobile models use snake_case and are the only exception to lowerCamelCase variable naming.
 - Private fields and helpers start with `_`.
 - Async methods return `Future` or `TaskResult`.
 - Boolean names should read naturally, for example `isLoading`, `isAvailable`, `hasPermission`, `canEdit`.
@@ -838,7 +908,7 @@ Improve these areas when touching related code:
 - Align auth endpoints with backend route names. Mobile currently lists `/auth/google`, while the backend auth route currently exposes `/auth/login` and `/auth/refresh`.
 - Align repository response parsing with backend wrapped responses.
 - Move dependency construction into `core/di.dart`.
-- Prefer lowerCamelCase Dart model fields in new models.
+- Prefer exact snake_case backend field names in mobile models.
 - Avoid new analyzer ignore comments.
 - Replace hardcoded page copy with constants when reused or business-critical.
 - Register every route referenced by pages. Some route constants exist without registered builders.
@@ -857,4 +927,3 @@ Before finishing mobile work:
 8. Confirm dimensions use ScreenUtil.
 9. Confirm UI follows `contexts/ui_standard.md`.
 10. Confirm new code is comment-free.
-

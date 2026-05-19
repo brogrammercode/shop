@@ -71,12 +71,18 @@ class EditProfilePage extends StatelessWidget {
             SizedBox(height: 40.h),
             const AppInput(
               hintText: 'GamerTag',
-              prefixIcon: Icon(Icons.alternate_email, color: AppColors.primaryIndigo),
+              prefixIcon: Icon(
+                Icons.alternate_email,
+                color: AppColors.primaryIndigo,
+              ),
             ),
             SizedBox(height: 20.h),
             const AppInput(
               hintText: 'Bio',
-              prefixIcon: Icon(Icons.info_outline, color: AppColors.primaryIndigo),
+              prefixIcon: Icon(
+                Icons.info_outline,
+                color: AppColors.primaryIndigo,
+              ),
               keyboardType: TextInputType.multiline,
             ),
             SizedBox(height: 40.h),

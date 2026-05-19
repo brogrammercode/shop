@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { BusinessService } from './business.service';
-import { sendSuccess, NotFoundError } from '../../utils/error';
+import { sendSuccess, NotFoundError, requireSingleValue } from '../../utils/error';
 import { asyncHandler } from '../../utils/async';
 import { BUSINESS_MESSAGES } from './business.constant';
 import { User } from '../auth/user.type';
@@ -26,6 +26,46 @@ export class BusinessController {
         return sendSuccess(res, result);
     });
 
+    requestJoin = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const { branch_id, branchId, requested_role_id, requestedRoleId } = req.body;
+        const branchValue = requireSingleValue(branch_id || branchId, 'branch_id');
+        const result = await this.businessService.createJoinRequest(
+            user,
+            branchValue,
+            requested_role_id || requestedRoleId,
+        );
+        return sendSuccess(res, result, BUSINESS_MESSAGES.JOIN_REQUEST_CREATED);
+    });
+
+    getMyJoinRequests = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const result = await this.businessService.getMyJoinRequests(user.id);
+        return sendSuccess(res, result, BUSINESS_MESSAGES.JOIN_REQUESTS_FETCHED);
+    });
+
+    getJoinRequests = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const branchId = requireSingleValue(req.query.branchId || req.query.branch_id, 'branch_id');
+        const result = await this.businessService.getJoinRequestsForBranch(user, branchId);
+        return sendSuccess(res, result, BUSINESS_MESSAGES.JOIN_REQUESTS_FETCHED);
+    });
+
+    approveJoinRequest = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const id = req.params.id as string;
+        const { role_id, roleId } = req.body;
+        const result = await this.businessService.approveJoinRequest(user, id, role_id || roleId);
+        return sendSuccess(res, result, BUSINESS_MESSAGES.JOIN_REQUEST_APPROVED);
+    });
+
+    rejectJoinRequest = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const id = req.params.id as string;
+        const result = await this.businessService.rejectJoinRequest(user, id);
+        return sendSuccess(res, result, BUSINESS_MESSAGES.JOIN_REQUEST_REJECTED);
+    });
+
     getContext = asyncHandler(async (req: Request, res: Response) => {
         const user = (req as any).user as User;
         const result = await this.businessService.getUserContext(user.id);
@@ -37,7 +77,6 @@ export class BusinessController {
         return sendSuccess(res, result, BUSINESS_MESSAGES.CONTEXT_FETCHED);
     });
 
-    // Branch
     getBranch = asyncHandler(async (req: Request, res: Response) => {
         const id = req.params.id as string;
         const result = await this.businessService.getBranchById(id);
@@ -45,7 +84,7 @@ export class BusinessController {
     });
 
     getBranches = asyncHandler(async (req: Request, res: Response) => {
-        const businessId = req.query.businessId as string;
+        const businessId = requireSingleValue(req.query.business_id || req.query.businessId, 'business_id');
         const result = await this.businessService.getBranchesByBusinessId(businessId);
         return sendSuccess(res, result);
     });
@@ -67,7 +106,6 @@ export class BusinessController {
         return sendSuccess(res, result, BUSINESS_MESSAGES.BRANCH_DELETED);
     });
 
-    // Department
     getDepartment = asyncHandler(async (req: Request, res: Response) => {
         const id = req.params.id as string;
         const result = await this.businessService.getDepartmentById(id);
@@ -97,7 +135,6 @@ export class BusinessController {
         return sendSuccess(res, result, BUSINESS_MESSAGES.DEPARTMENT_DELETED);
     });
 
-    // Post
     getPost = asyncHandler(async (req: Request, res: Response) => {
         const id = req.params.id as string;
         const result = await this.businessService.getPostById(id);
@@ -127,7 +164,6 @@ export class BusinessController {
         return sendSuccess(res, result, BUSINESS_MESSAGES.POST_DELETED);
     });
 
-    // Shift
     getShift = asyncHandler(async (req: Request, res: Response) => {
         const id = req.params.id as string;
         const result = await this.businessService.getShiftById(id);
@@ -157,7 +193,6 @@ export class BusinessController {
         return sendSuccess(res, result, BUSINESS_MESSAGES.SHIFT_DELETED);
     });
 
-    // Role
     getRole = asyncHandler(async (req: Request, res: Response) => {
         const id = req.params.id as string;
         const result = await this.businessService.getRoleById(id);
@@ -187,7 +222,6 @@ export class BusinessController {
         return sendSuccess(res, result, BUSINESS_MESSAGES.ROLE_DELETED);
     });
 
-    // Employee
     getEmployee = asyncHandler(async (req: Request, res: Response) => {
         const id = req.params.id as string;
         const result = await this.businessService.getEmployeeById(id);
