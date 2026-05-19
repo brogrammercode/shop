@@ -1,14 +1,17 @@
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
+import { UserService } from './user.service';
 import { sendSuccess } from '../../utils/error';
 import { asyncHandler } from '../../utils/async';
 import { AUTH_MESSAGES } from './auth.constant';
 
 export class AuthController {
     private authService: AuthService;
+    private userService: UserService;
 
     constructor() {
         this.authService = new AuthService();
+        this.userService = new UserService();
     }
 
     login = asyncHandler(async (req: Request, res: Response) => {
@@ -21,5 +24,16 @@ export class AuthController {
         const { refreshToken } = req.body;
         const result = await this.authService.refreshAccessToken(refreshToken);
         return sendSuccess(res, result, AUTH_MESSAGES.REFRESH_SUCCESS);
+    });
+
+    logActivity = asyncHandler(async (req: Request, res: Response) => {
+        const result = await this.userService.logActivity(req.body);
+        return sendSuccess(res, result, 'Activity logged successfully');
+    });
+
+    getActivities = asyncHandler(async (req: Request, res: Response) => {
+        const { username } = req.params;
+        const result = await this.userService.getActivities(username as string);
+        return sendSuccess(res, result, 'Activities fetched successfully');
     });
 }

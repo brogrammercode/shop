@@ -10,14 +10,33 @@ model User {
   id         String   @id @default(cuid())
   name       String
   email      String   @unique
+  username   String   @unique @default("")
   image      String
+  cover      String   @default("")
+  bio        String   @default("")
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
 
   employee Employee?
-  orders   Order[]   @relation("OrderCustomer")
+  orders   Order[]        @relation("OrderCustomer")
+  activities UserActivity[]
 
   @@map("users")
+}
+
+model UserActivity {
+  id          String   @id @default(cuid())
+  username    String
+  type        String
+  module      String
+  title       String
+  description String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  user User @relation(fields: [username], references: [username], onDelete: Cascade)
+
+  @@map("user_activities")
 }
 
 model Business {

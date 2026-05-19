@@ -112,7 +112,7 @@ class OnboardingPage extends StatelessWidget {
                           backgroundColor: AppColors.deepOnyx,
                           textColor: Colors.white,
                           onPressed: () {
-                            Navigator.pushReplacementNamed(context, AppRoutes.home);
+                            // Navigator.pushReplacementNamed(context, AppRoutes.home);
                           },
                         ),
                       ],

@@ -32,4 +32,18 @@ export class UserRepo {
             where: { id }
         });
     }
+
+    async createUserActivity(data: Omit<import('./user.type').UserActivity, 'id' | 'created_at' | 'updated_at'>) {
+        return prisma.userActivity.create({
+            data
+        });
+    }
+
+    async getUserActivities(username: string) {
+        return prisma.userActivity.findMany({
+            where: { username },
+            orderBy: { created_at: 'desc' },
+            include: { user: true }
+        });
+    }
 }

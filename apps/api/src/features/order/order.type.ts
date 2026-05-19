@@ -12,7 +12,7 @@ type Product = {
     readonly stock: number;
     readonly category?: string;
     readonly images?: readonly string[];
-    readonly is_veg: boolean;
+    readonly is_veg: boolean; 
     readonly preparation_time: number;
     readonly variants: readonly ProductVariant[];
     readonly is_available: boolean;

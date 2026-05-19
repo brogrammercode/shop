@@ -49,4 +49,12 @@ export class UserService {
     verifyToken<T>(token: string, secret: string): T {
         return Jwt.verify<T>(token, secret);
     }
+
+    async logActivity(data: Omit<import('./user.type').UserActivity, 'id' | 'created_at' | 'updated_at'>) {
+        return this.userRepo.createUserActivity(data);
+    }
+
+    async getActivities(username: string) {
+        return this.userRepo.getUserActivities(username);
+    }
 }

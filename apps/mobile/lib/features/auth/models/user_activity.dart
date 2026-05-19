@@ -1,8 +1,10 @@
 // ignore_for_file: non_constant_identifier_names
 
+import 'package:mobile/features/auth/models/user.dart';
+
 class UserActivityModel {
   final String id;
-  final String user;
+  final UserModel user;
   final String type;
   final String module;
   final String title;
@@ -23,7 +25,7 @@ class UserActivityModel {
 
   UserActivityModel copyWith({
     String? id,
-    String? user,
+    UserModel? user,
     String? type,
     String? module,
     String? title,
@@ -46,7 +48,7 @@ class UserActivityModel {
   factory UserActivityModel.fromJson(Map<String, dynamic> json) {
     return UserActivityModel(
       id: json['_id'] ?? '',
-      user: json['user'] ?? '',
+      user: UserModel.fromJson(json['user']),
       type: json['type'] ?? '',
       module: json['module'] ?? '',
       title: json['title'] ?? '',
@@ -59,7 +61,7 @@ class UserActivityModel {
   Map<String, dynamic> toJson() {
     return {
       '_id': id,
-      'user': user,
+      'user': user.toJson(),
       'type': type,
       'module': module,
       'title': title,

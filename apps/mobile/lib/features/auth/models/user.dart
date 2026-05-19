@@ -5,7 +5,7 @@ class UserModel {
   final String email;
   final String name;
   final String token;
-  final String user_id;
+  final String username; // username
   final String image;
   final String cover;
   final String bio;
@@ -17,7 +17,7 @@ class UserModel {
     required this.email,
     required this.name,
     required this.token,
-    required this.user_id,
+    required this.username,
     required this.image,
     required this.cover,
     required this.bio,
@@ -30,7 +30,7 @@ class UserModel {
     String? email,
     String? name,
     String? token,
-    String? user_id,
+    String? username,
     String? image,
     String? cover,
     String? bio,
@@ -42,7 +42,7 @@ class UserModel {
       email: email ?? this.email,
       name: name ?? this.name,
       token: token ?? this.token,
-      user_id: user_id ?? this.user_id,
+      username: username ?? this.username,
       image: image ?? this.image,
       cover: cover ?? this.cover,
       bio: bio ?? this.bio,
@@ -57,7 +57,7 @@ class UserModel {
       email: json['email'],
       name: json['name'],
       token: json['token'],
-      user_id: json['user_id'],
+      username: json['username'],
       image: json['image'],
       cover: json['cover'],
       bio: json['bio'],
@@ -72,7 +72,7 @@ class UserModel {
       'email': email,
       'name': name,
       'token': token,
-      'user_id': user_id,
+      'username': username,
       'image': image,
       'cover': cover,
       'bio': bio,
