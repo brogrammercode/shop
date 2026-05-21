@@ -6,11 +6,15 @@ type ProductVariant = {
 type Product = {
     readonly id: string;
     readonly branch_id: string;
+    readonly sku?: string;
+    readonly barcode?: string;
     readonly name: string;
     readonly description?: string;
     readonly price: number;
     readonly stock: number;
     readonly category?: string;
+    readonly unit: string;
+    readonly low_stock_alert: number;
     readonly images?: readonly string[];
     readonly is_veg: boolean; 
     readonly preparation_time: number;

@@ -28,7 +28,7 @@ router.post(ORDER_ROUTES.DELIVERY_ORDER, protect, controller.placeDeliveryOrder)
 router.get(ORDER_ROUTES.ORDER_LIST, protect, controller.getOrders);
 router.get(ORDER_ROUTES.ORDER_DETAIL, protect, controller.getOrder);
 router.post(ORDER_ROUTES.ORDER_LIST, protect, controller.placeOrder);
-router.post(ORDER_ROUTES.COUNTER_ORDER, protect, controller.placeOrder);
+router.post(ORDER_ROUTES.COUNTER_ORDER, protect, controller.placeCounterOrder);
 router.patch(ORDER_ROUTES.ORDER_STATUS, protect, controller.updateOrderStatus);
 
 router.get(ORDER_ROUTES.BILL_BY_ORDER, protect, controller.getBillByOrder);

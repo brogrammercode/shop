@@ -8,6 +8,7 @@ class AppInput extends StatelessWidget {
   final bool obscureText;
   final TextInputType keyboardType;
   final Widget? prefixIcon;
+  final ValueChanged<String>? onChanged;
 
   const AppInput({
     super.key,
@@ -16,6 +17,7 @@ class AppInput extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
     this.prefixIcon,
+    this.onChanged,
   });
 
   @override
@@ -24,6 +26,7 @@ class AppInput extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      onChanged: onChanged,
       style: TextStyle(fontSize: 16.sp),
       decoration: InputDecoration(
         hintText: hintText,

@@ -41,6 +41,7 @@ class BusinessConstants {
   static const String workspaceReady = 'Workspace Ready';
   static const String completingSetup = 'Completing Setup';
   static const String startSelling = 'Start Selling';
+  static const String manageProducts = 'Products';
   static const String fallbackWorkspace = 'Workspace';
   static const String fallbackBranch = 'Primary branch';
   static const String continueText = 'Continue';

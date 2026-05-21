@@ -3,9 +3,14 @@ import 'package:mobile/features/auth/cubit/auth_cubit.dart';
 import 'package:mobile/features/auth/repo/auth_repo.dart';
 import 'package:mobile/features/business/cubit/business_cubit.dart';
 import 'package:mobile/features/business/repo/business_repo.dart';
+import 'package:mobile/features/order/cubit/counter_sale_cubit.dart';
+import 'package:mobile/features/order/repo/order_repo.dart';
+import 'package:mobile/features/product/cubit/product_cubit.dart';
+import 'package:mobile/features/product/repo/product_repo.dart';
 import 'package:mobile/services/api_client.dart';
 import 'package:mobile/services/google_auth_service.dart';
 import 'package:mobile/services/local_storage.dart';
+import 'package:mobile/services/thermal_printer_service.dart';
 
 final GetIt serviceLocator = GetIt.instance;
 
@@ -22,6 +27,9 @@ Future<void> setupDependencies() async {
   serviceLocator.registerLazySingleton<ApiClient>(
     () => ApiClient(localStorage: serviceLocator<LocalStorage>()),
   );
+  serviceLocator.registerLazySingleton<ThermalPrinterService>(
+    ThermalPrinterService.new,
+  );
   serviceLocator.registerFactory<AuthRepo>(
     () => AuthRepo(
       apiClient: serviceLocator<ApiClient>(),
@@ -34,6 +42,12 @@ Future<void> setupDependencies() async {
       localStorage: serviceLocator<LocalStorage>(),
     ),
   );
+  serviceLocator.registerFactory<ProductRepo>(
+    () => ProductRepo(apiClient: serviceLocator<ApiClient>()),
+  );
+  serviceLocator.registerFactory<OrderRepo>(
+    () => OrderRepo(apiClient: serviceLocator<ApiClient>()),
+  );
   serviceLocator.registerFactory<AuthCubit>(
     () => AuthCubit(
       authRepo: serviceLocator<AuthRepo>(),
@@ -42,6 +56,16 @@ Future<void> setupDependencies() async {
   );
   serviceLocator.registerFactory<BusinessCubit>(
     () => BusinessCubit(serviceLocator<BusinessRepo>()),
+  );
+  serviceLocator.registerFactory<ProductCubit>(
+    () => ProductCubit(productRepo: serviceLocator<ProductRepo>()),
+  );
+  serviceLocator.registerFactory<CounterSaleCubit>(
+    () => CounterSaleCubit(
+      productRepo: serviceLocator<ProductRepo>(),
+      orderRepo: serviceLocator<OrderRepo>(),
+      thermalPrinterService: serviceLocator<ThermalPrinterService>(),
+    ),
   );
 }
 
@@ -66,11 +90,27 @@ class AppDependencies {
     return serviceLocator<BusinessRepo>();
   }
 
+  static ProductRepo productRepo() {
+    return serviceLocator<ProductRepo>();
+  }
+
+  static OrderRepo orderRepo() {
+    return serviceLocator<OrderRepo>();
+  }
+
   static AuthCubit authCubit() {
     return serviceLocator<AuthCubit>();
   }
 
   static BusinessCubit businessCubit() {
     return serviceLocator<BusinessCubit>();
+  }
+
+  static ProductCubit productCubit() {
+    return serviceLocator<ProductCubit>();
+  }
+
+  static CounterSaleCubit counterSaleCubit() {
+    return serviceLocator<CounterSaleCubit>();
   }
 }

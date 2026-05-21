@@ -1,17 +1,36 @@
 import { OrderRepo } from './order.repo';
 import { 
-    Product, Order, OrderItem, Bill, 
+    Product, ProductVariant, Order, OrderItem, Bill, 
     Rider, Delivery,
-    OrderStatus, DeliveryStatus, PaymentStatus 
+    OrderStatus, DeliveryStatus, PaymentStatus, PaymentMethod 
 } from './order.type';
 import { User } from '../auth/user.type';
-import { ORDER_DEFAULTS } from './order.constant';
+import { ORDER_DEFAULTS, ORDER_MESSAGES } from './order.constant';
+import prisma from '../../infra/database/client';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../../utils/error';
 
 type PlaceOrderData = {
     user?: User;
     order: Omit<Order, 'id' | 'created_at' | 'updated_at' | 'status'> & Partial<Pick<Order, 'status'>>;
     items: Omit<OrderItem, 'id' | 'order_id' | 'created_at' | 'updated_at'>[];
     delivery?: Omit<Delivery, 'id' | 'order_id' | 'created_at' | 'updated_at' | 'rider_id'>;
+}
+
+type CounterOrderItemData = {
+    readonly product_id: string;
+    readonly quantity: number;
+    readonly variants?: readonly ProductVariant[];
+    readonly notes?: string;
+}
+
+type CounterOrderData = {
+    readonly branch_id: string;
+    readonly employee_id?: string;
+    readonly items: readonly CounterOrderItemData[];
+    readonly notes?: string;
+    readonly tax?: number;
+    readonly discount?: number;
+    readonly payment_method?: PaymentMethod;
 }
 
 export class OrderService {
@@ -81,6 +100,145 @@ export class OrderService {
         }
 
         return order;
+    }
+
+    async placeCounterOrder(user: User, data: CounterOrderData): Promise<unknown> {
+        if (!data.items.length) {
+            throw new BadRequestError(ORDER_MESSAGES.EMPTY_ORDER);
+        }
+
+        const employee = await prisma.employee.findUnique({
+            where: { user_id: user.id },
+            include: { role: true }
+        });
+
+        if (!employee || employee.branch_id !== data.branch_id) {
+            throw new ForbiddenError(ORDER_MESSAGES.EMPLOYEE_CONTEXT_REQUIRED);
+        }
+
+        return prisma.$transaction(async (tx) => {
+            let subTotal = 0;
+            const resolvedItems = [];
+
+            for (const item of data.items) {
+                if (item.quantity <= 0) {
+                    throw new BadRequestError(ORDER_MESSAGES.INVALID_QUANTITY);
+                }
+
+                const product = await tx.product.findFirst({
+                    where: {
+                        id: item.product_id,
+                        branch_id: data.branch_id
+                    }
+                });
+
+                if (!product) {
+                    throw new NotFoundError(ORDER_MESSAGES.PRODUCT_UNAVAILABLE);
+                }
+
+                if (!product.is_available) {
+                    throw new BadRequestError(ORDER_MESSAGES.PRODUCT_UNAVAILABLE);
+                }
+
+                if (product.stock < item.quantity) {
+                    throw new BadRequestError(ORDER_MESSAGES.INSUFFICIENT_STOCK);
+                }
+
+                const productVariants = Array.isArray(product.variants) ? product.variants as ProductVariant[] : [];
+                const selectedVariants = (item.variants ?? []).map((variant) => {
+                    const matchedVariant = productVariants.find((productVariant) => productVariant.name === variant.name);
+                    return matchedVariant ?? { name: variant.name, price: 0 };
+                });
+                const variantTotal = selectedVariants.reduce((total, variant) => total + Number(variant.price), 0);
+                const price = Number(product.price) + variantTotal;
+                subTotal += price * item.quantity;
+
+                resolvedItems.push({
+                    product_id: product.id,
+                    quantity: item.quantity,
+                    price,
+                    variants: selectedVariants,
+                    notes: item.notes
+                });
+
+                const stockUpdate = await tx.product.updateMany({
+                    where: {
+                        id: product.id,
+                        stock: {
+                            gte: item.quantity
+                        }
+                    },
+                    data: {
+                        stock: {
+                            decrement: item.quantity
+                        }
+                    }
+                });
+
+                if (stockUpdate.count === 0) {
+                    throw new BadRequestError(ORDER_MESSAGES.INSUFFICIENT_STOCK);
+                }
+
+                if (product.stock - item.quantity <= 0) {
+                    await tx.product.update({
+                        where: { id: product.id },
+                        data: { is_available: false }
+                    });
+                }
+            }
+
+            const tax = data.tax ?? ORDER_DEFAULTS.DEFAULT_TAX;
+            const discount = data.discount ?? ORDER_DEFAULTS.DEFAULT_DISCOUNT;
+            const deliveryAmount = ORDER_DEFAULTS.DEFAULT_DELIVERY_AMOUNT;
+            const orderAmount = Math.max(subTotal - discount, 0);
+            const totalAmount = orderAmount + tax + deliveryAmount;
+            const order = await tx.order.create({
+                data: {
+                    branch_id: data.branch_id,
+                    employee_id: employee.id,
+                    type: ORDER_DEFAULTS.TAKEAWAY_TYPE,
+                    status: ORDER_DEFAULTS.CONFIRMED_ORDER_STATUS,
+                    total_amount: totalAmount,
+                    notes: data.notes,
+                    items: {
+                        create: resolvedItems
+                    }
+                }
+            });
+
+            await tx.bill.create({
+                data: {
+                    order_id: order.id,
+                    bill_number: `${ORDER_DEFAULTS.BILL_PREFIX}-${Date.now()}`,
+                    sub_total: subTotal,
+                    tax,
+                    discount,
+                    order_amount: orderAmount,
+                    delivery_amount: deliveryAmount,
+                    total_amount: totalAmount,
+                    payment_status: ORDER_DEFAULTS.PAID_PAYMENT_STATUS,
+                    payment_method: data.payment_method ?? ORDER_DEFAULTS.UPI_PAYMENT_METHOD
+                }
+            });
+
+            return tx.order.findUnique({
+                where: { id: order.id },
+                include: {
+                    items: {
+                        include: {
+                            product: true
+                        }
+                    },
+                    bill: true,
+                    branch: {
+                        include: {
+                            business: true
+                        }
+                    },
+                    employee: true
+                }
+            });
+        });
     }
 
     async updateOrderStatus(id: string, status: OrderStatus): Promise<Order> {

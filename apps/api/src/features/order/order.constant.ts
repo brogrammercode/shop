@@ -8,6 +8,7 @@ export const ORDER_MESSAGES = {
     ORDER_FETCHED: 'Order fetched successfully',
     ORDERS_FETCHED: 'Orders fetched successfully',
     ORDER_CREATED: 'Order placed successfully',
+    COUNTER_ORDER_CREATED: 'Counter bill created successfully',
     ORDER_UPDATED: 'Order updated successfully',
     ORDER_CANCELLED: 'Order cancelled successfully',
     TABLE_SESSION_FETCHED: 'Table session fetched successfully',
@@ -23,6 +24,10 @@ export const ORDER_MESSAGES = {
     DELIVERY_UPDATED: 'Delivery status updated',
     NOT_FOUND: 'Resource not found in order module',
     INSUFFICIENT_STOCK: 'Insufficient stock for one or more products',
+    EMPTY_ORDER: 'At least one product is required to create a bill',
+    INVALID_QUANTITY: 'Product quantity must be greater than zero',
+    PRODUCT_UNAVAILABLE: 'Product is not available for this branch',
+    EMPLOYEE_CONTEXT_REQUIRED: 'Employee branch context is required',
 };
 
 export const ORDER_ROUTES = {
@@ -68,6 +73,14 @@ export const ORDER_DEFAULTS = {
     DINE_IN_TYPE: 'DINE_IN',
     DELIVERY_TYPE: 'DELIVERY',
     PENDING_ORDER_STATUS: 'PENDING',
+    CONFIRMED_ORDER_STATUS: 'CONFIRMED',
+    TAKEAWAY_TYPE: 'TAKEAWAY',
+    PAID_PAYMENT_STATUS: 'PAID',
+    UPI_PAYMENT_METHOD: 'UPI',
+    DEFAULT_TAX: 0,
+    DEFAULT_DISCOUNT: 0,
+    DEFAULT_DELIVERY_AMOUNT: 0,
+    BILL_PREFIX: 'BILL',
     ASSIGNED_DELIVERY_STATUS: 'ASSIGNED',
     CLOSED_TABLE_STATUSES: ['DELIVERED', 'CANCELLED']
 } as const;

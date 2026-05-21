@@ -47,7 +47,7 @@ export const BUSINESS_DEFAULTS = {
     GENERAL_SHIFT_START: '09:00',
     GENERAL_SHIFT_END: '18:00',
     ALL_PERMISSION: 'ALL',
-    EMPLOYEE_PERMISSIONS: ['business:read', 'branch:read'] as readonly string[],
+    EMPLOYEE_PERMISSIONS: ['business:read', 'branch:read', 'product:read', 'order:read', 'order:write'] as readonly string[],
     EMPTY_BANK_DETAILS: { account_name: '', account_number: '', bank_name: '', ifsc_code: '' },
     EMPTY_ADDRESS: { street: '', city: '', state: '', zip: '', country: '' },
 } as const;
@@ -67,4 +67,8 @@ export const BUSINESS_PERMISSIONS = [
     'role:write',
     'employee:read',
     'employee:write',
+    'product:read',
+    'product:write',
+    'order:read',
+    'order:write',
 ] as const;

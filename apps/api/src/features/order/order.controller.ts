@@ -105,6 +105,20 @@ export class OrderController {
         return sendSuccess(res, result, ORDER_MESSAGES.ORDER_CREATED);
     });
 
+    placeCounterOrder = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const result = await this.orderService.placeCounterOrder(user, {
+            branch_id: req.body.branch_id,
+            employee_id: req.body.employee_id,
+            items: req.body.items ?? [],
+            notes: req.body.notes,
+            tax: req.body.tax,
+            discount: req.body.discount,
+            payment_method: req.body.payment_method
+        });
+        return sendSuccess(res, result, ORDER_MESSAGES.COUNTER_ORDER_CREATED);
+    });
+
     placeMyOrder = asyncHandler(async (req: Request, res: Response) => {
         const user = (req as any).user as User;
         const result = await this.orderService.placeOrder({

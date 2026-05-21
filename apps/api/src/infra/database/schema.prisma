@@ -241,15 +241,19 @@ enum DeliveryStatus {
 model Product {
   id               String   @id @default(cuid())
   branch_id        String
+  sku              String?
+  barcode          String?
   name             String
   description      String?
   price            Float
   stock            Int
   category         String?
-  images           String[]
+  unit             String   @default("pcs")
+  low_stock_alert  Int      @default(0)
+  images           String[] @default([])
   is_veg           Boolean  @default(false)
   preparation_time Int      @default(0)
-  variants         Json
+  variants         Json     @default("[]")
   is_available     Boolean  @default(true)
   created_at       DateTime @default(now())
   updated_at       DateTime @default(now())

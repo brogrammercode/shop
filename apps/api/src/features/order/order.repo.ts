@@ -40,6 +40,11 @@ export class OrderRepo {
                     }
                 },
                 bill: true,
+                branch: {
+                    include: {
+                        business: true
+                    }
+                },
                 delivery: {
                     include: {
                         rider: {

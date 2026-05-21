@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/core/routes.dart';
 import 'package:mobile/features/business/constants/business.dart';
 import 'package:mobile/features/business/cubit/business_cubit.dart';
 import 'package:mobile/features/business/cubit/business_state.dart';
@@ -160,9 +161,27 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ),
                 SizedBox(height: 16.h),
-                AppButton(
-                  text: BusinessConstants.startSelling,
-                  onPressed: () {},
+                Row(
+                  children: [
+                    Expanded(
+                      child: AppButton(
+                        text: BusinessConstants.manageProducts,
+                        backgroundColor: AppColors.deepOnyx,
+                        onPressed: () {
+                          Navigator.pushNamed(context, AppRoutes.products);
+                        },
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: AppButton(
+                        text: BusinessConstants.startSelling,
+                        onPressed: () {
+                          Navigator.pushNamed(context, AppRoutes.counterSale);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
