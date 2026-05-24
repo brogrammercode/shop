@@ -13,11 +13,14 @@ class StorePage extends StatefulWidget {
 class _StorePageState extends State<StorePage> {
   bool isSweetsExpanded = true;
   String selectedFilter = 'Filters';
+  int cartItemCount = 0;
+  double cartTotalPrice = 0.0;
+  String? addedDishImageUrl;
 
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
-
+    
     return Scaffold(
       backgroundColor: AppColors.pureWhite,
       body: Stack(
@@ -31,11 +34,12 @@ class _StorePageState extends State<StorePage> {
                 _buildStoreDetailsBlock(),
                 _buildFiltersSection(),
                 _buildMenuSection(),
-                SizedBox(height: 100.h),
+                SizedBox(height: cartItemCount > 0 ? 160.h : 100.h),
               ],
             ),
           ),
           _buildFloatingMenuButton(),
+          if (cartItemCount > 0) _buildBottomCartBar(),
         ],
       ),
     );
@@ -675,7 +679,7 @@ class _StorePageState extends State<StorePage> {
 
   Widget _buildFloatingMenuButton() {
     return Positioned(
-      bottom: 24.h,
+      bottom: cartItemCount > 0 ? 130.h : 24.h,
       left: 0,
       right: 0,
       child: Center(
@@ -716,14 +720,163 @@ class _StorePageState extends State<StorePage> {
     );
   }
 
-  void _showCustomisationBottomSheet(BuildContext context, DishItem dish) {
-    showModalBottomSheet(
+  void _showCustomisationBottomSheet(BuildContext context, DishItem dish) async {
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return CustomisationModal(dish: dish);
       },
+    );
+
+    if (result != null) {
+      setState(() {
+        cartItemCount = (result['quantity'] as int);
+        cartTotalPrice = (result['price'] as double);
+        addedDishImageUrl = dish.imageUrl;
+      });
+    }
+  }
+
+  Widget _buildBottomCartBar() {
+    return Positioned(
+      bottom: 16.h,
+      left: 16.w,
+      right: 16.w,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE3F2FD), Color(0xFFF1F8E9)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
+              border: const Border(
+                top: BorderSide(color: Color(0xFFBBDEFB)),
+                left: BorderSide(color: Color(0xFFBBDEFB)),
+                right: BorderSide(color: Color(0xFFBBDEFB)),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(4.w),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF2563EB),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.percent,
+                    color: AppColors.pureWhite,
+                    size: 10.w,
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Unlock Flat ₹40 OFF',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF1E3A8A),
+                        ),
+                      ),
+                      Text(
+                        'Add items worth ₹46 or more to unlock',
+                        style: TextStyle(
+                          fontSize: 10.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.keyboard_arrow_up,
+                  color: const Color(0xFF1E3A8A),
+                  size: 16.w,
+                ),
+              ],
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/cart');
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+              decoration: BoxDecoration(
+                color: AppColors.primaryGreen,
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(12.r)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 6,
+                    offset: Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      if (addedDishImageUrl != null)
+                        Container(
+                          width: 32.w,
+                          height: 32.w,
+                          margin: EdgeInsets.only(right: 10.w),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6.r),
+                            image: DecorationImage(
+                              image: NetworkImage(addedDishImageUrl!),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      Text(
+                        '$cartItemCount ${cartItemCount == 1 ? "item" : "items"} added',
+                        style: TextStyle(
+                          color: AppColors.pureWhite,
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'View cart',
+                        style: TextStyle(
+                          color: AppColors.pureWhite,
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      SizedBox(width: 4.w),
+                      Icon(
+                        Icons.chevron_right,
+                        color: AppColors.pureWhite,
+                        size: 16.w,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -1019,7 +1172,10 @@ class _CustomisationModalState extends State<CustomisationModal> {
                         height: 48.h,
                         child: ElevatedButton(
                           onPressed: () {
-                            Navigator.pop(context);
+                            Navigator.pop(context, {
+                              'quantity': quantityCount,
+                              'price': totalPrice,
+                            });
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primaryGreen,

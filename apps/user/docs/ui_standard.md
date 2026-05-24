@@ -54,3 +54,20 @@ We use **GoogleFonts.outfit** for modern, premium sans-serif styling:
 *   **Store Detail Layout**: Clear circular navigation back and dot actions alongside rating capsules, detailed complaint history tags, and flat offer bars.
 *   **Expandable Menu Category Sections**: Best in Sweets section containing collapsible header icons, green veg dots, highly reordered progress bars, details, price points, and bottom overlay "ADD" buttons positioned on dishes.
 *   **Interactive Customisation Bottom Sheet**: Modal sheet extending from bottom (`0.76` height ratio), carrying custom close buttons floating on top, full image headers, radio choice selectors, count controls, and confirmation add buttons displaying total costs.
+*   **Bottom Cart Summary Bar**: Floating pill capsule positioned above the bottom (`bottom: 16.h`) displaying a small thumbnail of the added item, cart item count, a dynamic blue promo banner, and a green "View cart" navigate trigger.
+*   **Cart Page & JioSaavn Promo**: Light red box (`Color(0xFFFFF5F5)`) with red border (`Color(0xFFFFD1D1)`) showing JioSaavn Pro details. Lock icon is present until the cart subtotal threshold (₹99) is unlocked. Tapping "ADD" toggles to "ADDED" and changes the border.
+*   **Address Selection Bottom Sheet**: Standard slide sheet (`0.72` height ratio) with custom close triggers, dividing addresses into "DELIVERS TO" (blue labels) and "DOES NOT DELIVER TO" (red labels/grayed-out text).
+*   **Payment Options Page**: centralizes payment methods grouped by Recommended UPIs, Credit/Debit cards, wallets, and Pay Later options. Features standardized small logo background boxes (`40.w` x `28.h`) for payment brands.
+*   **Sticky Footer**: Place Order green button displaying dynamic total charges (Sohan Papdi item total + taxes & charges + delivery fee) and selected payment app labels.
+*   **Setting Page Profile Card**: Rounded corner card (`16.r`) with avatar, profile name, and a bottom-rounded deep onyx banner (`Color(0xFF262626)`) displaying Gold Membership renewal options with gold color chevron.
+*   **Setting Quick Actions**: Equal-width twin cards (`zomato money`, `coupons`) with light grey circular icon backings (`Color(0xFFF5F5F5)`).
+*   **Setting Category Headers**: Category titles prefixed with a solid green vertical indicator bar (`3.w` x `16.h`).
+*   **Setting Category Containers**: Rounded white boxes (`12.r`) with thin grey borders containing ListTiles separated by 1.h dividers. Supports customizable trailing widgets (e.g. Switches and text chevron combinations).
+*   **Feeding India Banner**: Nested warning-style banner with light red background (`Color(0xFFFFF5F5)`) and bold red text, featuring a red heart icon.
+*   **Login Promo Slider**: PageView container occupying the top ~45% of the screen height, dark transparency gradient overlay, left-aligned bold text, Zomato/Percent badges, and bottom centered white page dot indicator rows.
+*   **Login Account Select Card**: White bordered box (`12.r`) with user profile avatar, name, and phone sub-label.
+*   **Login Phone Input Box**: Split input containing a customized Indian flag widget (saffron, white, green strips with center navy dot), dropdown arrows, vertical divider, prefix `+91 `, and raw text entry space.
+*   **Login Checkbox Option**: Custom toggleable widget displaying a red colored checkmark box when active.
+*   **Login Action Buttons**: High-contrast red button (`Color(0xFFEF4F5F)`) with white bold text, and social circular white buttons carrying Google and Email icons.
+
+

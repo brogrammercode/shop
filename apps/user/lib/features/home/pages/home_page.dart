@@ -185,20 +185,23 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     SizedBox(width: 8.w),
-                    Container(
-                      width: 36.w,
-                      height: 36.w,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.borderGrey,
-                          width: 1,
-                        ),
-                        image: const DecorationImage(
-                          image: NetworkImage(
-                            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
+                    GestureDetector(
+                      onTap: () => Navigator.pushNamed(context, '/setting'),
+                      child: Container(
+                        width: 36.w,
+                        height: 36.w,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.borderGrey,
+                            width: 1,
                           ),
-                          fit: BoxFit.cover,
+                          image: const DecorationImage(
+                            image: NetworkImage(
+                              'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100',
+                            ),
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                     ),

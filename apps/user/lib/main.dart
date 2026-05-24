@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
           title: 'User Shop App',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
-          initialRoute: AppRoutes.home,
+          initialRoute: AppRoutes.login,
           routes: AppRoutes.routes,
         );
       },
