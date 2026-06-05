@@ -2,20 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user/core/color.dart';
 import 'package:user/features/order/_data_dummy/cart_page.dart';
+import 'package:user/features/home/_data_dummy/food_page.dart';
 
 class CartItem {
+  final String id;
   final String name;
   final double price;
+  final String imageUrl;
   final String sizeInfo;
   final bool isVeg;
   int quantity;
+  List<CartSubItem> subItems;
 
   CartItem({
+    required this.id,
     required this.name,
     required this.price,
+    required this.imageUrl,
     required this.sizeInfo,
     required this.isVeg,
     required this.quantity,
+    this.subItems = const [],
   });
 }
 
@@ -38,11 +45,14 @@ class _CartPageState extends State<CartPage> {
     super.initState();
     cartItems = [
       CartItem(
+        id: 'sohan_papdi',
         name: 'Sohan Papdi',
         price: 53,
+        imageUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500',
         sizeInfo: '2 Pieces',
         isVeg: true,
         quantity: 1,
+        subItems: [],
       ),
     ];
     activeAddress = dummyAddresses[0];
@@ -52,6 +62,9 @@ class _CartPageState extends State<CartPage> {
     double total = 0;
     for (var item in cartItems) {
       total += item.price * item.quantity;
+      for (var sub in item.subItems) {
+        total += sub.price * sub.quantity;
+      }
     }
     return total;
   }
@@ -388,9 +401,73 @@ class _CartPageState extends State<CartPage> {
                               fontWeight: FontWeight.w600,
                             ),
                           ),
+                          if (item.subItems.isNotEmpty) ...
+                            item.subItems.map((sub) => Padding(
+                              padding: EdgeInsets.only(top: 4.h),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 8.w,
+                                    height: 8.w,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.green, width: 1),
+                                      borderRadius: BorderRadius.circular(1.r),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Container(
+                                      width: 4.w,
+                                      height: 4.w,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.green,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 6.w),
+                                  Text(
+                                    '${sub.name} × ${sub.quantity}',
+                                    style: TextStyle(
+                                      fontSize: 10.sp,
+                                      color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(width: 4.w),
+                                  Text(
+                                    '₹${(sub.price * sub.quantity).toInt()}',
+                                    style: TextStyle(
+                                      fontSize: 10.sp,
+                                      color: AppColors.textTertiary,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )),
                           SizedBox(height: 6.h),
                           GestureDetector(
-                            onTap: () {},
+                            onTap: () async {
+                              final result = await Navigator.pushNamed(
+                                context,
+                                '/food',
+                                arguments: FoodPageArgs(
+                                  id: item.id,
+                                  name: item.name,
+                                  price: item.price,
+                                  imageUrl: item.imageUrl,
+                                  rating: 4.3,
+                                  isVeg: item.isVeg,
+                                  initialQuantity: item.quantity,
+                                  initialSubItems: item.subItems,
+                                ),
+                              ) as FoodPageResult?;
+                              if (result != null) {
+                                setState(() {
+                                  item.quantity = result.quantity;
+                                  item.subItems = result.subItems;
+                                });
+                              }
+                            },
                             child: Row(
                               children: [
                                 Text(
@@ -657,11 +734,14 @@ class _CartPageState extends State<CartPage> {
                                   cartItems[existingIndex].quantity++;
                                 } else {
                                   cartItems.add(CartItem(
+                                    id: dish.name.toLowerCase().replaceAll(' ', '_'),
                                     name: dish.name,
                                     price: dish.price,
+                                    imageUrl: dish.imageUrl,
                                     sizeInfo: dish.sizeInfo,
                                     isVeg: dish.isVeg,
                                     quantity: 1,
+                                    subItems: [],
                                   ));
                                 }
                               });

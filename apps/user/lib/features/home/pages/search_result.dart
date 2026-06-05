@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user/core/color.dart';
 import 'package:user/features/home/_data_dummy/search_result.dart';
+import 'package:user/features/home/_data_dummy/food_page.dart';
 
 class SearchResultPage extends StatefulWidget {
   const SearchResultPage({super.key});
@@ -15,6 +16,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
   String selectedSubCategoryId = 'sweets';
 
   final Map<String, int> _cartQuantities = {};
+  final Map<String, List<CartSubItem>> _cartSubItems = {};
 
   int get _totalCartItems {
     int total = 0;
@@ -34,6 +36,11 @@ class _SearchResultPageState extends State<SearchResultPage> {
       final qty = _cartQuantities[large.id] ?? 0;
       total += large.price * qty;
     }
+    for (final subList in _cartSubItems.values) {
+      for (final sub in subList) {
+        total += sub.price * sub.quantity;
+      }
+    }
     return total;
   }
 
@@ -48,10 +55,36 @@ class _SearchResultPageState extends State<SearchResultPage> {
       final current = _cartQuantities[id] ?? 0;
       if (current <= 1) {
         _cartQuantities.remove(id);
+        _cartSubItems.remove(id);
       } else {
         _cartQuantities[id] = current - 1;
       }
     });
+  }
+
+  Future<void> _openFoodPage(BuildContext context, String id, String name, double price, String imageUrl, double rating, bool isVeg) async {
+    final int currentQty = _cartQuantities[id] ?? 0;
+    final List<CartSubItem> currentSubs = _cartSubItems[id] ?? [];
+    final result = await Navigator.pushNamed(
+      context,
+      '/food',
+      arguments: FoodPageArgs(
+        id: id,
+        name: name,
+        price: price,
+        imageUrl: imageUrl,
+        rating: rating,
+        isVeg: isVeg,
+        initialQuantity: currentQty > 0 ? currentQty : 1,
+        initialSubItems: currentSubs,
+      ),
+    ) as FoodPageResult?;
+    if (result != null) {
+      setState(() {
+        _cartQuantities[id] = result.quantity;
+        _cartSubItems[id] = result.subItems;
+      });
+    }
   }
 
   @override
@@ -351,7 +384,10 @@ class _SearchResultPageState extends State<SearchResultPage> {
             itemBuilder: (context, index) {
               final item = dummySearchResultRecommended[index];
               final qty = _cartQuantities[item.id] ?? 0;
-              return _buildSmallItemCard(item, qty);
+              return GestureDetector(
+                onTap: () => _openFoodPage(context, item.id, item.name, item.price, item.imageUrl, item.rating, true),
+                child: _buildSmallItemCard(item, qty),
+              );
             },
           ),
         ],
@@ -396,7 +432,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
                 ),
               ),
               Positioned(
-                bottom: 6.h,
+                bottom: 22.h,
                 left: 6.w,
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
@@ -589,7 +625,10 @@ class _SearchResultPageState extends State<SearchResultPage> {
             itemBuilder: (context, index) {
               final item = dummySearchResultLarge[index];
               final qty = _cartQuantities[item.id] ?? 0;
-              return _buildLargeItemCard(item, qty);
+              return GestureDetector(
+                onTap: () => _openFoodPage(context, item.id, item.name, item.price, item.imageUrl, item.rating, item.isPureVeg),
+                child: _buildLargeItemCard(item, qty),
+              );
             },
           ),
         ],

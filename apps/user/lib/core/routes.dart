@@ -7,6 +7,7 @@ import 'package:user/features/order/pages/cart_page.dart';
 import 'package:user/features/order/pages/payment_page.dart';
 import 'package:user/features/setting/pages/setting_page.dart';
 import 'package:user/features/auth/pages/login_page.dart';
+import 'package:user/features/home/pages/food_page.dart';
 
 class AppRoutes {
   static const String home = '/';
@@ -17,6 +18,7 @@ class AppRoutes {
   static const String payment = '/payment';
   static const String setting = '/setting';
   static const String login = '/login';
+  static const String food = '/food';
 
   static Map<String, WidgetBuilder> get routes => {
     home: (context) => const HomePage(),
@@ -27,6 +29,7 @@ class AppRoutes {
     payment: (context) => const PaymentPage(),
     setting: (context) => const SettingPage(),
     login: (context) => const LoginPage(),
+    food: (context) => const FoodPage(),
   };
 }
 
