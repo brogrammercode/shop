@@ -1,0 +1,1000 @@
+# User App — UI Standard
+
+> This document is the single source of truth for every visual and structural decision made across
+> the User App (`apps/user`). A coding agent that reads this document must be able to build a
+> brand-new page that is **pixel-accurate** and **fully consistent** with every existing screen
+> without ever looking at source code.
+
+---
+
+## 0. Core Files to Import on Every Page
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:user/core/color.dart';
+```
+
+---
+
+## 1. Design System — Foundations
+
+### 1.1 ScreenUtil Design Reference
+
+The entire app is built inside a `ScreenUtilInit` wrapper with:
+
+```dart
+designSize: const Size(411.42857142857144, 843.4285714285714)
+minTextAdapt: true
+splitScreenMode: true
+```
+
+**Rules:**
+- Every pixel width/height value → `.w` or `.h`
+- Every font size → `.sp`
+- Every border radius → `.r`
+- Never use raw `double` literals for layout measurements
+
+---
+
+### 1.2 Color Palette (`AppColors` — `core/color.dart`)
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| `AppColors.primaryGreen` | `#0F8244` | CTAs, active states, veg icons, primary buttons, active indicators |
+| `AppColors.pureWhite` | `#FFFFFF` | Card backgrounds, scaffold bg, icon fills |
+| `AppColors.deepOnyx` | `#1C1C1C` | Dark banners, floating menu pills, close avatars |
+| `AppColors.softGrey` | `#F4F4F4` | Section dividers, input fill backgrounds |
+| `AppColors.borderGrey` | `#E8E8E8` | All card/container borders, list separators |
+| `AppColors.textPrimary` | `#1C1C1C` | Headings, item names, primary labels |
+| `AppColors.textSecondary` | `#666666` | Subtitles, captions, secondary descriptions |
+| `AppColors.textTertiary` | `#999999` | Hints, disabled text, section labels (ALL CAPS) |
+| `AppColors.gold` | `#C99B3B` | Gold membership icon, promo page dots |
+| `AppColors.goldLight` | `#FFF9E6` | Gold-themed container backgrounds |
+| `AppColors.goldDark` | `#4D3600` | Dark gold text |
+| `AppColors.shadowColor` | `#0A000000` | Subtle card shadow — used everywhere |
+
+**One-off colors used inline (not in `AppColors`):**
+- Blue accent (offers/links): `Color(0xFF2563EB)`
+- Red action (auth buttons, login CTA): `Color(0xFFEF4F5F)`
+- Zomato-red (badges, promos): `Color(0xFFEF4F5F)`
+- Gold text on dark: `Color(0xFFFBD786)`
+- Light red background (warnings, JioSaavn): `Color(0xFFFFF5F5)`
+- Light red border (warnings): `Color(0xFFFFD1D1)`
+- Gold promo background start: `Color(0xFFFFF5D1)`
+- Green tint background: `Color(0xFFE8F5E9)` (veg labels, ADD button bg, applied states)
+- Near & Fast icon color: `AppColors.primaryGreen`
+
+---
+
+### 1.3 Typography (`GoogleFonts.outfit`)
+
+The app uses **Outfit** from Google Fonts globally — set in `AppTheme.lightTheme`.
+
+| Role | Size | Weight | Color | Usage |
+|------|------|--------|-------|-------|
+| Store / Item Name (hero) | `22.sp` | w900 | textPrimary | Store page header title |
+| Section heading (card title) | `18.sp` | w900 | textPrimary | Menu categories, bottom sheet titles |
+| Card name / List title | `16.sp` | w800 | textPrimary | Dish names, restaurant names (large cards) |
+| Body primary | `15.sp` | w700–w800 | textPrimary | Cart item names, search input active text |
+| Subtitle / small label | `14.sp` | w700–w800 | textPrimary | Setting tile labels, payment method names |
+| Caption / delivery info | `12.sp` | w600 | textSecondary | Distance, timing, address subtext |
+| Micro label / section header | `12.sp` | w800 | textTertiary | ALL-CAPS section labels (`RECOMMENDED FOR YOU`, `SAVED ADDRESSES`) |
+| Tiny badge / overlay text | `9–10.sp` | w800–w900 | pureWhite | Rating badges, promo overlay chips |
+| Hint text | `14–15.sp` | w400–w500 | textTertiary | TextField placeholder text |
+
+**ALL-CAPS Section Headers** pattern (used consistently across every page):
+```dart
+Text(
+  'SECTION TITLE',
+  style: TextStyle(
+    fontSize: 12.sp,
+    fontWeight: FontWeight.w800,
+    color: AppColors.textTertiary,
+    letterSpacing: 0.8,
+  ),
+)
+```
+
+---
+
+### 1.4 Spacing & Padding Rhythm
+
+| Context | Value |
+|---------|-------|
+| Page horizontal padding | `16.w` |
+| Card internal padding | `12.w–16.w` |
+| Section vertical gap | `16.h–24.h` |
+| Between list items | `12.h` |
+| Between inline elements (icon + text) | `4.w–8.w` |
+| Between major sections | `20.h–32.h` |
+| Status bar offset | `MediaQuery.of(context).padding.top` |
+
+---
+
+### 1.5 Shadows
+
+**Standard card shadow** — used on all floating cards, bottom navigation, search bars:
+```dart
+const BoxShadow(
+  color: AppColors.shadowColor, // 0x0A000000
+  blurRadius: 4,
+  offset: Offset(0, 2),
+)
+```
+
+**Elevated card shadow** — used on large restaurant cards, profile cards:
+```dart
+const BoxShadow(
+  color: AppColors.shadowColor,
+  blurRadius: 8,
+  offset: Offset(0, 4),
+)
+```
+
+**Deep shadow** — used on floating bottom navigation bar:
+```dart
+const BoxShadow(
+  color: Colors.black12,
+  blurRadius: 10,
+  spreadRadius: 2,
+  offset: Offset(0, 4),
+)
+```
+
+---
+
+## 2. Scaffold Structure
+
+Every page follows this exact structure:
+
+```dart
+Scaffold(
+  backgroundColor: AppColors.pureWhite,  // or Color(0xFFFAFAFA) for secondary pages
+  body: Column(
+    children: [
+      SizedBox(height: MediaQuery.of(context).padding.top),
+      _buildAppBar(context),
+      Expanded(
+        child: SingleChildScrollView(
+          child: Column(children: [ ... ]),
+        ),
+      ),
+    ],
+  ),
+)
+```
+
+**Background color rules:**
+- `AppColors.pureWhite` → Login, Home, Search, Search Result, Store
+- `Color(0xFFFAFAFA)` → Cart, Payment, Settings (secondary/detail pages)
+
+**Never** use `Scaffold.appBar`. All app bars are manual widgets inside the body `Column`.
+
+---
+
+## 3. App Bar Patterns
+
+### 3.1 Back Arrow Only (Settings, Cart, Payment)
+```dart
+Container(
+  color: AppColors.pureWhite, // or Color(0xFFFAFAFA)
+  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+  alignment: Alignment.centerLeft,
+  child: GestureDetector(
+    onTap: () => Navigator.pop(context),
+    child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24.w),
+  ),
+)
+```
+
+### 3.2 Back Arrow with Title + Actions (Store, Search)
+```dart
+Padding(
+  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: Container(
+          padding: EdgeInsets.all(8.w),
+          decoration: const BoxDecoration(
+            color: AppColors.pureWhite,
+            shape: BoxShape.circle,
+            boxShadow: [ BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)) ],
+          ),
+          child: Icon(Icons.chevron_left, color: AppColors.textPrimary, size: 24.w),
+        ),
+      ),
+      // ... action buttons
+    ],
+  ),
+)
+```
+
+### 3.3 Chevron Back with Inline Search Bar (Search, Search Result)
+```dart
+Padding(
+  padding: EdgeInsets.symmetric(horizontal: 16.w),
+  child: Row(
+    children: [
+      GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: Icon(Icons.chevron_left, color: AppColors.primaryGreen, size: 32.w),
+      ),
+      SizedBox(width: 8.w),
+      Expanded(child: _searchInputContainer()),
+    ],
+  ),
+)
+```
+
+**Note:** The back arrow is `AppColors.primaryGreen` and `32.w` on Search/SearchResult pages.
+
+---
+
+## 4. Common Reusable Widgets
+
+### 4.1 Search Bar Container
+```dart
+Container(
+  height: 48.h,
+  padding: EdgeInsets.symmetric(horizontal: 16.w),
+  decoration: BoxDecoration(
+    color: AppColors.pureWhite,
+    borderRadius: BorderRadius.circular(12.r),
+    border: Border.all(color: AppColors.borderGrey),
+    boxShadow: const [
+      BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)),
+    ],
+  ),
+  child: Row(
+    children: [
+      Expanded(
+        child: TextField(
+          style: TextStyle(fontSize: 15.sp, color: AppColors.textPrimary),
+          decoration: InputDecoration(
+            hintText: '...',
+            hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 15.sp),
+            border: InputBorder.none,
+            isDense: true,
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+      ),
+      Container(height: 20.h, width: 1.w, color: AppColors.borderGrey),
+      SizedBox(width: 12.w),
+      Icon(Icons.mic, color: AppColors.primaryGreen, size: 22.w),
+    ],
+  ),
+)
+```
+
+### 4.2 Filter Chip
+Used on Home, Search Result, and Store pages. Identical implementation:
+```dart
+Container(
+  margin: EdgeInsets.only(right: 8.w),
+  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+  decoration: BoxDecoration(
+    color: AppColors.pureWhite,
+    borderRadius: BorderRadius.circular(10.r),
+    border: Border.all(color: AppColors.borderGrey),
+  ),
+  child: Row(
+    children: [
+      if (hasIcon) ...[
+        Icon(iconData, size: 14.w, color: iconColor ?? AppColors.textSecondary),
+        SizedBox(width: 4.w),
+      ],
+      Text(label, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+      if (hasDropdown) ...[
+        SizedBox(width: 4.w),
+        Icon(Icons.keyboard_arrow_down, size: 14.w, color: AppColors.textSecondary),
+      ],
+    ],
+  ),
+)
+```
+- Wrap all chips in a `SingleChildScrollView(scrollDirection: Axis.horizontal)`.
+
+### 4.3 Green Rating Badge (overlay on cards)
+```dart
+Container(
+  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 3.h),
+  decoration: BoxDecoration(
+    color: AppColors.primaryGreen,
+    borderRadius: BorderRadius.circular(6.r),
+  ),
+  child: Row(
+    children: [
+      Text(rating.toString(), style: TextStyle(color: AppColors.pureWhite, fontSize: 9.sp, fontWeight: FontWeight.w900)),
+      SizedBox(width: 2.w),
+      Icon(Icons.star, color: AppColors.pureWhite, size: 9.w),
+    ],
+  ),
+)
+```
+
+### 4.4 Veg/Non-Veg Indicator Dot
+```dart
+Container(
+  width: 14.w,
+  height: 14.w,
+  decoration: BoxDecoration(
+    border: Border.all(color: Colors.green, width: 1.5),
+    color: AppColors.pureWhite,
+    borderRadius: BorderRadius.circular(2.r),
+  ),
+  alignment: Alignment.center,
+  child: Container(
+    width: 6.w,
+    height: 6.w,
+    decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+  ),
+)
+```
+
+### 4.5 Green Quantity Stepper (Cart, Store Customisation)
+```dart
+Container(
+  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+  decoration: BoxDecoration(
+    border: Border.all(color: AppColors.primaryGreen),
+    borderRadius: BorderRadius.circular(8.r),
+    color: const Color(0xFFE8F5E9),
+  ),
+  child: Row(
+    children: [
+      GestureDetector(onTap: onDecrement, child: Icon(Icons.remove, color: AppColors.primaryGreen, size: 14.w)),
+      SizedBox(width: 12.w),
+      Text(count.toString(), style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w900, color: AppColors.primaryGreen)),
+      SizedBox(width: 12.w),
+      GestureDetector(onTap: onIncrement, child: Icon(Icons.add, color: AppColors.primaryGreen, size: 14.w)),
+    ],
+  ),
+)
+```
+
+### 4.6 Primary CTA Button (full-width green)
+```dart
+SizedBox(
+  width: double.infinity,
+  height: 48.h,
+  child: ElevatedButton(
+    onPressed: onPressed,
+    style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.primaryGreen,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+      elevation: 0,
+    ),
+    child: Text(label, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
+  ),
+)
+```
+
+### 4.7 Circular Icon Button with Shadow
+```dart
+Container(
+  padding: EdgeInsets.all(8.w),
+  decoration: const BoxDecoration(
+    color: AppColors.pureWhite,
+    shape: BoxShape.circle,
+    boxShadow: [ BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)) ],
+  ),
+  child: Icon(Icons.bookmark_border, color: AppColors.textPrimary, size: 18.w),
+)
+```
+
+### 4.8 Small Colored Label Badge (text-only, no image)
+```dart
+Container(
+  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+  decoration: BoxDecoration(
+    color: const Color(0xFFE8F5E9),  // adjust per context
+    borderRadius: BorderRadius.circular(6.r),
+  ),
+  child: Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(Icons.eco, color: AppColors.primaryGreen, size: 12.w),
+      SizedBox(width: 4.w),
+      Text('Pure Veg restaurant', style: TextStyle(fontSize: 9.sp, fontWeight: FontWeight.w700, color: AppColors.primaryGreen)),
+    ],
+  ),
+)
+```
+
+### 4.9 Section Divider (grey line)
+```dart
+Container(height: 1.h, color: AppColors.borderGrey)
+```
+
+### 4.10 Section Block Separator (thick grey fill)
+```dart
+Container(height: 8.h, color: AppColors.softGrey)
+```
+
+### 4.11 Modal Bottom Sheet Close Button (floating dark circle)
+Always positioned at `deviceHeight * 0.18` from top of the stack, centered:
+```dart
+Positioned(
+  top: deviceHeight * 0.18,
+  left: 0,
+  right: 0,
+  child: Center(
+    child: GestureDetector(
+      onTap: () => Navigator.pop(context),
+      child: CircleAvatar(
+        backgroundColor: AppColors.deepOnyx,
+        radius: 20.r,
+        child: Icon(Icons.close, color: AppColors.pureWhite, size: 20.w),
+      ),
+    ),
+  ),
+)
+```
+
+### 4.12 Page Dot Indicator (carousel dots)
+```dart
+Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: List.generate(totalCount, (index) {
+    final isActive = activeIndex == index;
+    return Container(
+      width: 6.w,
+      height: 6.w,
+      margin: EdgeInsets.symmetric(horizontal: 3.w),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isActive ? AppColors.pureWhite : AppColors.pureWhite.withValues(alpha: 0.4),
+        // Or: isActive ? AppColors.gold : AppColors.borderGrey  (for home page)
+      ),
+    );
+  }),
+)
+```
+
+---
+
+## 5. Page-by-Page UI Breakdown
+
+### 5.1 Login Page (`/login`)
+
+**Structure:**
+- `Scaffold(backgroundColor: AppColors.pureWhite)`
+- `SingleChildScrollView → SizedBox(height: screenHeight) → Column`
+- Top: `_buildTopCarousel()` — takes 45% of screen height
+- Bottom: `Expanded` with inner `Column(mainAxisAlignment: spaceBetween)`
+
+**Top Carousel:**
+- `SizedBox(height: MediaQuery.of(context).size.height * 0.45)`
+- `Stack`: PageView + gradient overlay + dot indicator
+- Gradient overlay: `LinearGradient` black top `0.6 → transparent 0.5 → black 0.75`
+- Text bottom-left: `26.sp`, `w900`, white, `letterSpacing: 0.5`
+- Below text: either a Zomato-red rounded badge (`Color(0xFFEF4F5F)`, `6.r`) or a blue `%` circle
+- Dot indicator: `Positioned(bottom: 16.h)` — white filled vs. `white.withValues(alpha: 0.4)`
+
+**Bottom Panel (Expanded):**
+- Section label `'Choose your account'`: `14.sp`, `w800`, textSecondary
+- Profile selection card: white, `12.r` border `Color(0xFFE8E8E8)`, avatar `20.r` + name `14.sp w800` + phone `12.sp w500` + trailing `Icons.more_vert`
+- Section label `'Log in or sign up'`: `12.sp`, `w700`, textTertiary
+- Phone input field (see §4 for pattern)
+- Remember me checkbox: custom `18.w` square, red when checked `Color(0xFFEF4F5F)`, `4.r` radius
+- Continue button: `48.h`, red `Color(0xFFEF4F5F)`, `10.r`
+- Social row: two `44.w` circles, white background, `Color(0xFFE8E8E8)` border, shadow
+- Footer: centered `10.sp` grey text + underlined links `10.sp`, `w700`
+
+---
+
+### 5.2 Home Page (`/`)
+
+**Structure:**
+- `Scaffold(body: Stack)` — no backgroundColor override (uses theme white)
+- `Positioned.fill → SingleChildScrollView` (main scroll area)
+- `Positioned` floating tooltip (dismissible)
+- `Positioned` floating bottom nav bar
+
+**Header Section:**
+- Full-width gradient container: `Color(0xFFFFF5D1)` → `AppColors.pureWhite` (stops: `0.3`, `1.0`)
+- Location row: `Icons.location_on` (20.w, textPrimary) + location label `18.sp w900` + `Icons.keyboard_arrow_down`
+- Subtitle address: `12.sp`, w500, textSecondary, truncated with ellipsis
+- Top-right cluster: Gold badge pill + gift icon circle + avatar circle (36.w, tappable → `/setting`)
+
+**Gold Badge Pill:**
+```dart
+Container(
+  padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+  decoration: BoxDecoration(
+    color: AppColors.pureWhite,
+    borderRadius: BorderRadius.circular(20.r),
+    border: Border.all(color: const Color(0xFFF1C40F), width: 1.5),
+    boxShadow: [BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2))],
+  ),
+  child: Column(mainAxisSize: MainAxisSize.min, children: [
+    Text('GOLD', style: TextStyle(fontSize: 8.sp, fontWeight: FontWeight.w900, color: Color(0xFFD4AC0D), letterSpacing: 0.5, height: 1.0)),
+    Text('₹1', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w900, color: Color(0xFFD4AC0D), height: 1.1)),
+  ]),
+)
+```
+
+**Search Bar Row:**
+- `48.h` container, `12.r` radius, shadow, `Icons.search` (green 22.w) + hint text + divider + `Icons.mic` (green 22.w)
+- Right: VEG MODE toggle — `8.sp` ALL-CAPS label + `Switch` scaled via `FittedBox(fit: BoxFit.fill)` inside `SizedBox(36.w × 20.h)`
+- Switch colors: `activeTrackColor: AppColors.primaryGreen`, `inactiveTrackColor: AppColors.softGrey`, white thumb
+
+**Promo Banners (PageView):**
+- `180.h` height, full-width
+- Card: `16.w` horizontal margin, `16.r` radius, network image with `ColorFilter(Colors.black.withValues(alpha: 0.2), BlendMode.darken)`
+- Overlay text: `26.sp w900` title + `16.sp w700` subtitle (both white, with shadow)
+- CTA pill: white `24.r` rounded, `12.sp w900` dark text
+- Dot row below: active = `AppColors.gold`, inactive = `AppColors.borderGrey`
+
+**Category Horizontal Scroll:**
+- Special Card: `72.w × 72.w`, `12.r`, blue gradient (`Color(0xFFE0F2FE)` → `Color(0xFFBAE6FD)`), `1.5` border `Color(0xFF0284C7)`, 3-line text stack
+- Standard Category: `64.w` circle image, `12.sp` label, `3.h × 40.w` green underline if selected
+
+**Sections (all `horizontal: 16.w` padding):**
+- `RECOMMENDED FOR YOU` ALL-CAPS header → 3-column grid (`childAspectRatio: 0.62`)
+- `EXPLORE MORE` ALL-CAPS header → 4-column grid (`childAspectRatio: 0.85`)
+- `226 RESTAURANTS DELIVERING TO YOU` → vertical large card list
+
+**Bottom Floating Navigation:**
+```dart
+Positioned(
+  bottom: 16.h, left: 24.w, right: 24.w,
+  child: Container(
+    height: 58.h,
+    decoration: BoxDecoration(
+      color: AppColors.pureWhite,
+      borderRadius: BorderRadius.circular(30.r),
+      boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2, offset: Offset(0, 4))],
+    ),
+    child: Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+      // Active tab: green capsule bg
+      Container(
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+        decoration: BoxDecoration(color: Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(20.r)),
+        child: Row(children: [
+          Icon(Icons.delivery_dining, color: AppColors.primaryGreen, size: 20.w),
+          SizedBox(width: 6.w),
+          Text('Delivery', style: TextStyle(color: AppColors.primaryGreen, fontSize: 12.sp, fontWeight: FontWeight.w800)),
+        ]),
+      ),
+      // Inactive tabs: no background, textSecondary icons/labels
+    ]),
+  ),
+)
+```
+
+---
+
+### 5.3 Search Page (`/search`)
+
+**Structure:** `Scaffold(backgroundColor: pureWhite) → Column(fixed header + Expanded scroll)`
+
+- Status bar offset + `10.h` top gap
+- Search bar row (chevron-left green `32.w` + search container `48.h`)
+- Scrollable body:
+  - `'Think it, search it'` — italic, `Color(0xFFEC4899)`, `16.sp w700`
+  - Horizontal suggestion chips: `20.r` border, white bg, pink sparkle icon `Icons.auto_awesome` (`14.w`)
+  - `WHAT'S ON YOUR MIND?` ALL-CAPS section
+  - 3-column circle food grid: shadowed circle images, `12.sp w700` labels
+
+---
+
+### 5.4 Search Result Page (`/search-result`)
+
+**Structure:** Same fixed header + scroll as Search page
+
+- Search bar with `Icons.close` (`18.w`, textTertiary) clear button
+- Sub-category horizontal tabs: `56.w` circle images + label + `3.h × 36.w` green underline for selected
+- Double-row filter chips (two independent horizontal scrolls, `8.h` gap between)
+- `RECOMMENDED FOR YOU` → 3-column grid (`childAspectRatio: 0.62`)
+- `ALL RESTAURANTS` → vertical large restaurant card list (`200.h` image, `16.r` card radius)
+
+**Large Restaurant Card specifics:**
+- `200.h` image (top `16.r` radius only)
+- Top-left: dark overlay capsule with veg dot + dish spotlight text
+- Top-right: white circle bookmark icon
+- Top-right-2: `Ad` translucent badge if sponsored
+- Bottom-right: 4 dot pagination indicators (white)
+- Info section (`12.w` padding): name `16.sp w800` + green rating badge + time `12.sp w600` + divider + blue offer icon + offer text + optional Pure Veg green badge
+
+---
+
+### 5.5 Store Page (`/store`)
+
+**Structure:** `Scaffold → Stack(scroll content + floating menu button + floating cart bar)`
+
+**Top Nav:**
+- Back circle button (shadow, `8.w` padding) + right cluster: Search pill + More circle button
+
+**Store Detail Block:**
+- Pure veg badge (eco icon) → store name `22.sp w900` + `Icons.info_outline` `18.w` → rating badge
+- Location: `Icons.location_on_outlined` `14.w` + `distance • locality` `12.sp w600 textSecondary`
+- Time: `Icons.access_time` `14.w` + `time • schedule` + `Icons.keyboard_arrow_down`
+- Complaints tag: white bordered pill with `Icons.check_circle_outline` green
+- Divider → offer row: blue `Icons.local_offer` + offer text + `total offers` text + `keyboard_arrow_down`
+
+**Filter Row:** Single horizontal scroll (same filter chip pattern)
+
+**Menu Section:**
+- Category header: `18.sp w900` + `Icons.keyboard_arrow_up/down` toggle → expandable
+- Dish list item: veg dot + name `16.sp w800` + green progress bar badge + price `15.sp w800` + description `11.sp` + icon actions (bookmark + share circles)
+- Right column: `120.w × 120.w` image (`16.r`) + floating ADD button (`90.w × 36.h`) overlapping image bottom
+
+**ADD Button on dish card:**
+```dart
+Positioned(
+  bottom: -15.h,
+  child: Container(
+    width: 90.w, height: 36.h,
+    decoration: BoxDecoration(
+      color: const Color(0xFFE8F5E9),
+      borderRadius: BorderRadius.circular(8.r),
+      border: Border.all(color: AppColors.primaryGreen, width: 1.w),
+      boxShadow: [BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2))],
+    ),
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(backgroundColor: Color(0xFFE8F5E9), elevation: 0),
+      child: Row(children: [
+        Text('ADD', style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w900, color: AppColors.primaryGreen)),
+        SizedBox(width: 4.w),
+        Icon(Icons.add, color: AppColors.primaryGreen, size: 14.w),
+      ]),
+    ),
+  ),
+)
+```
+
+**Floating Menu Pill:**
+```dart
+Positioned(
+  bottom: cartVisible ? 130.h : 24.h,
+  left: 0, right: 0,
+  child: Center(
+    child: Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: AppColors.deepOnyx,
+        borderRadius: BorderRadius.circular(30.r),
+        boxShadow: [BoxShadow(color: Colors.black38, blurRadius: 8, offset: Offset(0, 4))],
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.restaurant_menu, color: AppColors.pureWhite, size: 16.w),
+        SizedBox(width: 8.w),
+        Text('Menu', style: TextStyle(color: AppColors.pureWhite, fontSize: 13.sp, fontWeight: FontWeight.w800)),
+      ]),
+    ),
+  ),
+)
+```
+
+**Bottom Cart Bar (two-part):**
+- Top segment: `LinearGradient(Color(0xFFE3F2FD) → Color(0xFFF1F8E9))`, blue offer promo, rounded top only
+- Bottom segment: green `AppColors.primaryGreen`, dish thumbnail + item count + `View cart ›`
+
+---
+
+### 5.6 Cart Page (`/cart`)
+
+**Background:** `Color(0xFFFAFAFA)`
+
+**Header:**
+- `Icons.arrow_back` + store name `15.sp w900` + delivery estimate + address tap row + `Icons.share_outlined`
+- Address row: `'30-35 mins to Title'` `11.sp w800` + `'| fullAddress'` `11.sp w600 textSecondary ellipsis` + `keyboard_arrow_down`
+
+**JioSaavn Promo Box:**
+- Light red container: `Color(0xFFFFF5F5)` bg, `Color(0xFFFFD1D1)` border, `16.r`, `16.w` margin
+- Teal circle logo + text + lock/unlock ADD button (unlocks at ₹99 threshold)
+- ADD/ADDED toggle: pill button, green border when added, lock icon when locked
+
+**Cart Items List:**
+- White container, veg dot indicator + item name `14.sp w800` + size info `11.sp w600` + green `Edit >` link
+- Right: green quantity stepper + price `13.sp w800`
+- Footer: `Icons.add_circle_outline` green + `'Add more items'` `13.sp w800 green`
+
+**Horizontal Options Strip:**
+- White bg, horizontal scroll, chips with `Icons.*_outlined` + label `11.sp w700 textSecondary`
+
+**Discount Chip (conditional):**
+- White, `12.r`, border, blue percent icon circle + `FLAT ₹125 OFF` `12.sp w800` + blue progress text
+
+**Suggestions Carousel:**
+- `140.h` horizontal list, `110.w` cards with `12.r` border, top image `70.h` + green `+` circle overlay
+- Below image: name `10.sp w800` + price `10.sp w900`
+
+**Gold Banner:**
+- `Color(0xFFFFFBEB)` bg, `Color(0xFFFEF3C7)` border, `16.r`, `16.w` margin
+- Gold icon + save text `12.sp w800` + subtitle `10.sp w600` + green APPLY/APPLIED button `90.w × 36.h`
+
+**Zomato Money Row:**
+- White bordered `16.r` container: red circle wallet icon + text column + `chevron_right`
+
+**Sticky Footer:**
+- White container, top border `1.h borderGrey`
+- Left: `PAY USING` `9.sp w900 textTertiary` label + payment name `13.sp w900` + `arrow_drop_up`
+- Right: `Expanded` → green `ElevatedButton` `48.h`, `10.r`, showing total + `'Place Order ›'`
+
+---
+
+### 5.7 Payment Page (`/payment`)
+
+**Background:** `Color(0xFFFAFAFA)`
+
+**App Bar:** `Icons.arrow_back` + `'Bill total: ₹X.XX'` `16.sp w900`
+
+**Payment Group Pattern:**
+ALL-CAPS section header `11.sp w800 textTertiary letterSpacing: 0.8`, followed by:
+```dart
+Container(
+  margin: EdgeInsets.symmetric(horizontal: 16.w),
+  decoration: BoxDecoration(
+    color: AppColors.pureWhite,
+    borderRadius: BorderRadius.circular(16.r),
+    border: Border.all(color: AppColors.borderGrey),
+  ),
+  child: Column(
+    children: List.generate(methods.length, (index) {
+      return Container(
+        decoration: BoxDecoration(
+          border: index < methods.length - 1
+              ? Border(bottom: BorderSide(color: AppColors.borderGrey, width: 1.h))
+              : null,
+        ),
+        child: ListTile(
+          leading: _buildMethodIcon(method.iconType), // 40.w × 28.h colored badge
+          title: Text(method.name, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w800)),
+          trailing: Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 18.w),
+          onTap: () => Navigator.pop(context, method),
+        ),
+      );
+    }),
+  ),
+)
+```
+
+**Method Icon Badge (40.w × 28.h):**
+Colored rectangular badge with short label text `9.sp w900`. Each payment type has its own distinct background + text color combination.
+
+**Groups shown:** RECOMMENDED → CARDS → PAY BY ANY UPI APP → WALLETS → PAY LATER
+
+---
+
+### 5.8 Settings Page (`/setting`)
+
+**Background:** `Color(0xFFFAFAFA)`
+
+**App Bar:** Back arrow only, `Color(0xFFFAFAFA)` bg
+
+**Profile Card:**
+```dart
+Container(
+  decoration: BoxDecoration(
+    color: AppColors.pureWhite,
+    borderRadius: BorderRadius.circular(16.r),
+    boxShadow: [BoxShadow(color: AppColors.shadowColor, blurRadius: 10, offset: Offset(0, 4))],
+  ),
+  child: Column(children: [
+    // Top: avatar 30.r + name 18.sp w900 letterSpacing 0.5 + "Edit profile >" green link
+    Padding(padding: EdgeInsets.all(16.w), child: Row(children: [...])),
+    // Bottom: dark onyx banner with gold membership renewal
+    Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+      decoration: BoxDecoration(
+        color: AppColors.deepOnyx,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(16.r)),
+      ),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Row(children: [
+          Container(
+            padding: EdgeInsets.all(4.w),
+            decoration: const BoxDecoration(color: Color(0xFFC99B3B), shape: BoxShape.circle),
+            child: Icon(Icons.workspace_premium, color: AppColors.deepOnyx, size: 14.w),
+          ),
+          SizedBox(width: 10.w),
+          Text('Renew your Gold Membership', style: TextStyle(color: Color(0xFFFBD786), fontSize: 13.sp, fontWeight: FontWeight.w800)),
+        ]),
+        Icon(Icons.chevron_right, color: Color(0xFFFBD786), size: 18.w),
+      ]),
+    ),
+  ]),
+)
+```
+
+**Quick Actions (2-column equal-width row):**
+```dart
+Row(children: [
+  Expanded(child: Container(
+    padding: EdgeInsets.all(12.w),
+    decoration: BoxDecoration(
+      color: AppColors.pureWhite, borderRadius: BorderRadius.circular(12.r),
+      boxShadow: [BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2))],
+    ),
+    child: Row(children: [
+      Container(
+        padding: EdgeInsets.all(6.w),
+        decoration: const BoxDecoration(color: Color(0xFFF5F5F5), shape: BoxShape.circle),
+        child: Icon(Icons.wallet, color: AppColors.textSecondary, size: 16.w),
+      ),
+      SizedBox(width: 10.w),
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Zomato Money', style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w800)),
+        Text('₹0', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w900, color: AppColors.primaryGreen)),
+      ]),
+    ]),
+  )),
+  SizedBox(width: 12.w),
+  Expanded(child: /* coupons card — same structure */ ...),
+])
+```
+
+**Category Section Header (green left bar):**
+```dart
+Row(children: [
+  Container(width: 3.w, height: 16.h, color: AppColors.primaryGreen),
+  SizedBox(width: 8.w),
+  Text(category.title, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+])
+```
+
+**Category Container:**
+```dart
+Container(
+  decoration: BoxDecoration(
+    color: AppColors.pureWhite,
+    borderRadius: BorderRadius.circular(12.r),
+    border: Border.all(color: AppColors.borderGrey),
+  ),
+  child: Column(
+    children: List.generate(items.length, (index) {
+      return Column(children: [
+        _buildSettingTile(item),
+        if (index < items.length - 1) Container(height: 1.h, color: AppColors.borderGrey),
+      ]);
+    }),
+  ),
+)
+```
+
+**Setting Tile:**
+- `ListTile` with leading `Icon` (`20.w`, textSecondary or green for Veg Mode)
+- Title: `13.sp w700 textPrimary`
+- Trailing: `Switch` OR `Text + chevron_right` OR just `chevron_right`
+
+**Switch styling (all switches in app):**
+```dart
+Switch(
+  activeThumbColor: AppColors.pureWhite,
+  activeTrackColor: AppColors.primaryGreen,
+  inactiveThumbColor: AppColors.textTertiary,
+  inactiveTrackColor: AppColors.borderGrey,
+)
+```
+
+**Feeding India Banner (nested inside category container):**
+```dart
+Container(
+  margin: EdgeInsets.all(12.w),
+  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+  decoration: BoxDecoration(color: const Color(0xFFFFF5F5), borderRadius: BorderRadius.circular(8.r)),
+  child: Row(children: [
+    Icon(Icons.favorite, color: const Color(0xFFEF4444), size: 16.w),
+    SizedBox(width: 8.w),
+    Expanded(child: Text('1 meal served! You\'ve already won a smile.',
+      style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w700, color: Color(0xFFB91C1C)))),
+  ]),
+)
+```
+
+---
+
+## 6. Modal Bottom Sheets
+
+### 6.1 Standard Bottom Sheet Template
+```dart
+showModalBottomSheet(
+  context: context,
+  isScrollControlled: true,
+  backgroundColor: Colors.transparent,
+  builder: (context) {
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        // Floating close button
+        Positioned(
+          top: deviceHeight * 0.18,
+          left: 0, right: 0,
+          child: Center(child: /* close CircleAvatar */),
+        ),
+        // Sheet content
+        Container(
+          height: deviceHeight * 0.72, // or 0.76 for taller sheets
+          decoration: BoxDecoration(
+            color: AppColors.pureWhite,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+          ),
+          child: Column(children: [ /* content */ ]),
+        ),
+      ],
+    );
+  },
+)
+```
+
+**Height ratios used:**
+- Address selection: `0.72`
+- Customisation modal: `0.76`
+
+### 6.2 Bottom Sheet ListTile Pattern
+```dart
+ListTile(
+  leading: Icon(icon, color: AppColors.primaryGreen, size: 20.w),
+  title: Text(label, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w800, color: AppColors.primaryGreen)),
+  trailing: Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 18.w),
+  onTap: () {},
+)
+```
+
+---
+
+## 7. Restaurant Card Types
+
+### 7.1 Small Restaurant Card (3-column grid)
+- `Expanded` image with `12.r` radius
+- Top-left: dark `0.75` overlay promo badge `7.sp w800`
+- Bottom-left: green rating badge
+- Below image: name `11.sp w800` + delivery row (green bolt if fast, grey clock if slow, `9.sp`)
+
+### 7.2 Large Restaurant Card (full-width vertical list)
+- `200.h` image, top `16.r` radius only
+- Bookmarks, Ad badge, pagination dots on image
+- Info: name `16.sp w800` + rating badge column + `11.sp` time/distance + divider + offer row
+
+---
+
+## 8. Navigation Patterns
+
+| Route | How navigated | Direction |
+|-------|---------------|-----------|
+| `/` | App start / login redirect | push |
+| `/login` | Settings → Log out | pushNamedAndRemoveUntil |
+| `/search` | Home search bar tap | pushNamed |
+| `/search-result` | Search mind grid item tap | pushNamed |
+| `/store` | Restaurant card tap | pushNamed |
+| `/cart` | Store cart bar tap | pushNamed |
+| `/payment` | Cart sticky footer PAY USING tap | pushNamed (async, returns PaymentMethod) |
+| `/setting` | Home avatar tap | pushNamed |
+
+**Always use** `Navigator.pushNamed`, `Navigator.pop`, or `Navigator.pushReplacementNamed`.
+
+---
+
+## 9. Structural Coding Rules
+
+1. **No comments** — zero inline comments or block comments anywhere in `.dart` files.
+2. **No `Scaffold.appBar`** — always build app bars manually inside `body`.
+3. **All sizes use ScreenUtil** — `.w`, `.h`, `.sp`, `.r` on every layout value.
+4. **Named helper methods** — break each UI section into `_buildXxx()` private methods.
+5. **Dummy data lives in `_data_dummy/`** — every page has a corresponding `_data_dummy/page_name.dart` with all hardcoded data models and lists.
+6. **No state in data files** — data files export only `const`/`final` lists and model classes.
+7. **Single `StatefulWidget` per page** — extract sub-widgets as private `_buildXxx()` methods, not separate classes (except for complex modals).
+
+---
+
+## 10. Adding a New Page — Checklist
+
+- [ ] Create `lib/features/<feature>/pages/<page_name>.dart`
+- [ ] Create `lib/features/<feature>/_data_dummy/<page_name>.dart` with all hardcoded models
+- [ ] Register route in `lib/core/routes.dart` (add `static const String` and map entry)
+- [ ] Add navigation trigger from the appropriate existing page
+- [ ] Use `Color(0xFFFAFAFA)` scaffold background if it's a secondary/detail page, `AppColors.pureWhite` for primary pages
+- [ ] Import only `flutter/material.dart`, `flutter_screenutil/flutter_screenutil.dart`, and `user/core/color.dart`
+- [ ] Follow all ScreenUtil sizing rules
+- [ ] Match ALL-CAPS section headers at `12.sp w800 textTertiary letterSpacing: 0.8`
+- [ ] Use `16.w` horizontal page padding
+- [ ] Use `AppColors.shadowColor` for all shadows
+- [ ] Use `AppColors.borderGrey` for all borders
+- [ ] Never write comments

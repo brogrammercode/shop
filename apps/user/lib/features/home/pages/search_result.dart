@@ -14,6 +14,46 @@ class _SearchResultPageState extends State<SearchResultPage> {
   final TextEditingController _searchController = TextEditingController(text: 'Sweets');
   String selectedSubCategoryId = 'sweets';
 
+  final Map<String, int> _cartQuantities = {};
+
+  int get _totalCartItems {
+    int total = 0;
+    for (final qty in _cartQuantities.values) {
+      total += qty;
+    }
+    return total;
+  }
+
+  double get _totalCartPrice {
+    double total = 0;
+    for (final rec in dummySearchResultRecommended) {
+      final qty = _cartQuantities[rec.id] ?? 0;
+      total += rec.price * qty;
+    }
+    for (final large in dummySearchResultLarge) {
+      final qty = _cartQuantities[large.id] ?? 0;
+      total += large.price * qty;
+    }
+    return total;
+  }
+
+  void _increment(String id) {
+    setState(() {
+      _cartQuantities[id] = (_cartQuantities[id] ?? 0) + 1;
+    });
+  }
+
+  void _decrement(String id) {
+    setState(() {
+      final current = _cartQuantities[id] ?? 0;
+      if (current <= 1) {
+        _cartQuantities.remove(id);
+      } else {
+        _cartQuantities[id] = current - 1;
+      }
+    });
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -23,28 +63,33 @@ class _SearchResultPageState extends State<SearchResultPage> {
   @override
   Widget build(BuildContext context) {
     final double statusBarHeight = MediaQuery.of(context).padding.top;
-    
+
     return Scaffold(
       backgroundColor: AppColors.pureWhite,
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      body: Stack(
         children: [
-          SizedBox(height: statusBarHeight + 10.h),
-          _buildSearchBar(context),
-          _buildSubCategoriesRow(),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildDoubleRowFilters(),
-                  _buildRecommendedSection(),
-                  _buildAllRestaurantsSection(),
-                  SizedBox(height: 40.h),
-                ],
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: statusBarHeight + 10.h),
+              _buildSearchBar(context),
+              _buildSubCategoriesRow(),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildDoubleRowFilters(),
+                      _buildRecommendedSection(),
+                      _buildAllItemsSection(),
+                      SizedBox(height: _totalCartItems > 0 ? 100.h : 40.h),
+                    ],
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
+          if (_totalCartItems > 0) _buildCartBar(context),
         ],
       ),
     );
@@ -301,16 +346,12 @@ class _SearchResultPageState extends State<SearchResultPage> {
               crossAxisCount: 3,
               crossAxisSpacing: 10.w,
               mainAxisSpacing: 16.h,
-              childAspectRatio: 0.62,
+              childAspectRatio: 0.58,
             ),
             itemBuilder: (context, index) {
-              final rest = dummySearchResultRecommended[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/store');
-                },
-                child: _buildRestaurantCard(rest),
-              );
+              final item = dummySearchResultRecommended[index];
+              final qty = _cartQuantities[item.id] ?? 0;
+              return _buildSmallItemCard(item, qty);
             },
           ),
         ],
@@ -318,18 +359,19 @@ class _SearchResultPageState extends State<SearchResultPage> {
     );
   }
 
-  Widget _buildRestaurantCard(SearchResultRestaurant rest) {
+  Widget _buildSmallItemCard(SearchResultRestaurant item, int qty) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12.r),
                   image: DecorationImage(
-                    image: NetworkImage(rest.imageUrl),
+                    image: NetworkImage(item.imageUrl),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -344,7 +386,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
                     borderRadius: BorderRadius.circular(6.r),
                   ),
                   child: Text(
-                    rest.promoText,
+                    item.promoText,
                     style: TextStyle(
                       color: AppColors.pureWhite,
                       fontSize: 7.sp,
@@ -365,7 +407,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
                   child: Row(
                     children: [
                       Text(
-                        rest.rating.toString(),
+                        item.rating.toString(),
                         style: TextStyle(
                           color: AppColors.pureWhite,
                           fontSize: 9.sp,
@@ -382,12 +424,22 @@ class _SearchResultPageState extends State<SearchResultPage> {
                   ),
                 ),
               ),
+              Positioned(
+                bottom: -14.h,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: qty == 0
+                      ? _buildAddButton(() => _increment(item.id))
+                      : _buildStepper(item.id, qty),
+                ),
+              ),
             ],
           ),
         ),
-        SizedBox(height: 6.h),
+        SizedBox(height: 20.h),
         Text(
-          rest.name,
+          item.name,
           style: TextStyle(
             fontSize: 11.sp,
             fontWeight: FontWeight.w800,
@@ -397,9 +449,18 @@ class _SearchResultPageState extends State<SearchResultPage> {
           overflow: TextOverflow.ellipsis,
         ),
         SizedBox(height: 2.h),
+        Text(
+          '₹${item.price.toStringAsFixed(0)}',
+          style: TextStyle(
+            fontSize: 10.sp,
+            fontWeight: FontWeight.w900,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: 2.h),
         Row(
           children: [
-            if (rest.isNearAndFast) ...[
+            if (item.isNearAndFast) ...[
               Icon(
                 Icons.bolt,
                 size: 11.w,
@@ -407,7 +468,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
               ),
               SizedBox(width: 2.w),
               Text(
-                rest.deliveryTime,
+                item.deliveryTime,
                 style: TextStyle(
                   fontSize: 9.sp,
                   fontWeight: FontWeight.w700,
@@ -422,7 +483,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
               ),
               SizedBox(width: 2.w),
               Text(
-                rest.deliveryTime,
+                item.deliveryTime,
                 style: TextStyle(
                   fontSize: 9.sp,
                   fontWeight: FontWeight.w600,
@@ -436,14 +497,83 @@ class _SearchResultPageState extends State<SearchResultPage> {
     );
   }
 
-  Widget _buildAllRestaurantsSection() {
+  Widget _buildAddButton(VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 80.w,
+        height: 30.h,
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8F5E9),
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(color: AppColors.primaryGreen, width: 1.w),
+          boxShadow: const [
+            BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'ADD',
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w900,
+                color: AppColors.primaryGreen,
+              ),
+            ),
+            SizedBox(width: 4.w),
+            Icon(Icons.add, color: AppColors.primaryGreen, size: 13.w),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepper(String id, int qty) {
+    return Container(
+      width: 80.w,
+      height: 30.h,
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8F5E9),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: AppColors.primaryGreen, width: 1.w),
+        boxShadow: const [
+          BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          GestureDetector(
+            onTap: () => _decrement(id),
+            child: Icon(Icons.remove, color: AppColors.primaryGreen, size: 13.w),
+          ),
+          Text(
+            qty.toString(),
+            style: TextStyle(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w900,
+              color: AppColors.primaryGreen,
+            ),
+          ),
+          GestureDetector(
+            onTap: () => _increment(id),
+            child: Icon(Icons.add, color: AppColors.primaryGreen, size: 13.w),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAllItemsSection() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'ALL RESTAURANTS',
+            'ALL ITEMS',
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w800,
@@ -457,13 +587,9 @@ class _SearchResultPageState extends State<SearchResultPage> {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: dummySearchResultLarge.length,
             itemBuilder: (context, index) {
-              final rest = dummySearchResultLarge[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/store');
-                },
-                child: _buildLargeRestaurantCard(rest),
-              );
+              final item = dummySearchResultLarge[index];
+              final qty = _cartQuantities[item.id] ?? 0;
+              return _buildLargeItemCard(item, qty);
             },
           ),
         ],
@@ -471,7 +597,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
     );
   }
 
-  Widget _buildLargeRestaurantCard(SearchResultLargeRestaurant rest) {
+  Widget _buildLargeItemCard(SearchResultLargeRestaurant item, int qty) {
     return Container(
       margin: EdgeInsets.only(bottom: 24.h),
       decoration: BoxDecoration(
@@ -495,7 +621,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(16.r)),
                   image: DecorationImage(
-                    image: NetworkImage(rest.imageUrl),
+                    image: NetworkImage(item.imageUrl),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -532,7 +658,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
                       ),
                       SizedBox(width: 6.w),
                       Text(
-                        rest.dishSpotlight,
+                        item.dishSpotlight,
                         style: TextStyle(
                           color: AppColors.pureWhite,
                           fontSize: 10.sp,
@@ -543,7 +669,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
                   ),
                 ),
               ),
-              if (rest.isAd)
+              if (item.isAd)
                 Positioned(
                   top: 12.h,
                   right: 48.w,
@@ -608,13 +734,27 @@ class _SearchResultPageState extends State<SearchResultPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
-                      child: Text(
-                        rest.name,
-                        style: TextStyle(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
+                            '₹${item.price.toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     Column(
@@ -630,7 +770,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                rest.rating.toString(),
+                                item.rating.toString(),
                                 style: TextStyle(
                                   color: AppColors.pureWhite,
                                   fontSize: 10.sp,
@@ -644,7 +784,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
                         ),
                         SizedBox(height: 2.h),
                         Text(
-                          rest.ratingCount,
+                          item.ratingCount,
                           style: TextStyle(
                             fontSize: 9.sp,
                             fontWeight: FontWeight.w600,
@@ -665,7 +805,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
                     ),
                     SizedBox(width: 4.w),
                     Text(
-                      '${rest.deliveryTime}  •  ${rest.distance}',
+                      '${item.deliveryTime}  •  ${item.distance}',
                       style: TextStyle(
                         fontSize: 11.sp,
                         color: AppColors.textSecondary,
@@ -684,17 +824,22 @@ class _SearchResultPageState extends State<SearchResultPage> {
                   children: [
                     Icon(Icons.local_offer, color: const Color(0xFF2563EB), size: 14.w),
                     SizedBox(width: 4.w),
-                    Text(
-                      rest.offer,
-                      style: TextStyle(
-                        fontSize: 11.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.textSecondary,
+                    Expanded(
+                      child: Text(
+                        item.offer,
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
                       ),
                     ),
+                    qty == 0
+                        ? _buildAddButton(() => _increment(item.id))
+                        : _buildStepper(item.id, qty),
                   ],
                 ),
-                if (rest.isPureVeg) ...[
+                if (item.isPureVeg) ...[
                   SizedBox(height: 8.h),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
@@ -708,7 +853,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
                         Icon(Icons.eco, color: AppColors.primaryGreen, size: 12.w),
                         SizedBox(width: 4.w),
                         Text(
-                          'Pure Veg restaurant',
+                          'Pure Veg item',
                           style: TextStyle(
                             fontSize: 9.sp,
                             fontWeight: FontWeight.w700,
@@ -719,6 +864,129 @@ class _SearchResultPageState extends State<SearchResultPage> {
                     ),
                   ),
                 ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCartBar(BuildContext context) {
+    final firstAddedId = _cartQuantities.keys.first;
+    String firstName = '';
+    String firstImageUrl = '';
+
+    for (final item in dummySearchResultRecommended) {
+      if (item.id == firstAddedId) {
+        firstName = item.name;
+        firstImageUrl = item.imageUrl;
+        break;
+      }
+    }
+    if (firstName.isEmpty) {
+      for (final item in dummySearchResultLarge) {
+        if (item.id == firstAddedId) {
+          firstName = item.name;
+          firstImageUrl = item.imageUrl;
+          break;
+        }
+      }
+    }
+
+    return Positioned(
+      bottom: 16.h,
+      left: 16.w,
+      right: 16.w,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE3F2FD), Color(0xFFF1F8E9)],
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.local_offer, color: const Color(0xFF2563EB), size: 12.w),
+                SizedBox(width: 6.w),
+                Text(
+                  'Free delivery on orders above ₹199',
+                  style: TextStyle(
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF2563EB),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            decoration: BoxDecoration(
+              color: AppColors.primaryGreen,
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(12.r)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 36.w,
+                  height: 36.w,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.r),
+                    image: DecorationImage(
+                      image: NetworkImage(firstImageUrl),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '$_totalCartItems ${_totalCartItems == 1 ? 'item' : 'items'} | ₹${_totalCartPrice.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          color: AppColors.pureWhite,
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      Text(
+                        firstName,
+                        style: TextStyle(
+                          color: AppColors.pureWhite.withValues(alpha: 0.8),
+                          fontSize: 10.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => Navigator.pushNamed(context, '/cart'),
+                  child: Row(
+                    children: [
+                      Text(
+                        'View cart',
+                        style: TextStyle(
+                          color: AppColors.pureWhite,
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      SizedBox(width: 4.w),
+                      Icon(Icons.arrow_forward_ios, color: AppColors.pureWhite, size: 12.w),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),

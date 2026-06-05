@@ -130,7 +130,7 @@ const List<PromoBanner> dummyBanners = [
 const List<RestaurantItem> dummyRestaurants = [
   RestaurantItem(
     id: '1',
-    name: 'Roop Vihar Resorts',
+    name: 'Sohan Papdi',
     rating: 4.3,
     promoText: '₹100 OFF above ₹1049',
     deliveryTime: '30-35 mins',
@@ -139,16 +139,16 @@ const List<RestaurantItem> dummyRestaurants = [
   ),
   RestaurantItem(
     id: '2',
-    name: 'Fire N Ice',
+    name: 'Gulab Jamun',
     rating: 4.2,
     promoText: '40% OFF up to ₹80',
     deliveryTime: '25-30 mins',
-    imageUrl: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=500',
+    imageUrl: 'https://images.unsplash.com/photo-1601050690597-df056fb4ce78?w=500',
     isNearAndFast: true,
   ),
   RestaurantItem(
     id: '3',
-    name: 'Cake N Ice',
+    name: 'Chocolate Cake',
     rating: 4.1,
     promoText: '₹60 OFF above ₹99',
     deliveryTime: '40-45 mins',
@@ -157,7 +157,7 @@ const List<RestaurantItem> dummyRestaurants = [
   ),
   RestaurantItem(
     id: '4',
-    name: '11:11 Cafe And Res...',
+    name: 'Paneer Pizza',
     rating: 3.7,
     promoText: '₹40 OFF above ₹99',
     deliveryTime: '30-35 mins',
@@ -166,7 +166,7 @@ const List<RestaurantItem> dummyRestaurants = [
   ),
   RestaurantItem(
     id: '5',
-    name: "Prabha's Kitchen",
+    name: 'Kaju Katli',
     rating: 3.9,
     promoText: '40% OFF up to ₹80',
     deliveryTime: '30-35 mins',
@@ -175,7 +175,7 @@ const List<RestaurantItem> dummyRestaurants = [
   ),
   RestaurantItem(
     id: '6',
-    name: "Domino's Pizza",
+    name: 'Margherita Pizza',
     rating: 4.4,
     promoText: '20% OFF up to ₹50',
     deliveryTime: '20-25 mins',
@@ -206,7 +206,7 @@ const List<ExploreMoreItem> dummyExploreMore = [
 const List<LargeRestaurantItem> dummyLargeRestaurants = [
   LargeRestaurantItem(
     id: 'large_1',
-    name: 'Roop Vihar Resorts',
+    name: 'Sohan Papdi Box',
     rating: 4.3,
     ratingCount: 'By 800+',
     tags: ['Near & Fast'],
@@ -215,7 +215,7 @@ const List<LargeRestaurantItem> dummyLargeRestaurants = [
   ),
   LargeRestaurantItem(
     id: 'large_2',
-    name: '11:11 Cafe And Restaurant',
+    name: 'Paneer Pizza Special',
     rating: 3.7,
     ratingCount: 'By 1.7K+',
     tags: ['Near & Fast'],
@@ -224,7 +224,7 @@ const List<LargeRestaurantItem> dummyLargeRestaurants = [
   ),
   LargeRestaurantItem(
     id: 'large_3',
-    name: "Prabha's Kitchen",
+    name: 'Kaju Barfi Premium',
     rating: 3.9,
     ratingCount: 'By 500+',
     tags: ['Near & Fast', 'Vegetarian'],

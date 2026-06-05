@@ -13,6 +13,7 @@ class SubCategoryItem {
 class SearchResultRestaurant {
   final String id;
   final String name;
+  final double price;
   final double rating;
   final String promoText;
   final String deliveryTime;
@@ -22,6 +23,7 @@ class SearchResultRestaurant {
   const SearchResultRestaurant({
     required this.id,
     required this.name,
+    required this.price,
     required this.rating,
     required this.promoText,
     required this.deliveryTime,
@@ -33,6 +35,7 @@ class SearchResultRestaurant {
 class SearchResultLargeRestaurant {
   final String id;
   final String name;
+  final double price;
   final double rating;
   final String ratingCount;
   final String deliveryTime;
@@ -46,6 +49,7 @@ class SearchResultLargeRestaurant {
   const SearchResultLargeRestaurant({
     required this.id,
     required this.name,
+    required this.price,
     required this.rating,
     required this.ratingCount,
     required this.deliveryTime,
@@ -89,7 +93,8 @@ const List<SubCategoryItem> dummySubCategories = [
 const List<SearchResultRestaurant> dummySearchResultRecommended = [
   SearchResultRestaurant(
     id: 'rec_1',
-    name: 'Roop Vihar Resorts',
+    name: 'Sohan Papdi',
+    price: 53,
     rating: 4.3,
     promoText: '₹100 OFF above ₹1049',
     deliveryTime: '20-25 mins',
@@ -98,25 +103,28 @@ const List<SearchResultRestaurant> dummySearchResultRecommended = [
   ),
   SearchResultRestaurant(
     id: 'rec_2',
-    name: 'Adarsh Jalpan',
+    name: 'Gulab Jamun',
+    price: 37,
     rating: 4.1,
     promoText: '50% OFF select items',
+    deliveryTime: '30-35 mins',
+    imageUrl: 'https://images.unsplash.com/photo-1601050690597-df056fb4ce78?w=500',
+    isNearAndFast: false,
+  ),
+  SearchResultRestaurant(
+    id: 'rec_3',
+    name: 'Kaju Katli',
+    price: 89,
+    rating: 4.1,
+    promoText: '₹60 OFF above ₹99',
     deliveryTime: '30-35 mins',
     imageUrl: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=500',
     isNearAndFast: false,
   ),
   SearchResultRestaurant(
-    id: 'rec_3',
-    name: 'Devendra Jalpan',
-    rating: 4.1,
-    promoText: '₹60 OFF above ₹99',
-    deliveryTime: '30-35 mins',
-    imageUrl: 'https://images.unsplash.com/photo-1606787366850-de6330128bfc?w=500',
-    isNearAndFast: false,
-  ),
-  SearchResultRestaurant(
     id: 'rec_4',
-    name: "Prabha's Kitchen",
+    name: 'Barfi Assorted Box',
+    price: 149,
     rating: 3.9,
     promoText: '40% OFF up to ₹80',
     deliveryTime: '25-30 mins',
@@ -125,7 +133,8 @@ const List<SearchResultRestaurant> dummySearchResultRecommended = [
   ),
   SearchResultRestaurant(
     id: 'rec_5',
-    name: 'Vanakkam Sweets',
+    name: 'Safed Rasgulla',
+    price: 45,
     rating: 4.4,
     promoText: '₹120 OFF above ₹199',
     deliveryTime: '30-35 mins',
@@ -134,7 +143,8 @@ const List<SearchResultRestaurant> dummySearchResultRecommended = [
   ),
   SearchResultRestaurant(
     id: 'rec_6',
-    name: 'Vanakkam',
+    name: 'Motichoor Ladoo',
+    price: 29,
     rating: 4.2,
     promoText: '₹60 OFF above ₹99',
     deliveryTime: '30-35 mins',
@@ -146,7 +156,8 @@ const List<SearchResultRestaurant> dummySearchResultRecommended = [
 const List<SearchResultLargeRestaurant> dummySearchResultLarge = [
   SearchResultLargeRestaurant(
     id: 'large_res_1',
-    name: 'Adarsh Jalpan',
+    name: 'Sohan Papdi [250g Box]',
+    price: 120,
     rating: 4.1,
     ratingCount: 'By 21K+',
     deliveryTime: '30-35 mins',
@@ -159,7 +170,8 @@ const List<SearchResultLargeRestaurant> dummySearchResultLarge = [
   ),
   SearchResultLargeRestaurant(
     id: 'large_res_2',
-    name: 'Vanakkam Sweets',
+    name: 'Safed Rasgulla [500g]',
+    price: 199,
     rating: 4.4,
     ratingCount: 'By 900+',
     deliveryTime: '30-35 mins',
@@ -172,7 +184,8 @@ const List<SearchResultLargeRestaurant> dummySearchResultLarge = [
   ),
   SearchResultLargeRestaurant(
     id: 'large_res_3',
-    name: 'Devendra Jalpan',
+    name: 'Gulab Jamun [12 Pcs]',
+    price: 89,
     rating: 4.1,
     ratingCount: 'By 12K+',
     deliveryTime: '30-35 mins',
