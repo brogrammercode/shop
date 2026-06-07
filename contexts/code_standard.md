@@ -517,6 +517,7 @@ Cubit standards:
 - Cubits store one `OperationInfo` per independent operation, such as `loginInfo`, `logoutInfo`, `saveInfo`, or `deleteInfo`.
 - Success updates the relevant data and operation status.
 - Failure updates only the relevant operation status and error.
+- **Toast Notifications**: Do not trigger toast notifications, snackbars, or alerts from the UI (Page/Widget layer). All notification and alert triggers must reside entirely in the Cubit layer (e.g. inside repository callbacks / results folding).
 
 Standard Cubit method flow:
 
@@ -584,6 +585,7 @@ Page standards:
 - Do not call repositories from pages.
 - Do not parse API responses in pages.
 - Do not store auth tokens or business context in pages.
+- **In-Widget Processing Indicators**: During any asynchronous or background processing, you must show a small, thin circular loading indicator directly inside the specific button or widget that triggered the action, rather than using full-screen overlays or blocked views.
 
 Responsive layout standards:
 

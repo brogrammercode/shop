@@ -1,15 +1,16 @@
 import 'package:dio/dio.dart';
 import 'package:mobile/constants/api.dart';
+import 'package:mobile/constants/text.dart';
 import 'package:mobile/services/local_storage.dart';
 import 'package:mobile/utils/error.dart';
 
 class ApiClient {
-  late final Dio dio;
+  late final Dio _dio;
   final LocalStorage _localStorage;
 
   ApiClient({LocalStorage? localStorage})
-      : _localStorage = localStorage ?? LocalStorage() {
-    dio = Dio(
+    : _localStorage = localStorage ?? LocalStorage() {
+    _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
         connectTimeout: const Duration(
@@ -18,114 +19,72 @@ class ApiClient {
         receiveTimeout: const Duration(
           milliseconds: ApiConstants.receiveTimeout,
         ),
-        contentType: 'application/json',
+        contentType: ApiConstants.contentTypeJson,
       ),
     );
-
-    dio.interceptors.add(
+    _dio.interceptors.add(
+      LogInterceptor(responseBody: true, requestBody: true),
+    );
+    _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           final token = await _localStorage.getToken();
           if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
+            options.headers[ApiConstants.headerAuthorization] =
+                '${ApiConstants.bearerPrefix} $token';
           }
-          return handler.next(options);
-        },
-        onError: (DioException e, handler) {
-          return handler.next(e);
+          handler.next(options);
         },
       ),
     );
   }
 
-  Future<Response> get(
-    String path, {
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-  }) async {
+  Future<Response> get(String path, {Map<String, dynamic>? queryParams}) async {
     try {
-      final response = await dio.get(
-        path,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
+      return await _dio.get(path, queryParameters: queryParams);
     } on DioException catch (e) {
       throw _mapDioException(e);
     }
   }
 
-  Future<Response> post(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-  }) async {
+  Future<Response> post(String path, {dynamic data}) async {
     try {
-      final response = await dio.post(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
+      return await _dio.post(path, data: data);
     } on DioException catch (e) {
       throw _mapDioException(e);
     }
   }
 
-  Future<Response> put(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-  }) async {
+  Future<Response> uploadFile(String path, String filePath) async {
     try {
-      final response = await dio.put(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath),
+      });
+      return await _dio.post(path, data: formData);
     } on DioException catch (e) {
       throw _mapDioException(e);
     }
   }
 
-  Future<Response> patch(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-  }) async {
+  Future<Response> put(String path, {dynamic data}) async {
     try {
-      final response = await dio.patch(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
+      return await _dio.put(path, data: data);
     } on DioException catch (e) {
       throw _mapDioException(e);
     }
   }
 
-  Future<Response> delete(
-    String path, {
-    dynamic data,
-    Map<String, dynamic>? queryParameters,
-    Options? options,
-  }) async {
+  Future<Response> patch(String path, {dynamic data}) async {
     try {
-      final response = await dio.delete(
-        path,
-        data: data,
-        queryParameters: queryParameters,
-        options: options,
-      );
-      return response;
+      return await _dio.patch(path, data: data);
+    } on DioException catch (e) {
+      throw _mapDioException(e);
+    }
+  }
+
+  Future<Response> delete(String path, {dynamic data}) async {
+    try {
+      return await _dio.delete(path, data: data);
     } on DioException catch (e) {
       throw _mapDioException(e);
     }
@@ -135,30 +94,37 @@ class ApiClient {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
         e.type == DioExceptionType.sendTimeout) {
-      return const NetworkException("Connection timed out");
+      return const NetworkException(AppText.connectionTimedOut);
     }
 
-    if (e.type == DioExceptionType.connectionError) {
-      return const NetworkException("No internet connection");
+    final statusCode = e.response?.statusCode;
+
+    if (statusCode == 401 || statusCode == 403) {
+      final message =
+          _readErrorMessage(e.response?.data) ?? AuthText.authenticationFailed;
+      return AuthException(message);
     }
 
-    if (e.response != null) {
-      final statusCode = e.response?.statusCode;
-      final data = e.response?.data;
+    final message =
+        _readErrorMessage(e.response?.data) ?? AppText.somethingWentWrong;
+    return ServerException(message);
+  }
 
-      String message = "Server Error";
-      if (data is Map) {
-        message = data['message'] ?? data['error'] ?? "Something went wrong";
-      }
-
-      if (statusCode == 401 || statusCode == 403) {
-        return AuthException(message, statusCode: statusCode);
-      }
-
-      return ServerException(message, statusCode: statusCode);
+  String? _readErrorMessage(dynamic data) {
+    if (data is Map<String, dynamic>) {
+      final message =
+          data[ApiConstants.messageField] ?? data[ApiConstants.errorField];
+      return message?.toString();
     }
-
-    return ServerException(e.message ?? "Unknown Error occurred");
+    if (data is Map) {
+      final map = Map<String, dynamic>.from(data);
+      final message =
+          map[ApiConstants.messageField] ?? map[ApiConstants.errorField];
+      return message?.toString();
+    }
+    if (data is String && data.trim().isNotEmpty) {
+      return data;
+    }
+    return null;
   }
 }
-

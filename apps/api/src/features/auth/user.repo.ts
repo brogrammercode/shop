@@ -1,5 +1,5 @@
 import prisma from '../../infra/database/client';
-import { User, UserLog, UserSession, UserAddress } from './user.type';
+import { User, UserLog, UserSession, UserAddress, UserOtp, OtpType } from './user.type';
 
 export class UserRepo {
     async findById(id: string): Promise<User | null> {
@@ -96,4 +96,24 @@ export class UserRepo {
             where: { id }
         });
     }
+
+    async createOtp(data: { actor: string; otp: string; type: OtpType; valid_till: Date }): Promise<UserOtp> {
+        return prisma.userOtp.create({ data }) as unknown as UserOtp;
+    }
+
+    async findValidOtp(actor: string, otp: string, type: OtpType): Promise<UserOtp | null> {
+        return prisma.userOtp.findFirst({
+            where: {
+                actor,
+                otp,
+                type,
+                valid_till: { gt: new Date() },
+            },
+        }) as unknown as UserOtp | null;
+    }
+
+    async deleteOtpsByActor(actor: string, type: OtpType): Promise<void> {
+        await prisma.userOtp.deleteMany({ where: { actor, type } });
+    }
 }
+

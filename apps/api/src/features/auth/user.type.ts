@@ -54,4 +54,17 @@ type UserAddress = {
   readonly updated_at: Date;
 };
 
-export { User, UserLog, UserSession, UserAddress };
+type OtpType = 'LOGIN' | 'RESET' | 'VERIFY';
+
+type UserOtp = {
+  readonly id: string;
+  readonly actor: string;
+  readonly otp: string;
+  readonly type: OtpType;
+  readonly valid_till: Date;
+  readonly created_at: Date;
+  readonly updated_at: Date;
+};
+
+export { User, UserLog, UserSession, UserAddress, UserOtp, OtpType };
+

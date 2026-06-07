@@ -5,16 +5,17 @@ import { User } from './user.type';
 import { AUTH_MESSAGES, AUTH_CONFIG } from './auth.constant';
 import { BadRequestError } from '../../utils/error';
 import { SmsService } from '../../infra/messaging/sms.service';
-
-const otpStore = new Map<string, { otp: string, expiresAt: number }>();
+import { UserRepo } from './user.repo';
 
 export class AuthService {
     private userService: UserService;
     private smsService: SmsService;
+    private userRepo: UserRepo;
 
     constructor() {
         this.userService = new UserService();
         this.smsService = new SmsService();
+        this.userRepo = new UserRepo();
     }
 
     async loginWithFirebase(idToken: string): Promise<{ user: User, tokens: { accessToken: string, refreshToken: string } }> {
@@ -25,7 +26,7 @@ export class AuthService {
         try {
             const payloadSegment = idToken.split(AUTH_CONFIG.TOKEN_SPLITTER)[1];
             if (!payloadSegment) throw new Error(AUTH_MESSAGES.INVALID_TOKEN_FORMAT);
-            
+
             const payload = JSON.parse(Buffer.from(payloadSegment, 'base64').toString('utf-8'));
             const isGoogleIssuer = AUTH_CONFIG.GOOGLE_ISSUERS.includes(payload.iss);
 
@@ -85,10 +86,28 @@ export class AuthService {
             throw new BadRequestError(AUTH_MESSAGES.PHONE_REQUIRED);
         }
 
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiresAt = Date.now() + AUTH_CONFIG.OTP_EXPIRY_MS;
+        let user = await this.userService.getByPhoneNumber(phoneNumber);
 
-        otpStore.set(phoneNumber, { otp, expiresAt });
+        if (!user) {
+            user = await this.userService.create({
+                email: `${phoneNumber}${AUTH_CONFIG.DEFAULT_EMAIL_DOMAIN}`,
+                name: `${AUTH_CONFIG.DEFAULT_USER_NAME_PREFIX}${phoneNumber}`,
+                phone_number: phoneNumber,
+                avatar_url: AUTH_CONFIG.EMPTY_FALLBACK,
+            });
+        }
+
+        await this.userRepo.deleteOtpsByActor(user.id, AUTH_CONFIG.OTP_TYPE_LOGIN);
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const valid_till = new Date(Date.now() + AUTH_CONFIG.OTP_EXPIRY_MS);
+
+        await this.userRepo.createOtp({
+            actor: user.id,
+            otp,
+            type: AUTH_CONFIG.OTP_TYPE_LOGIN,
+            valid_till,
+        });
 
         const body = AUTH_CONFIG.OTP_MESSAGE_TEMPLATE.replace('{otp}', otp);
         await this.smsService.sendSms(phoneNumber, body);
@@ -99,34 +118,27 @@ export class AuthService {
             throw new BadRequestError(AUTH_MESSAGES.PHONE_AND_OTP_REQUIRED);
         }
 
-        const cached = otpStore.get(phoneNumber);
-        const isValidMock = otp === AUTH_CONFIG.MOCK_OTP;
-        let isValidDynamic = false;
-
-        if (cached) {
-            if (cached.expiresAt < Date.now()) {
-                otpStore.delete(phoneNumber);
-                throw new BadRequestError(AUTH_MESSAGES.OTP_EXPIRED);
-            }
-            if (cached.otp === otp) {
-                isValidDynamic = true;
-                otpStore.delete(phoneNumber);
-            }
-        }
-
-        if (!isValidDynamic && !isValidMock) {
-            throw new BadRequestError(AUTH_MESSAGES.INVALID_OTP);
-        }
-
-        let user = await this.userService.getByPhoneNumber(phoneNumber);
+        const user = await this.userService.getByPhoneNumber(phoneNumber);
 
         if (!user) {
-            user = await this.userService.create({
-                email: `${phoneNumber}${AUTH_CONFIG.DEFAULT_EMAIL_DOMAIN}`,
-                name: `${AUTH_CONFIG.DEFAULT_USER_NAME_PREFIX}${phoneNumber}`,
-                phone_number: phoneNumber,
-                avatar_url: AUTH_CONFIG.EMPTY_FALLBACK,
-            });
+            throw new BadRequestError(AUTH_MESSAGES.USER_NOT_FOUND_FOR_OTP);
+        }
+
+        const isMockOtp = otp === AUTH_CONFIG.MOCK_OTP;
+
+        if (!isMockOtp) {
+            const record = await this.userRepo.findValidOtp(user.id, otp, AUTH_CONFIG.OTP_TYPE_LOGIN);
+
+            if (!record) {
+                throw new BadRequestError(AUTH_MESSAGES.INVALID_OTP);
+            }
+
+            if (record.valid_till < new Date()) {
+                await this.userRepo.deleteOtpsByActor(user.id, AUTH_CONFIG.OTP_TYPE_LOGIN);
+                throw new BadRequestError(AUTH_MESSAGES.OTP_EXPIRED);
+            }
+
+            await this.userRepo.deleteOtpsByActor(user.id, AUTH_CONFIG.OTP_TYPE_LOGIN);
         }
 
         const tokens = this.userService.generateTokens(user);

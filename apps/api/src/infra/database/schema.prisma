@@ -21,8 +21,29 @@ model User {
   sessions      UserSession[]
   addresses     UserAddress[]
   join_requests BusinessJoinRequest[]
+  otps          UserOtp[]
 
   @@map("users")
+}
+
+enum OtpType {
+  LOGIN
+  RESET
+  VERIFY
+}
+
+model UserOtp {
+  id         String   @id @default(cuid())
+  actor      String
+  otp        String
+  type       OtpType
+  valid_till DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  user User @relation(fields: [actor], references: [id], onDelete: Cascade)
+
+  @@map("user_otps")
 }
 
 model UserLog {

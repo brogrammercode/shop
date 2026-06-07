@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
 import 'package:user/core/color.dart';
 import 'package:user/core/routes.dart';
+import 'package:user/features/auth/controllers/user.cubit.dart';
+import 'package:user/features/auth/controllers/user.state.dart';
 import 'package:user/features/auth/_data_dummy/login_page.dart';
+import 'package:user/utils/error.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,7 +22,9 @@ class _LoginPageState extends State<LoginPage> {
   int _activeSlideIndex = 0;
   Timer? _slideTimer;
   bool _rememberLogin = true;
+  bool _otpSent = false;
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _otpController = TextEditingController();
 
   @override
   void initState() {
@@ -40,6 +47,7 @@ class _LoginPageState extends State<LoginPage> {
     _slideTimer?.cancel();
     _pageController.dispose();
     _phoneController.dispose();
+    _otpController.dispose();
     super.dispose();
   }
 
@@ -47,55 +55,78 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pureWhite,
-      body: SingleChildScrollView(
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height,
-          child: Column(
-            children: [
-              _buildTopCarousel(),
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        children: [
-                          Text(
-                            'Choose your account',
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.textSecondary,
+      body: BlocListener<UserCubit, UserState>(
+        listenWhen: (previous, current) =>
+            previous.sendOtpInfo.status != current.sendOtpInfo.status ||
+            previous.verifyOtpInfo.status != current.verifyOtpInfo.status ||
+            previous.loginInfo.status != current.loginInfo.status,
+        listener: (context, state) {
+          if (state.sendOtpInfo.status == OperationStatus.success && !_otpSent) {
+            setState(() {
+              _otpSent = true;
+            });
+          }
+          if (state.verifyOtpInfo.status == OperationStatus.success) {
+            Navigator.pushReplacementNamed(context, AppRoutes.home);
+          }
+          if (state.loginInfo.status == OperationStatus.success) {
+            Navigator.pushReplacementNamed(context, AppRoutes.home);
+          }
+        },
+        child: SingleChildScrollView(
+          child: SizedBox(
+            height: MediaQuery.of(context).size.height,
+            child: Column(
+              children: [
+                _buildTopCarousel(),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          children: [
+                            Text(
+                              'Choose your account',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textSecondary,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 12.h),
-                          _buildProfileCard(),
-                          SizedBox(height: 16.h),
-                          Text(
-                            'Log in or sign up',
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.textTertiary,
+                            SizedBox(height: 12.h),
+                            _buildProfileCard(),
+                            SizedBox(height: 16.h),
+                            Text(
+                              'Log in or sign up',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textTertiary,
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 12.h),
-                          _buildPhoneInputField(),
-                          SizedBox(height: 12.h),
-                          _buildRememberLoginOption(),
-                          SizedBox(height: 16.h),
-                          _buildContinueButton(),
-                          SizedBox(height: 16.h),
-                          _buildSocialLoginRow(),
-                        ],
-                      ),
-                      _buildFooterLinks(),
-                    ],
+                            SizedBox(height: 12.h),
+                            _buildPhoneInputField(),
+                            if (_otpSent) ...[
+                              SizedBox(height: 12.h),
+                              _buildOtpInputField(),
+                            ],
+                            SizedBox(height: 12.h),
+                            _buildRememberLoginOption(),
+                            SizedBox(height: 16.h),
+                            _buildContinueButton(),
+                            SizedBox(height: 16.h),
+                            _buildSocialLoginRow(),
+                          ],
+                        ),
+                        _buildFooterLinks(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -238,56 +269,63 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildProfileCard() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushReplacementNamed(context, AppRoutes.home);
+    return BlocBuilder<UserCubit, UserState>(
+      builder: (context, state) {
+        final isLoading = state.loadUserInfo.status == OperationStatus.loading;
+        return GestureDetector(
+          onTap: isLoading
+              ? null
+              : () {
+                  Navigator.pushReplacementNamed(context, AppRoutes.home);
+                },
+          child: Container(
+            padding: EdgeInsets.all(12.w),
+            decoration: BoxDecoration(
+              color: AppColors.pureWhite,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: const Color(0xFFE8E8E8)),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 20.r,
+                  backgroundImage: NetworkImage(dummyLoginAccount.avatarUrl),
+                ),
+                SizedBox(width: 12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        dummyLoginAccount.name,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        dummyLoginAccount.phoneNumber,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.more_vert,
+                  color: AppColors.textSecondary,
+                  size: 20.w,
+                ),
+              ],
+            ),
+          ),
+        );
       },
-      child: Container(
-        padding: EdgeInsets.all(12.w),
-        decoration: BoxDecoration(
-          color: AppColors.pureWhite,
-          borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: const Color(0xFFE8E8E8)),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 20.r,
-              backgroundImage: NetworkImage(dummyLoginAccount.avatarUrl),
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    dummyLoginAccount.name,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  SizedBox(height: 2.h),
-                  Text(
-                    dummyLoginAccount.phoneNumber,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.more_vert,
-              color: AppColors.textSecondary,
-              size: 20.w,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -358,6 +396,36 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildOtpInputField() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 2.h),
+      decoration: BoxDecoration(
+        color: AppColors.pureWhite,
+        borderRadius: BorderRadius.circular(10.r),
+        border: Border.all(color: const Color(0xFFCCCCCC)),
+      ),
+      child: TextField(
+        controller: _otpController,
+        keyboardType: TextInputType.number,
+        style: TextStyle(
+          fontSize: 14.sp,
+          fontWeight: FontWeight.w700,
+          color: AppColors.textPrimary,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Enter 6-digit OTP',
+          hintStyle: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textTertiary,
+          ),
+          border: InputBorder.none,
+          isDense: true,
+        ),
+      ),
     );
   }
 
@@ -439,94 +507,141 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildContinueButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 48.h,
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFEF4F5F),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10.r),
+    return BlocBuilder<UserCubit, UserState>(
+      builder: (context, state) {
+        final isSending = state.sendOtpInfo.status == OperationStatus.loading;
+        final isVerifying = state.verifyOtpInfo.status == OperationStatus.loading;
+        final isLoading = isSending || isVerifying;
+
+        return SizedBox(
+          width: double.infinity,
+          height: 48.h,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEF4F5F),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.r),
+              ),
+              elevation: 0,
+            ),
+            onPressed: isLoading
+                ? null
+                : () {
+                    final phone = _phoneController.text.trim();
+                    if (phone.isEmpty) {
+                      Fluttertoast.showToast(msg: 'Please enter phone number');
+                      return;
+                    }
+                    if (!_otpSent) {
+                      context.read<UserCubit>().sendOtp('+91$phone');
+                    } else {
+                      final otp = _otpController.text.trim();
+                      if (otp.isEmpty) {
+                        Fluttertoast.showToast(msg: 'Please enter OTP');
+                        return;
+                      }
+                      context.read<UserCubit>().verifyOtp('+91$phone', otp);
+                    }
+                  },
+            child: isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.pureWhite),
+                    ),
+                  )
+                : Text(
+                    _otpSent ? 'Verify OTP' : 'Continue',
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.pureWhite,
+                    ),
+                  ),
           ),
-          elevation: 0,
-        ),
-        onPressed: () {
-          Navigator.pushReplacementNamed(context, AppRoutes.home);
-        },
-        child: Text(
-          'Continue',
-          style: TextStyle(
-            fontSize: 15.sp,
-            fontWeight: FontWeight.w800,
-            color: AppColors.pureWhite,
-          ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   Widget _buildSocialLoginRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        GestureDetector(
-          onTap: () {
-            Navigator.pushReplacementNamed(context, AppRoutes.home);
-          },
-          child: Container(
-            width: 44.w,
-            height: 44.w,
-            decoration: BoxDecoration(
-              color: AppColors.pureWhite,
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE8E8E8)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+    return BlocBuilder<UserCubit, UserState>(
+      builder: (context, state) {
+        final isLoading = state.loginInfo.status == OperationStatus.loading;
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: isLoading
+                  ? null
+                  : () {
+                      context.read<UserCubit>().loginWithGoogle('mock_google_id_token');
+                    },
+              child: Container(
+                width: 44.w,
+                height: 44.w,
+                decoration: BoxDecoration(
+                  color: AppColors.pureWhite,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFE8E8E8)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Center(
-              child: Image.network(
-                'https://cdn-icons-png.flaticon.com/512/2991/2991148.png',
-                width: 20.w,
-                height: 20.w,
+                child: Center(
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryGreen),
+                          ),
+                        )
+                      : Image.network(
+                          'https://cdn-icons-png.flaticon.com/512/2991/2991148.png',
+                          width: 20.w,
+                          height: 20.w,
+                        ),
+                ),
               ),
             ),
-          ),
-        ),
-        SizedBox(width: 20.w),
-        GestureDetector(
-          onTap: () {
-            Navigator.pushReplacementNamed(context, AppRoutes.home);
-          },
-          child: Container(
-            width: 44.w,
-            height: 44.w,
-            decoration: BoxDecoration(
-              color: AppColors.pureWhite,
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE8E8E8)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+            SizedBox(width: 20.w),
+            GestureDetector(
+              onTap: () {},
+              child: Container(
+                width: 44.w,
+                height: 44.w,
+                decoration: BoxDecoration(
+                  color: AppColors.pureWhite,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFE8E8E8)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Center(
-              child: Icon(
-                Icons.email,
-                color: const Color(0xFFEF4F5F),
-                size: 20.w,
+                child: Center(
+                  child: Icon(
+                    Icons.email,
+                    color: const Color(0xFFEF4F5F),
+                    size: 20.w,
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 

@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:mobile/features/auth/constants/user.constant.dart';
 import 'package:mobile/features/auth/controllers/user.repo.dart';
 import 'package:mobile/features/auth/controllers/user.state.dart';
 import 'package:mobile/features/auth/models/user_log.dart';
@@ -22,20 +24,26 @@ class UserCubit extends Cubit<UserState> {
     final result = await _userRepo.loginWithGoogle(idToken);
 
     result.fold(
-      (failure) => emit(
-        state.copyWith(
-          loginInfo: OperationInfo(
-            status: OperationStatus.error,
-            error: failure,
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            loginInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
           ),
-        ),
-      ),
-      (user) => emit(
-        state.copyWith(
-          user: user,
-          loginInfo: const OperationInfo(status: OperationStatus.success),
-        ),
-      ),
+        );
+      },
+      (user) {
+        Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
+        emit(
+          state.copyWith(
+            user: user,
+            loginInfo: const OperationInfo(status: OperationStatus.success),
+          ),
+        );
+      },
     );
   }
 
@@ -76,19 +84,25 @@ class UserCubit extends Cubit<UserState> {
     final result = await _userRepo.logout();
 
     result.fold(
-      (failure) => emit(
-        state.copyWith(
-          logoutInfo: OperationInfo(
-            status: OperationStatus.error,
-            error: failure,
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            logoutInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
           ),
-        ),
-      ),
-      (_) => emit(
-        const UserState(
-          logoutInfo: OperationInfo(status: OperationStatus.success),
-        ),
-      ),
+        );
+      },
+      (_) {
+        Fluttertoast.showToast(msg: UserConstant.logoutSuccessMessage);
+        emit(
+          const UserState(
+            logoutInfo: OperationInfo(status: OperationStatus.success),
+          ),
+        );
+      },
     );
   }
 
@@ -155,19 +169,25 @@ class UserCubit extends Cubit<UserState> {
     final result = await _userRepo.sendOtp(phoneNumber);
 
     result.fold(
-      (failure) => emit(
-        state.copyWith(
-          sendOtpInfo: OperationInfo(
-            status: OperationStatus.error,
-            error: failure,
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            sendOtpInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
           ),
-        ),
-      ),
-      (_) => emit(
-        state.copyWith(
-          sendOtpInfo: const OperationInfo(status: OperationStatus.success),
-        ),
-      ),
+        );
+      },
+      (_) {
+        Fluttertoast.showToast(msg: UserConstant.otpSentSuccess);
+        emit(
+          state.copyWith(
+            sendOtpInfo: const OperationInfo(status: OperationStatus.success),
+          ),
+        );
+      },
     );
   }
 
@@ -181,20 +201,26 @@ class UserCubit extends Cubit<UserState> {
     final result = await _userRepo.verifyOtp(phoneNumber, otp);
 
     result.fold(
-      (failure) => emit(
-        state.copyWith(
-          verifyOtpInfo: OperationInfo(
-            status: OperationStatus.error,
-            error: failure,
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            verifyOtpInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
           ),
-        ),
-      ),
-      (user) => emit(
-        state.copyWith(
-          user: user,
-          verifyOtpInfo: const OperationInfo(status: OperationStatus.success),
-        ),
-      ),
+        );
+      },
+      (user) {
+        Fluttertoast.showToast(msg: UserConstant.otpVerifiedSuccess);
+        emit(
+          state.copyWith(
+            user: user,
+            verifyOtpInfo: const OperationInfo(status: OperationStatus.success),
+          ),
+        );
+      },
     );
   }
 
@@ -261,15 +287,19 @@ class UserCubit extends Cubit<UserState> {
     final result = await _userRepo.terminateSession(sessionId);
 
     result.fold(
-      (failure) => emit(
-        state.copyWith(
-          terminateSessionInfo: OperationInfo(
-            status: OperationStatus.error,
-            error: failure,
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            terminateSessionInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
           ),
-        ),
-      ),
+        );
+      },
       (_) {
+        Fluttertoast.showToast(msg: UserConstant.sessionTerminatedSuccess);
         final currentSessions = state.sessions != null
             ? List<UserSessionModel>.from(state.sessions!)
             : <UserSessionModel>[];

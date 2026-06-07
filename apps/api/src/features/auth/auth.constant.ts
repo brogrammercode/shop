@@ -23,6 +23,7 @@ export const AUTH_MESSAGES = {
     ADDRESS_UPDATED: 'Address updated successfully',
     ADDRESS_DELETED: 'Address deleted successfully',
     OTP_EXPIRED: 'OTP has expired',
+    USER_NOT_FOUND_FOR_OTP: 'No user found for this phone number',
 };
 
 export const AUTH_CONFIG = {
@@ -36,4 +37,5 @@ export const AUTH_CONFIG = {
     EMPTY_FALLBACK: '',
     OTP_EXPIRY_MS: 300000,
     OTP_MESSAGE_TEMPLATE: 'Your Shop verification code is: {otp}',
+    OTP_TYPE_LOGIN: 'LOGIN' as const,
 };

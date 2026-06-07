@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/di.dart';
 import 'package:mobile/core/routes.dart';
 import 'package:mobile/core/theme.dart';
+import 'package:mobile/features/auth/controllers/user.cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,12 +22,19 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MaterialApp(
-          title: 'User Shop App',
-          debugShowCheckedModeBanner: false,
-          theme: AppTheme.lightTheme,
-          initialRoute: AppRoutes.login,
-          routes: AppRoutes.routes,
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider<UserCubit>(
+              create: (context) => AppDependencies.userCubit,
+            ),
+          ],
+          child: MaterialApp(
+            title: 'User Shop App',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            initialRoute: AppRoutes.session,
+            routes: AppRoutes.routes,
+          ),
         );
       },
     );
