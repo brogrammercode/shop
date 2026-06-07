@@ -83,31 +83,14 @@ model UserAddress {
   @@map("user_addresses")
 }
 
-model Business {
-  id         String   @id @default(cuid())
-  name       String
-  logo       String?
-  email      String?
-  phone      String?
-  address    String?
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now())
-
-  branches      Branch[]
-  join_requests BusinessJoinRequest[]
-
-  @@map("businesses")
-}
-
 model Branch {
   id          String   @id @default(cuid())
   name        String
-  business_id String
-  address     String?
+  branch_code String   @default("")
+  address     Json?
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now())
 
-  business      Business              @relation(fields: [business_id], references: [id])
   departments   Department[]
   shifts        Shift[]
   roles         Role[]
@@ -193,7 +176,7 @@ model Role {
 
 model Employee {
   id           String   @id @default(cuid())
-  user_id      String   @unique
+  uid          String   @unique
   name         String
   email        String
   phone        String?
@@ -206,7 +189,7 @@ model Employee {
   created_at   DateTime @default(now())
   updated_at   DateTime @default(now())
 
-  user   User   @relation(fields: [user_id], references: [id])
+  user   User   @relation(fields: [uid], references: [id])
   branch Branch @relation(fields: [branch_id], references: [id])
   role   Role   @relation(fields: [role_id], references: [id])
   shift  Shift  @relation(fields: [shift_id], references: [id])
@@ -226,8 +209,7 @@ enum BusinessJoinRequestStatus {
 
 model BusinessJoinRequest {
   id                String                    @id @default(cuid())
-  user_id           String
-  business_id       String
+  uid               String
   branch_id         String
   requested_role_id String?
   status            BusinessJoinRequestStatus @default(PENDING)
@@ -235,10 +217,9 @@ model BusinessJoinRequest {
   created_at        DateTime                  @default(now())
   updated_at        DateTime                  @default(now())
 
-  user           User     @relation(fields: [user_id], references: [id])
-  business       Business @relation(fields: [business_id], references: [id])
-  branch         Branch   @relation(fields: [branch_id], references: [id])
-  requested_role Role?    @relation(fields: [requested_role_id], references: [id])
+  user           User   @relation(fields: [uid], references: [id])
+  branch         Branch @relation(fields: [branch_id], references: [id])
+  requested_role Role?  @relation(fields: [requested_role_id], references: [id])
 
   @@map("business_join_requests")
 }

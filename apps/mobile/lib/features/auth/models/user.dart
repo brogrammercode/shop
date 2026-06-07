@@ -1,49 +1,37 @@
 class UserModel {
   final String id;
-  final String email;
   final String name;
-  final String token;
-  final String username;
-  final String image;
-  final String cover;
-  final String bio;
+  final String phone_number;
+  final String avatar_url;
+  final String? email;
   final String created_at;
   final String updated_at;
 
   const UserModel({
     required this.id,
-    required this.email,
     required this.name,
-    required this.token,
-    required this.username,
-    required this.image,
-    required this.cover,
-    required this.bio,
+    required this.phone_number,
+    required this.avatar_url,
+    this.email,
     required this.created_at,
     required this.updated_at,
   });
 
   UserModel copyWith({
     String? id,
-    String? email,
     String? name,
-    String? token,
-    String? username,
-    String? image,
-    String? cover,
-    String? bio,
+    String? phone_number,
+    String? avatar_url,
+    String? email,
     String? created_at,
     String? updated_at,
   }) {
     return UserModel(
       id: id ?? this.id,
-      email: email ?? this.email,
       name: name ?? this.name,
-      token: token ?? this.token,
-      username: username ?? this.username,
-      image: image ?? this.image,
-      cover: cover ?? this.cover,
-      bio: bio ?? this.bio,
+      phone_number: phone_number ?? this.phone_number,
+      avatar_url: avatar_url ?? this.avatar_url,
+      email: email ?? this.email,
       created_at: created_at ?? this.created_at,
       updated_at: updated_at ?? this.updated_at,
     );
@@ -52,13 +40,10 @@ class UserModel {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: (json['_id'] ?? json['id'] ?? '').toString(),
-      email: (json['email'] ?? '').toString(),
       name: (json['name'] ?? '').toString(),
-      token: (json['token'] ?? json['accessToken'] ?? '').toString(),
-      username: (json['username'] ?? '').toString(),
-      image: (json['image'] ?? '').toString(),
-      cover: (json['cover'] ?? '').toString(),
-      bio: (json['bio'] ?? '').toString(),
+      phone_number: (json['phone_number'] ?? '').toString(),
+      avatar_url: (json['avatar_url'] ?? '').toString(),
+      email: json['email']?.toString(),
       created_at: (json['created_at'] ?? '').toString(),
       updated_at: (json['updated_at'] ?? '').toString(),
     );
@@ -67,15 +52,13 @@ class UserModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'email': email,
       'name': name,
-      'token': token,
-      'username': username,
-      'image': image,
-      'cover': cover,
-      'bio': bio,
+      'phone_number': phone_number,
+      'avatar_url': avatar_url,
+      'email': email,
       'created_at': created_at,
       'updated_at': updated_at,
     };
   }
 }
+

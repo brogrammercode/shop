@@ -1,7 +1,4 @@
 export const BUSINESS_MESSAGES = {
-    BUSINESS_CREATED: 'Business created successfully',
-    BUSINESS_UPDATED: 'Business updated successfully',
-    BUSINESS_DELETED: 'Business deleted successfully',
     BRANCH_CREATED: 'Branch created successfully',
     BRANCH_UPDATED: 'Branch updated successfully',
     BRANCH_DELETED: 'Branch deleted successfully',
@@ -24,11 +21,11 @@ export const BUSINESS_MESSAGES = {
     JOIN_REQUESTS_FETCHED: 'Join requests fetched successfully',
     JOIN_REQUEST_APPROVED: 'Join request approved successfully',
     JOIN_REQUEST_REJECTED: 'Join request rejected successfully',
-    INITIALIZE_SUCCESS: 'Business and branch initialized successfully',
+    INITIALIZE_SUCCESS: 'Branch initialized successfully',
     CONTEXT_FETCHED: 'User context fetched successfully',
-    NOT_FOUND: 'Resource not found in business module',
+    NOT_FOUND: 'Resource not found in branch module',
     FORBIDDEN: 'You do not have permission to perform this action',
-    ALREADY_JOINED: 'User is already associated with a business',
+    ALREADY_JOINED: 'User is already associated with a branch',
     JOIN_REQUEST_ALREADY_EXISTS: 'A pending join request already exists for this branch',
     JOIN_REQUEST_NOT_FOUND: 'Join request not found',
     JOIN_REQUEST_NOT_PENDING: 'Join request is not pending',
@@ -47,14 +44,12 @@ export const BUSINESS_DEFAULTS = {
     GENERAL_SHIFT_START: '09:00',
     GENERAL_SHIFT_END: '18:00',
     ALL_PERMISSION: 'ALL',
-    EMPLOYEE_PERMISSIONS: ['business:read', 'branch:read', 'product:read', 'order:read', 'order:write'] as readonly string[],
+    EMPLOYEE_PERMISSIONS: ['branch:read', 'product:read', 'order:read', 'order:write'] as readonly string[],
     EMPTY_BANK_DETAILS: { account_name: '', account_number: '', bank_name: '', ifsc_code: '' },
     EMPTY_ADDRESS: { street: '', city: '', state: '', zip: '', country: '' },
 } as const;
 
 export const BUSINESS_PERMISSIONS = [
-    'business:read',
-    'business:write',
     'branch:read',
     'branch:write',
     'department:read',

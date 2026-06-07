@@ -8,7 +8,7 @@ class ApiClient {
   final LocalStorage _localStorage;
 
   ApiClient({LocalStorage? localStorage})
-    : _localStorage = localStorage ?? LocalStorage() {
+      : _localStorage = localStorage ?? LocalStorage() {
     dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.baseUrl,
@@ -19,17 +19,6 @@ class ApiClient {
           milliseconds: ApiConstants.receiveTimeout,
         ),
         contentType: 'application/json',
-      ),
-    );
-
-    dio.interceptors.add(
-      LogInterceptor(
-        request: true,
-        requestHeader: true,
-        requestBody: true,
-        responseHeader: true,
-        responseBody: true,
-        error: true,
       ),
     );
 
@@ -172,3 +161,4 @@ class ApiClient {
     return ServerException(e.message ?? "Unknown Error occurred");
   }
 }
+

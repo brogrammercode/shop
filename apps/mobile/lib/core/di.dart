@@ -1,16 +1,8 @@
 import 'package:get_it/get_it.dart';
-import 'package:mobile/features/auth/cubit/auth_cubit.dart';
-import 'package:mobile/features/auth/repo/auth_repo.dart';
-import 'package:mobile/features/business/cubit/business_cubit.dart';
-import 'package:mobile/features/business/repo/business_repo.dart';
-import 'package:mobile/features/order/cubit/counter_sale_cubit.dart';
-import 'package:mobile/features/order/repo/order_repo.dart';
-import 'package:mobile/features/product/cubit/product_cubit.dart';
-import 'package:mobile/features/product/repo/product_repo.dart';
+import 'package:mobile/features/auth/controllers/user.cubit.dart';
+import 'package:mobile/features/auth/controllers/user.repo.dart';
 import 'package:mobile/services/api_client.dart';
-import 'package:mobile/services/google_auth_service.dart';
 import 'package:mobile/services/local_storage.dart';
-import 'package:mobile/services/thermal_printer_service.dart';
 
 final GetIt serviceLocator = GetIt.instance;
 
@@ -18,54 +10,18 @@ Future<void> setupDependencies() async {
   if (serviceLocator.isRegistered<LocalStorage>()) {
     return;
   }
-
   serviceLocator.registerLazySingleton<LocalStorage>(LocalStorage.new);
-  serviceLocator.registerLazySingleton<GoogleAuthService>(
-    GoogleAuthService.new,
-  );
-  await serviceLocator<GoogleAuthService>().initialize();
   serviceLocator.registerLazySingleton<ApiClient>(
     () => ApiClient(localStorage: serviceLocator<LocalStorage>()),
   );
-  serviceLocator.registerLazySingleton<ThermalPrinterService>(
-    ThermalPrinterService.new,
-  );
-  serviceLocator.registerFactory<AuthRepo>(
-    () => AuthRepo(
+  serviceLocator.registerFactory<UserRepo>(
+    () => UserRepo(
       apiClient: serviceLocator<ApiClient>(),
       localStorage: serviceLocator<LocalStorage>(),
     ),
   );
-  serviceLocator.registerFactory<BusinessRepo>(
-    () => BusinessRepo(
-      apiClient: serviceLocator<ApiClient>(),
-      localStorage: serviceLocator<LocalStorage>(),
-    ),
-  );
-  serviceLocator.registerFactory<ProductRepo>(
-    () => ProductRepo(apiClient: serviceLocator<ApiClient>()),
-  );
-  serviceLocator.registerFactory<OrderRepo>(
-    () => OrderRepo(apiClient: serviceLocator<ApiClient>()),
-  );
-  serviceLocator.registerFactory<AuthCubit>(
-    () => AuthCubit(
-      authRepo: serviceLocator<AuthRepo>(),
-      googleAuthService: serviceLocator<GoogleAuthService>(),
-    ),
-  );
-  serviceLocator.registerFactory<BusinessCubit>(
-    () => BusinessCubit(serviceLocator<BusinessRepo>()),
-  );
-  serviceLocator.registerFactory<ProductCubit>(
-    () => ProductCubit(productRepo: serviceLocator<ProductRepo>()),
-  );
-  serviceLocator.registerFactory<CounterSaleCubit>(
-    () => CounterSaleCubit(
-      productRepo: serviceLocator<ProductRepo>(),
-      orderRepo: serviceLocator<OrderRepo>(),
-      thermalPrinterService: serviceLocator<ThermalPrinterService>(),
-    ),
+  serviceLocator.registerFactory<UserCubit>(
+    () => UserCubit(userRepo: serviceLocator<UserRepo>()),
   );
 }
 
@@ -78,39 +34,12 @@ class AppDependencies {
     return serviceLocator<ApiClient>();
   }
 
-  static GoogleAuthService get googleAuthService {
-    return serviceLocator<GoogleAuthService>();
+  static UserRepo get userRepo {
+    return serviceLocator<UserRepo>();
   }
 
-  static AuthRepo authRepo() {
-    return serviceLocator<AuthRepo>();
-  }
-
-  static BusinessRepo businessRepo() {
-    return serviceLocator<BusinessRepo>();
-  }
-
-  static ProductRepo productRepo() {
-    return serviceLocator<ProductRepo>();
-  }
-
-  static OrderRepo orderRepo() {
-    return serviceLocator<OrderRepo>();
-  }
-
-  static AuthCubit authCubit() {
-    return serviceLocator<AuthCubit>();
-  }
-
-  static BusinessCubit businessCubit() {
-    return serviceLocator<BusinessCubit>();
-  }
-
-  static ProductCubit productCubit() {
-    return serviceLocator<ProductCubit>();
-  }
-
-  static CounterSaleCubit counterSaleCubit() {
-    return serviceLocator<CounterSaleCubit>();
+  static UserCubit get userCubit {
+    return serviceLocator<UserCubit>();
   }
 }
+

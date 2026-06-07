@@ -108,7 +108,7 @@ export class OrderService {
         }
 
         const employee = await prisma.employee.findUnique({
-            where: { user_id: user.id },
+            where: { uid: user.id },
             include: { role: true }
         });
 
@@ -230,11 +230,7 @@ export class OrderService {
                         }
                     },
                     bill: true,
-                    branch: {
-                        include: {
-                            business: true
-                        }
-                    },
+                    branch: true,
                     employee: true
                 }
             });

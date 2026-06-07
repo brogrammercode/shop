@@ -31,7 +31,7 @@ class AppInput extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(
-          color: AppColors.textSecondary.withOpacity(0.5),
+          color: AppColors.textSecondary.withValues(alpha: 0.5),
           fontSize: 16.sp,
         ),
         prefixIcon: prefixIcon,
@@ -49,7 +49,7 @@ class AppInput extends StatelessWidget {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16.r),
           borderSide: const BorderSide(
-            color: AppColors.primaryIndigo,
+            color: AppColors.primaryGreen,
             width: 2,
           ),
         ),
@@ -57,3 +57,4 @@ class AppInput extends StatelessWidget {
     );
   }
 }
+

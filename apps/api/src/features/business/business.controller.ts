@@ -14,15 +14,15 @@ export class BusinessController {
 
     initialize = asyncHandler(async (req: Request, res: Response) => {
         const user = (req as any).user as User;
-        const { business, branch } = req.body;
+        const { branch } = req.body;
         
-        const result = await this.businessService.initializeBusiness(user, business, branch);
+        const result = await this.businessService.initializeBranch(user, branch);
         return sendSuccess(res, result, BUSINESS_MESSAGES.INITIALIZE_SUCCESS);
     });
 
     search = asyncHandler(async (req: Request, res: Response) => {
         const q = req.query.q as string;
-        const result = await this.businessService.searchBusinesses(q || '');
+        const result = await this.businessService.searchBranches(q || '');
         return sendSuccess(res, result);
     });
 
@@ -84,8 +84,7 @@ export class BusinessController {
     });
 
     getBranches = asyncHandler(async (req: Request, res: Response) => {
-        const businessId = requireSingleValue(req.query.business_id || req.query.businessId, 'business_id');
-        const result = await this.businessService.getBranchesByBusinessId(businessId);
+        const result = await this.businessService.getAllBranches();
         return sendSuccess(res, result);
     });
 

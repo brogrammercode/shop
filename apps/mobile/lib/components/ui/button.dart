@@ -14,7 +14,7 @@ class AppButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
-    this.backgroundColor = AppColors.primaryIndigo,
+    this.backgroundColor = AppColors.primaryGreen,
     this.textColor = AppColors.pureWhite,
     this.icon,
     this.isFullWidth = true,
@@ -55,19 +55,5 @@ class AppButton extends StatelessWidget {
       ),
     );
   }
-
-  factory AppButton.social({
-    required String text,
-    required VoidCallback onPressed,
-    required Color backgroundColor,
-    required Widget icon,
-  }) {
-    return AppButton(
-      text: text,
-      onPressed: onPressed,
-      backgroundColor: backgroundColor,
-      textColor: AppColors.pureWhite,
-      icon: icon,
-    );
-  }
 }
+

@@ -8,8 +8,8 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primaryIndigo,
-        primary: AppColors.primaryIndigo,
+        seedColor: AppColors.primaryGreen,
+        primary: AppColors.primaryGreen,
         surface: AppColors.pureWhite,
       ),
       scaffoldBackgroundColor: AppColors.pureWhite,
@@ -39,11 +39,16 @@ class AppTheme {
             color: AppColors.textSecondary,
             height: 1.5,
           ),
+          labelLarge: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primaryIndigo,
+          backgroundColor: AppColors.primaryGreen,
           foregroundColor: AppColors.pureWhite,
           minimumSize: Size(double.infinity, 56.h),
           shape: RoundedRectangleBorder(
@@ -58,3 +63,4 @@ class AppTheme {
     );
   }
 }
+

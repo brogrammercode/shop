@@ -1,18 +1,29 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const Color primaryIndigo = Color(0xFF5F67F1);
+  static const Color primaryGreen = Color(0xFF0F8244);
   static const Color pureWhite = Color(0xFFFFFFFF);
-  static const Color deepOnyx = Color(0xFF1A1A1A);
-  static const Color softGrey = Color(0xFFF5F5F5);
-
-  static const Color googleRed = Color(0xFFF28B82);
-  static const Color facebookBlue = Color(0xFF1877F2);
-  static const Color appleBlack = Color(0xFF2E2E2E);
-  static const Color emailIndigo = Color(0xFF8E99F3);
-  static const Color statusGreen = Color(0xFF4ADE80);
-
-  static const Color textPrimary = Color(0xFF1A1A1A);
-  static const Color textSecondary = Color(0xB31A1A1A);
-  static const Color textOnDark = Color(0xFFFFFFFF);
+  static const Color deepOnyx = Color(0xFF1C1C1C);
+  static const Color softGrey = Color(0xFFF4F4F4);
+  static const Color borderGrey = Color(0xFFE8E8E8);
+  static const Color textPrimary = Color(0xFF1C1C1C);
+  static const Color textSecondary = Color(0xFF666666);
+  static const Color textTertiary = Color(0xFF999999);
+  
+  static const Color gold = Color(0xFFC99B3B);
+  static const Color goldLight = Color(0xFFFFF9E6);
+  static const Color goldDark = Color(0xFF4D3600);
+  
+  static const Color headerPeach = Color(0xFFFDECD2);
+  static const Color headerPeachDark = Color(0xFFF9D199);
+  static const Color headerBlue = Color(0xFF008DFF);
+  static const Color headerBlueDark = Color(0xFF0075D4);
+  
+  static const Color bannerGoldStart = Color(0xFFFFF5D1);
+  static const Color bannerGoldEnd = Color(0xFFFBD786);
+  
+  static const Color districtPurple = Color(0xFF5F25D9);
+  
+  static const Color shadowColor = Color(0x0A000000);
 }
+

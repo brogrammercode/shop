@@ -1,5 +1,5 @@
 import { BusinessRepo } from './business.repo';
-import { Business, Branch, Department, Post, Shift, Role, Employee, BusinessJoinRequest } from './business.type';
+import { Branch, Department, Post, Shift, Role, Employee, BusinessJoinRequest } from './business.type';
 import { User } from '../auth/user.type';
 import prisma from '../../infra/database/client';
 import { BUSINESS_DEFAULTS, BUSINESS_MESSAGES } from './business.constant';
@@ -12,28 +12,12 @@ export class BusinessService {
         this.businessRepo = new BusinessRepo();
     }
 
-    async getBusinessById(id: string): Promise<Business | null> {
-        return this.businessRepo.findBusinessById(id);
-    }
-
-    async createBusiness(data: Omit<Business, 'id' | 'created_at' | 'updated_at'>): Promise<Business> {
-        return this.businessRepo.createBusiness(data);
-    }
-
-    async updateBusiness(id: string, data: Partial<Omit<Business, 'id' | 'created_at' | 'updated_at'>>): Promise<Business> {
-        return this.businessRepo.updateBusiness(id, data);
-    }
-
-    async deleteBusiness(id: string): Promise<Business> {
-        return this.businessRepo.deleteBusiness(id);
-    }
-
     async getBranchById(id: string): Promise<Branch | null> {
         return this.businessRepo.findBranchById(id);
     }
 
-    async getBranchesByBusinessId(businessId: string): Promise<Branch[]> {
-        return this.businessRepo.findBranchesByBusinessId(businessId);
+    async getAllBranches(): Promise<Branch[]> {
+        return this.businessRepo.findAllBranches();
     }
 
     async createBranch(data: Omit<Branch, 'id' | 'created_at' | 'updated_at'>): Promise<Branch> {
@@ -160,7 +144,6 @@ export class BusinessService {
 
         const branch = await prisma.branch.findUnique({
             where: { id: branchId },
-            include: { business: true },
         });
 
         if (!branch) {
@@ -186,8 +169,7 @@ export class BusinessService {
         }
 
         return this.businessRepo.createJoinRequest({
-            user_id: user.id,
-            business_id: branch.business_id,
+            uid: user.id,
             branch_id: branch.id,
             requested_role_id: requestedRoleId,
         });
@@ -213,7 +195,7 @@ export class BusinessService {
         }
 
         const reviewer = await this.ensureJoinRequestReviewer(user.id, request.branch_id);
-        const existingEmployee = await this.businessRepo.findEmployeeByUserId(request.user_id);
+        const existingEmployee = await this.businessRepo.findEmployeeByUserId(request.uid);
         if (existingEmployee) {
             throw new ConflictError(BUSINESS_MESSAGES.ALREADY_JOINED);
         }
@@ -239,7 +221,7 @@ export class BusinessService {
                 throw new NotFoundError(BUSINESS_MESSAGES.ROLE_NOT_FOUND);
             }
 
-            const joiningUser = await tx.user.findUnique({ where: { id: request.user_id } });
+            const joiningUser = await tx.user.findUnique({ where: { id: request.uid } });
             if (!joiningUser) {
                 throw new NotFoundError(BUSINESS_MESSAGES.NOT_FOUND);
             }
@@ -249,7 +231,7 @@ export class BusinessService {
             const shift = await this.ensureGeneralShift(tx, request.branch_id);
             const employee = await tx.employee.create({
                 data: {
-                    user_id: joiningUser.id,
+                    uid: joiningUser.id,
                     name: joiningUser.name,
                     email: joiningUser.email,
                     branch_id: request.branch_id,
@@ -273,11 +255,9 @@ export class BusinessService {
                             id: true,
                             name: true,
                             email: true,
-                            username: true,
-                            image: true,
+                            avatar_url: true,
                         },
                     },
-                    business: true,
                     branch: true,
                     requested_role: true,
                 },
@@ -307,10 +287,9 @@ export class BusinessService {
         });
     }
 
-    async initializeBusiness(user: User, businessData: Omit<Business, 'id' | 'created_at' | 'updated_at'>, branchData: Omit<Branch, 'id' | 'business_id' | 'created_at' | 'updated_at'>): Promise<{ business: Business, branch: Branch, employee: Employee }> {
+    async initializeBranch(user: User, branchData: Omit<Branch, 'id' | 'created_at' | 'updated_at'>): Promise<{ branch: Branch, employee: Employee }> {
         return prisma.$transaction(async (tx) => {
-            const business = await tx.business.create({ data: businessData });
-            const branch = await tx.branch.create({ data: { ...branchData, business_id: business.id } });
+            const branch = await tx.branch.create({ data: branchData as any });
             const department = await tx.department.create({
                 data: {
                     name: BUSINESS_DEFAULTS.OWNER_DEPARTMENT,
@@ -342,7 +321,7 @@ export class BusinessService {
             });
             const employee = await tx.employee.create({
                 data: {
-                    user_id: user.id,
+                    uid: user.id,
                     name: user.name,
                     email: user.email,
                     branch_id: branch.id,
@@ -354,12 +333,12 @@ export class BusinessService {
                 },
             });
 
-            return { business, branch, employee };
+            return { branch, employee };
         }) as any;
     }
 
-    async searchBusinesses(query: string): Promise<Business[]> {
-        return prisma.business.findMany({
+    async searchBranches(query: string): Promise<Branch[]> {
+        return prisma.branch.findMany({
             where: {
                 name: {
                     contains: query,
@@ -369,15 +348,11 @@ export class BusinessService {
         }) as any;
     }
 
-    async getUserContext(userId: string): Promise<{ business: Business, branch: Branch, employee: Employee, permissions: string[] } | null> {
+    async getUserContext(userId: string): Promise<{ branch: Branch, employee: Employee, permissions: string[] } | null> {
         const employee = await prisma.employee.findUnique({
-            where: { user_id: userId },
+            where: { uid: userId },
             include: {
-                branch: {
-                    include: {
-                        business: true
-                    }
-                },
+                branch: true,
                 role: true
             }
         }) as any;
@@ -385,7 +360,6 @@ export class BusinessService {
         if (!employee) return null;
 
         return {
-            business: employee.branch.business,
             branch: employee.branch,
             employee,
             permissions: employee.role.permissions
@@ -394,7 +368,7 @@ export class BusinessService {
 
     private async ensureJoinRequestReviewer(userId: string, branchId: string): Promise<Employee> {
         const employee = await prisma.employee.findUnique({
-            where: { user_id: userId },
+            where: { uid: userId },
             include: { role: true },
         }) as any;
 

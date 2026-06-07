@@ -95,7 +95,7 @@ export class ProductService {
 
     private async ensureBranchAccess(userId: string, branchId: string, requiredPermissions: readonly string[]): Promise<void> {
         const employee = await prisma.employee.findUnique({
-            where: { user_id: userId },
+            where: { uid: userId },
             include: { role: true }
         });
 
