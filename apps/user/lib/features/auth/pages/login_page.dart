@@ -100,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
                             _buildProfileCard(),
                             SizedBox(height: 16.h),
                             Text(
-                              'Log in or sign up',
+                              UserConstant.logInOrSignUp,
                               style: TextStyle(
                                 fontSize: 12.sp,
                                 fontWeight: FontWeight.w700,
@@ -298,7 +298,7 @@ class _LoginPageState extends State<LoginPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        dummyLoginAccount.name,
+                        UserConstant.unknownUser,
                         style: TextStyle(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w800,
@@ -381,7 +381,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: AppColors.textPrimary,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Enter Phone Number',
+                      hintText: UserConstant.enterPhoneNumber,
                       hintStyle: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w500,
@@ -417,7 +417,7 @@ class _LoginPageState extends State<LoginPage> {
           color: AppColors.textPrimary,
         ),
         decoration: InputDecoration(
-          hintText: 'Enter 6-digit OTP',
+          hintText: UserConstant.enterOtp,
           hintStyle: TextStyle(
             fontSize: 14.sp,
             fontWeight: FontWeight.w500,
@@ -496,7 +496,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         SizedBox(width: 8.w),
         Text(
-          'Remember my login for faster sign-in',
+          UserConstant.rememberLogin,
           style: TextStyle(
             fontSize: 12.sp,
             fontWeight: FontWeight.w600,
@@ -544,23 +544,25 @@ class _LoginPageState extends State<LoginPage> {
                       context.read<UserCubit>().verifyOtp('+91$phone', otp);
                     }
                   },
-            child: isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.pureWhite),
+            child: Center(
+              child: isLoading
+                  ? SizedBox(
+                      width: 20.w,
+                      height: 20.w,
+                      child: const CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.pureWhite),
+                      ),
+                    )
+                  : Text(
+                      _otpSent ? UserConstant.verifyOtp : UserConstant.continueText,
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.pureWhite,
+                      ),
                     ),
-                  )
-                : Text(
-                    _otpSent ? 'Verify OTP' : 'Continue',
-                    style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.pureWhite,
-                    ),
-                  ),
+            ),
           ),
         );
       },
@@ -613,33 +615,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            SizedBox(width: 20.w),
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                width: 44.w,
-                height: 44.w,
-                decoration: BoxDecoration(
-                  color: AppColors.pureWhite,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFE8E8E8)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.email,
-                    color: const Color(0xFFEF4F5F),
-                    size: 20.w,
-                  ),
-                ),
-              ),
-            ),
+
           ],
         );
       },

@@ -26,6 +26,20 @@ model User {
   @@map("users")
 }
 
+model AdBanner {
+  id         String   @id @default(cuid())
+  title      String
+  image_url  String
+  link_url   String?
+  status     String   @default("ACTIVE")
+  start_date DateTime?
+  end_date   DateTime?
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("ad_banners")
+}
+
 enum OtpType {
   LOGIN
   RESET

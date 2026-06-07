@@ -10,6 +10,7 @@ import 'package:mobile/features/auth/controllers/user.state.dart';
 import 'package:mobile/features/auth/_data_dummy/login_page.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/features/auth/constants/user.constant.dart';
+import 'package:mobile/services/json_cache.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -24,6 +25,7 @@ class _LoginPageState extends State<LoginPage> {
   Timer? _slideTimer;
   bool _rememberLogin = true;
   bool _otpSent = false;
+  Map<String, dynamic>? _savedProfile;
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
 
@@ -31,6 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     _pageController = PageController();
+    _initData();
     _slideTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
       if (_pageController.hasClients) {
         final nextIndex = (_activeSlideIndex + 1) % dummyLoginSlides.length;
@@ -41,6 +44,19 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     });
+  }
+
+  Future<void> _initData() async {
+    final cache = JsonCache();
+    final profile = await cache.getSavedProfile();
+    if (mounted && profile != null) {
+      setState(() {
+        _savedProfile = profile;
+      });
+    }
+    if (mounted) {
+      context.read<UserCubit>().getAdBanners();
+    }
   }
 
   @override
@@ -88,19 +104,21 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         Column(
                           children: [
-                            Text(
-                              'Choose your account',
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textSecondary,
+                            if (_savedProfile != null) ...[
+                              Text(
+                                UserConstant.chooseYourAccount,
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 12.h),
-                            _buildProfileCard(),
-                            SizedBox(height: 16.h),
+                              SizedBox(height: 12.h),
+                              _buildProfileCard(),
+                              SizedBox(height: 16.h),
+                            ],
                             Text(
-                              'Log in or sign up',
+                              UserConstant.logInOrSignUp,
                               style: TextStyle(
                                 fontSize: 12.sp,
                                 fontWeight: FontWeight.w700,
@@ -135,6 +153,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildTopCarousel() {
+    final adBanners = context.watch<UserCubit>().state.adBanners ?? [];
+    final hasBanners = adBanners.isNotEmpty;
+    final slideCount = hasBanners ? adBanners.length : dummyLoginSlides.length;
+
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.45,
       width: double.infinity,
@@ -147,14 +169,16 @@ class _LoginPageState extends State<LoginPage> {
                 _activeSlideIndex = index;
               });
             },
-            itemCount: dummyLoginSlides.length,
+            itemCount: slideCount,
             itemBuilder: (context, index) {
-              final slide = dummyLoginSlides[index];
+              final title = hasBanners ? adBanners[index].type : dummyLoginSlides[index].title;
+              final imageUrl = hasBanners ? adBanners[index].image_url : dummyLoginSlides[index].imageUrl;
+              
               return Stack(
                 children: [
                   Positioned.fill(
                     child: Image.network(
-                      slide.imageUrl,
+                      imageUrl,
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -181,7 +205,7 @@ class _LoginPageState extends State<LoginPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          slide.title,
+                          title,
                           style: TextStyle(
                             fontSize: 26.sp,
                             fontWeight: FontWeight.w900,
@@ -191,9 +215,11 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         SizedBox(height: 12.h),
-                        slide.isSpecialDeals
-                            ? _buildPercentBadge()
-                            : _buildZomatoLogoBadge(slide.logoText),
+                        if (!hasBanners) ...[
+                          dummyLoginSlides[index].isSpecialDeals
+                              ? _buildPercentBadge()
+                              : _buildZomatoLogoBadge(dummyLoginSlides[index].logoText),
+                        ],
                       ],
                     ),
                   ),
@@ -207,7 +233,7 @@ class _LoginPageState extends State<LoginPage> {
             right: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(dummyLoginSlides.length, (index) {
+              children: List.generate(slideCount, (index) {
                 final isActive = _activeSlideIndex == index;
                 return Container(
                   width: 6.w,
@@ -270,14 +296,20 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildProfileCard() {
+    if (_savedProfile == null) return const SizedBox.shrink();
+    final user = _savedProfile!['user'] as Map<String, dynamic>;
+    final name = user['name'] ?? UserConstant.unknownUser;
+    final phone = user['phone_number'] ?? '';
+    final avatar = user['avatar_url'] ?? dummyLoginAccount.avatarUrl;
+
     return BlocBuilder<UserCubit, UserState>(
       builder: (context, state) {
-        final isLoading = state.loadUserInfo.status == OperationStatus.loading;
+        final isLoading = state.loginInfo.status == OperationStatus.loading;
         return GestureDetector(
           onTap: isLoading
               ? null
               : () {
-                  Navigator.pushReplacementNamed(context, AppRoutes.home);
+                  context.read<UserCubit>().loginWithSavedProfile();
                 },
           child: Container(
             padding: EdgeInsets.all(12.w),
@@ -290,7 +322,7 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 CircleAvatar(
                   radius: 20.r,
-                  backgroundImage: NetworkImage(dummyLoginAccount.avatarUrl),
+                  backgroundImage: NetworkImage(avatar),
                 ),
                 SizedBox(width: 12.w),
                 Expanded(
@@ -298,7 +330,7 @@ class _LoginPageState extends State<LoginPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        dummyLoginAccount.name,
+                        name,
                         style: TextStyle(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w800,
@@ -307,7 +339,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       SizedBox(height: 2.h),
                       Text(
-                        dummyLoginAccount.phoneNumber,
+                        phone,
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
@@ -317,11 +349,17 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.more_vert,
-                  color: AppColors.textSecondary,
-                  size: 20.w,
-                ),
+                isLoading
+                    ? SizedBox(
+                        width: 20.w,
+                        height: 20.w,
+                        child: const CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryGreen),
+                      )
+                    : Icon(
+                        Icons.more_vert,
+                        color: AppColors.textSecondary,
+                        size: 20.w,
+                      ),
               ],
             ),
           ),
@@ -381,7 +419,7 @@ class _LoginPageState extends State<LoginPage> {
                       color: AppColors.textPrimary,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Enter Phone Number',
+                      hintText: UserConstant.enterPhoneNumber,
                       hintStyle: TextStyle(
                         fontSize: 14.sp,
                         fontWeight: FontWeight.w500,
@@ -417,7 +455,7 @@ class _LoginPageState extends State<LoginPage> {
           color: AppColors.textPrimary,
         ),
         decoration: InputDecoration(
-          hintText: 'Enter 6-digit OTP',
+          hintText: UserConstant.enterOtp,
           hintStyle: TextStyle(
             fontSize: 14.sp,
             fontWeight: FontWeight.w500,
@@ -496,7 +534,7 @@ class _LoginPageState extends State<LoginPage> {
         ),
         SizedBox(width: 8.w),
         Text(
-          'Remember my login for faster sign-in',
+          UserConstant.rememberLogin,
           style: TextStyle(
             fontSize: 12.sp,
             fontWeight: FontWeight.w600,
@@ -545,19 +583,19 @@ class _LoginPageState extends State<LoginPage> {
                     }
                   },
             child: isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
+                ? SizedBox(
+                    width: 20.w,
+                    height: 20.w,
+                    child: const CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(AppColors.pureWhite),
                     ),
                   )
                 : Text(
-                    _otpSent ? 'Verify OTP' : 'Continue',
+                    _otpSent ? UserConstant.verifyOtp : UserConstant.continueText,
                     style: TextStyle(
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w700,
                       color: AppColors.pureWhite,
                     ),
                   ),
@@ -613,33 +651,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-            SizedBox(width: 20.w),
-            GestureDetector(
-              onTap: () {},
-              child: Container(
-                width: 44.w,
-                height: 44.w,
-                decoration: BoxDecoration(
-                  color: AppColors.pureWhite,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFE8E8E8)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.email,
-                    color: const Color(0xFFEF4F5F),
-                    size: 20.w,
-                  ),
-                ),
-              ),
-            ),
+
           ],
         );
       },
@@ -652,7 +664,7 @@ class _LoginPageState extends State<LoginPage> {
       child: Column(
         children: [
           Text(
-            'By continuing, you agree to our',
+            UserConstant.byContinuingYouAgreeToOur.trim(),
             style: TextStyle(
               fontSize: 10.sp,
               color: AppColors.textTertiary,
@@ -663,11 +675,11 @@ class _LoginPageState extends State<LoginPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildUnderlinedLink('Terms of Service'),
+              _buildUnderlinedLink(UserConstant.termsOfService),
               SizedBox(width: 8.w),
-              _buildUnderlinedLink('Privacy Policy'),
+              _buildUnderlinedLink(UserConstant.privacyPolicy),
               SizedBox(width: 8.w),
-              _buildUnderlinedLink('Content Policy'),
+              _buildUnderlinedLink(UserConstant.contentPolicies),
             ],
           ),
         ],

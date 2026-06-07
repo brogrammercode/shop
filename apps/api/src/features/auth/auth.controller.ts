@@ -60,6 +60,11 @@ export class AuthController {
         return sendSuccess(res, result, AUTH_MESSAGES.LOGIN_SUCCESS);
     });
 
+    getAdBanners = asyncHandler(async (req: Request, res: Response) => {
+        const result = await this.authService.getAdBanners();
+        return sendSuccess(res, result, AUTH_MESSAGES.BANNERS_FETCHED);
+    });
+
     getSessions = asyncHandler(async (req: Request, res: Response) => {
         const user = (req as any).user as User;
         const result = await this.userService.getSessions(user.id);

@@ -1,17 +1,13 @@
-import 'dart:io';
+
+
+import 'package:mobile/core/env.dart';
 
 class ApiConstants {
   static const int connectTimeout = 10000;
   static const int receiveTimeout = 10000;
   static const int notFoundStatusCode = 404;
 
-  static const bool _usePhysicalDevice = true;
-
-  static final String baseUrl = Platform.isAndroid
-      ? _usePhysicalDevice
-          ? 'http://192.168.1.7:5001/api/v1'
-          : 'http://10.0.2.2:5001/api/v1'
-      : 'http://localhost:5001/api/v1';
+  static final String baseUrl = Env.apiBaseUrl;
 
   static const String contentTypeJson = 'application/json';
   static const String headerAuthorization = 'Authorization';

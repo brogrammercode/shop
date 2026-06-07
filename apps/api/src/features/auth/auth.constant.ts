@@ -22,6 +22,7 @@ export const AUTH_MESSAGES = {
     ADDRESSES_FETCHED: 'Addresses fetched successfully',
     ADDRESS_UPDATED: 'Address updated successfully',
     ADDRESS_DELETED: 'Address deleted successfully',
+    BANNERS_FETCHED: 'Ad banners fetched successfully',
     OTP_EXPIRED: 'OTP has expired',
     USER_NOT_FOUND_FOR_OTP: 'No user found for this phone number',
 };

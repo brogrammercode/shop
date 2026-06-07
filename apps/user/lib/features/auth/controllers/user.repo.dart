@@ -11,6 +11,8 @@ import 'package:user/utils/error.dart';
 import 'package:user/features/auth/constants/user.constant.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'package:user/core/env.dart';
+
 class UserRepo {
   final ApiClient _apiClient;
   final LocalStorage _localStorage;
@@ -23,7 +25,10 @@ class UserRepo {
 
   TaskResult<UserModel> loginWithGoogle() async {
     return tryCatchAsync(() async {
-      final googleSignIn = GoogleSignIn();
+      final googleSignIn = GoogleSignIn(
+        clientId: Env.googleClientId,
+        serverClientId: Env.googleServerClientId,
+      );
       final account = await googleSignIn.signIn();
       
       if (account == null) {

@@ -14,6 +14,8 @@ router.get('/activity/:user_id', controller.getActivities);
 router.post('/send-otp', controller.sendOtp);
 router.post('/verify-otp', controller.verifyOtp);
 
+router.get('/ad-banners', controller.getAdBanners);
+
 router.get('/sessions', protect, controller.getSessions);
 router.post('/sessions', protect, controller.createSession);
 router.delete('/sessions/:id', protect, controller.terminateSession);

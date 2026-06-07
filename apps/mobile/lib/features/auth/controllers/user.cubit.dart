@@ -67,6 +67,10 @@ class UserCubit extends Cubit<UserState> {
           (businessContext) async {
             await _jsonCache.saveUser(user.toJson());
             await _jsonCache.saveBusinessContext(businessContext.toJson());
+            final token = await _userRepo.getToken();
+            if (token != null) {
+              await _jsonCache.saveSavedProfile({'user': user.toJson(), 'token': token});
+            }
             Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
             emit(state.copyWith(
               user: user,
@@ -267,6 +271,10 @@ class UserCubit extends Cubit<UserState> {
           (businessContext) async {
             await _jsonCache.saveUser(user.toJson());
             await _jsonCache.saveBusinessContext(businessContext.toJson());
+            final token = await _userRepo.getToken();
+            if (token != null) {
+              await _jsonCache.saveSavedProfile({'user': user.toJson(), 'token': token});
+            }
             Fluttertoast.showToast(msg: UserConstant.otpVerifiedSuccess);
             emit(
               state.copyWith(
@@ -280,6 +288,56 @@ class UserCubit extends Cubit<UserState> {
     );
   }
 
+  Future<void> loginWithSavedProfile() async {
+    emit(state.copyWith(loginInfo: const OperationInfo(status: OperationStatus.loading)));
+    
+    final savedProfile = await _jsonCache.getSavedProfile();
+    if (savedProfile != null && savedProfile['token'] != null) {
+      await _userRepo.saveToken(savedProfile['token']);
+      
+      final result = await _userRepo.getCurrentUser();
+      
+      await result.fold(
+        (failure) async {
+          await _userRepo.logout();
+          await _jsonCache.clearAll();
+          emit(state.copyWith(
+            loginInfo: OperationInfo(status: OperationStatus.error, error: failure),
+          ));
+        },
+        (user) async {
+          final contextResult = await _businessRepo.getContext();
+          
+          await contextResult.fold(
+            (failure) async {
+              await _userRepo.logout();
+              await _jsonCache.clearAll();
+              Fluttertoast.showToast(msg: UserConstant.accessDeniedEmployeeRequired);
+              emit(state.copyWith(
+                loginInfo: const OperationInfo(
+                  status: OperationStatus.error,
+                  error: AuthFailure(UserConstant.noEmployeeProfileFound),
+                ),
+              ));
+            },
+            (businessContext) async {
+              await _jsonCache.saveUser(user.toJson());
+              await _jsonCache.saveBusinessContext(businessContext.toJson());
+              Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
+              emit(state.copyWith(
+                user: user,
+                loginInfo: const OperationInfo(status: OperationStatus.success),
+              ));
+            },
+          );
+        },
+      );
+    } else {
+      emit(state.copyWith(
+        loginInfo: const OperationInfo(status: OperationStatus.error, error: AuthFailure(UserConstant.noSavedProfileFound)),
+      ));
+    }
+  }
   Future<void> getSessions() async {
     emit(
       state.copyWith(

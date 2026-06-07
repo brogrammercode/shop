@@ -66,4 +66,31 @@ class JsonCache {
     await clearUser();
     await clearBusinessContext();
   }
+
+  static const String _savedProfileFile = 'saved_profile.json';
+
+  Future<void> saveSavedProfile(Map<String, dynamic> data) async {
+    final file = await _getFile(_savedProfileFile);
+    await file.writeAsString(jsonEncode(data));
+  }
+
+  Future<Map<String, dynamic>?> getSavedProfile() async {
+    try {
+      final file = await _getFile(_savedProfileFile);
+      if (await file.exists()) {
+        final content = await file.readAsString();
+        return jsonDecode(content) as Map<String, dynamic>;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> clearSavedProfile() async {
+    try {
+      final file = await _getFile(_savedProfileFile);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (_) {}
+  }
 }

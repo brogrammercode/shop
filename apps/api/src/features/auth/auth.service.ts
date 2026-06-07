@@ -144,4 +144,8 @@ export class AuthService {
         const tokens = this.userService.generateTokens(user);
         return { user, tokens };
     }
+
+    async getAdBanners() {
+        return await this.userRepo.getAdBanners();
+    }
 }

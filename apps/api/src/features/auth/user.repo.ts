@@ -115,5 +115,16 @@ export class UserRepo {
     async deleteOtpsByActor(actor: string, type: OtpType): Promise<void> {
         await prisma.userOtp.deleteMany({ where: { actor, type } });
     }
+
+    async getAdBanners() {
+        return await prisma.adBanner.findMany({
+            where: {
+                status: 'ACTIVE'
+            },
+            orderBy: {
+                created_at: 'desc'
+            }
+        });
+    }
 }
 
