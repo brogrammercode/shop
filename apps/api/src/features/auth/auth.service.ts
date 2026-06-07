@@ -4,12 +4,17 @@ import { UserService } from './user.service';
 import { User } from './user.type';
 import { AUTH_MESSAGES, AUTH_CONFIG } from './auth.constant';
 import { BadRequestError } from '../../utils/error';
+import { SmsService } from '../../infra/messaging/sms.service';
+
+const otpStore = new Map<string, { otp: string, expiresAt: number }>();
 
 export class AuthService {
     private userService: UserService;
+    private smsService: SmsService;
 
     constructor() {
         this.userService = new UserService();
+        this.smsService = new SmsService();
     }
 
     async loginWithFirebase(idToken: string): Promise<{ user: User, tokens: { accessToken: string, refreshToken: string } }> {
@@ -79,6 +84,14 @@ export class AuthService {
         if (!phoneNumber) {
             throw new BadRequestError(AUTH_MESSAGES.PHONE_REQUIRED);
         }
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = Date.now() + AUTH_CONFIG.OTP_EXPIRY_MS;
+
+        otpStore.set(phoneNumber, { otp, expiresAt });
+
+        const body = AUTH_CONFIG.OTP_MESSAGE_TEMPLATE.replace('{otp}', otp);
+        await this.smsService.sendSms(phoneNumber, body);
     }
 
     async verifyOtp(phoneNumber: string, otp: string): Promise<{ user: User, tokens: { accessToken: string, refreshToken: string } }> {
@@ -86,7 +99,22 @@ export class AuthService {
             throw new BadRequestError(AUTH_MESSAGES.PHONE_AND_OTP_REQUIRED);
         }
 
-        if (otp !== AUTH_CONFIG.MOCK_OTP) {
+        const cached = otpStore.get(phoneNumber);
+        const isValidMock = otp === AUTH_CONFIG.MOCK_OTP;
+        let isValidDynamic = false;
+
+        if (cached) {
+            if (cached.expiresAt < Date.now()) {
+                otpStore.delete(phoneNumber);
+                throw new BadRequestError(AUTH_MESSAGES.OTP_EXPIRED);
+            }
+            if (cached.otp === otp) {
+                isValidDynamic = true;
+                otpStore.delete(phoneNumber);
+            }
+        }
+
+        if (!isValidDynamic && !isValidMock) {
             throw new BadRequestError(AUTH_MESSAGES.INVALID_OTP);
         }
 

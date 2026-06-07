@@ -24,6 +24,9 @@ const envSchema = z.object({
     FIREBASE_PROJECT_ID: z.string().min(1),
     FIREBASE_PRIVATE_KEY: z.string().min(1),
     FIREBASE_CLIENT_EMAIL: z.string().min(1),
+    TWILIO_ACCOUNT_SID: z.string().default('mock_sid'),
+    TWILIO_AUTH_TOKEN: z.string().default('mock_token'),
+    TWILIO_PHONE_NUMBER: z.string().default('+1234567890'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
