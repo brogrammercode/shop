@@ -39,13 +39,13 @@ export class AuthController {
             ...req.body,
             uid,
         });
-        return sendSuccess(res, result, 'Activity logged successfully');
+        return sendSuccess(res, result, AUTH_MESSAGES.ACTIVITY_LOGGED);
     });
 
     getActivities = asyncHandler(async (req: Request, res: Response) => {
         const { user_id } = req.params;
         const result = await this.userService.getActivities(user_id as string);
-        return sendSuccess(res, result, 'Activities fetched successfully');
+        return sendSuccess(res, result, AUTH_MESSAGES.ACTIVITIES_FETCHED);
     });
 
     sendOtp = asyncHandler(async (req: Request, res: Response) => {
@@ -63,7 +63,7 @@ export class AuthController {
     getSessions = asyncHandler(async (req: Request, res: Response) => {
         const user = (req as any).user as User;
         const result = await this.userService.getSessions(user.id);
-        return sendSuccess(res, result, 'Sessions fetched successfully');
+        return sendSuccess(res, result, AUTH_MESSAGES.SESSIONS_FETCHED);
     });
 
     createSession = asyncHandler(async (req: Request, res: Response) => {
@@ -72,13 +72,13 @@ export class AuthController {
             ...req.body,
             uid: user.id,
         });
-        return sendSuccess(res, result, 'Session created successfully');
+        return sendSuccess(res, result, AUTH_MESSAGES.SESSION_CREATED);
     });
 
     terminateSession = asyncHandler(async (req: Request, res: Response) => {
         const { id } = req.params;
         const result = await this.userService.terminateSession(id as string);
-        return sendSuccess(res, result, 'Session terminated successfully');
+        return sendSuccess(res, result, AUTH_MESSAGES.SESSION_TERMINATED);
     });
 
     createAddress = asyncHandler(async (req: Request, res: Response) => {
@@ -87,24 +87,24 @@ export class AuthController {
             ...req.body,
             uid: user.id,
         });
-        return sendSuccess(res, result, 'Address created successfully');
+        return sendSuccess(res, result, AUTH_MESSAGES.ADDRESS_CREATED);
     });
 
     getAddresses = asyncHandler(async (req: Request, res: Response) => {
         const user = (req as any).user as User;
         const result = await this.userService.getAddresses(user.id);
-        return sendSuccess(res, result, 'Addresses fetched successfully');
+        return sendSuccess(res, result, AUTH_MESSAGES.ADDRESSES_FETCHED);
     });
 
     updateAddress = asyncHandler(async (req: Request, res: Response) => {
         const { id } = req.params;
         const result = await this.userService.updateAddress(id as string, req.body);
-        return sendSuccess(res, result, 'Address updated successfully');
+        return sendSuccess(res, result, AUTH_MESSAGES.ADDRESS_UPDATED);
     });
 
     deleteAddress = asyncHandler(async (req: Request, res: Response) => {
         const { id } = req.params;
         const result = await this.userService.deleteAddress(id as string);
-        return sendSuccess(res, result, 'Address deleted successfully');
+        return sendSuccess(res, result, AUTH_MESSAGES.ADDRESS_DELETED);
     });
 }

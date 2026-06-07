@@ -2,7 +2,7 @@ import admin from '../../infra/firebase/config';
 import config from '../../core/config';
 import { UserService } from './user.service';
 import { User } from './user.type';
-import { AUTH_MESSAGES } from './auth.constant';
+import { AUTH_MESSAGES, AUTH_CONFIG } from './auth.constant';
 import { BadRequestError } from '../../utils/error';
 
 export class AuthService {
@@ -18,16 +18,16 @@ export class AuthService {
         let picture: string | undefined;
 
         try {
-            const payloadSegment = idToken.split('.')[1];
-            if (!payloadSegment) throw new Error("Invalid token format");
+            const payloadSegment = idToken.split(AUTH_CONFIG.TOKEN_SPLITTER)[1];
+            if (!payloadSegment) throw new Error(AUTH_MESSAGES.INVALID_TOKEN_FORMAT);
             
             const payload = JSON.parse(Buffer.from(payloadSegment, 'base64').toString('utf-8'));
-            const isGoogleIssuer = payload.iss === 'https://accounts.google.com' || payload.iss === 'accounts.google.com';
+            const isGoogleIssuer = AUTH_CONFIG.GOOGLE_ISSUERS.includes(payload.iss);
 
             if (isGoogleIssuer) {
-                const response = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`);
+                const response = await fetch(`${AUTH_CONFIG.GOOGLE_TOKEN_INFO_URL}${idToken}`);
                 if (!response.ok) {
-                    throw new Error("Failed to verify Google ID token");
+                    throw new Error(AUTH_MESSAGES.GOOGLE_VERIFICATION_FAILED);
                 }
                 const decodedToken = await response.json() as any;
                 email = decodedToken.email;
@@ -40,7 +40,7 @@ export class AuthService {
                 picture = decodedToken.picture;
             }
         } catch (error: any) {
-            throw new Error(`Token verification failed: ${error.message}`);
+            throw new Error(`${AUTH_MESSAGES.TOKEN_VERIFICATION_FAILED}: ${error.message}`);
         }
 
         if (!email) {
@@ -52,9 +52,9 @@ export class AuthService {
         if (!user) {
             user = await this.userService.create({
                 email,
-                name: name || email.split('@')[0],
-                phone_number: '',
-                avatar_url: picture || '',
+                name: name || email.split(AUTH_CONFIG.EMAIL_SPLITTER)[0],
+                phone_number: AUTH_CONFIG.EMPTY_FALLBACK,
+                avatar_url: picture || AUTH_CONFIG.EMPTY_FALLBACK,
             });
         }
 
@@ -77,16 +77,16 @@ export class AuthService {
 
     async sendOtp(phoneNumber: string): Promise<void> {
         if (!phoneNumber) {
-            throw new BadRequestError('Phone number is required');
+            throw new BadRequestError(AUTH_MESSAGES.PHONE_REQUIRED);
         }
     }
 
     async verifyOtp(phoneNumber: string, otp: string): Promise<{ user: User, tokens: { accessToken: string, refreshToken: string } }> {
         if (!phoneNumber || !otp) {
-            throw new BadRequestError('Phone number and OTP are required');
+            throw new BadRequestError(AUTH_MESSAGES.PHONE_AND_OTP_REQUIRED);
         }
 
-        if (otp !== '123456') {
+        if (otp !== AUTH_CONFIG.MOCK_OTP) {
             throw new BadRequestError(AUTH_MESSAGES.INVALID_OTP);
         }
 
@@ -94,10 +94,10 @@ export class AuthService {
 
         if (!user) {
             user = await this.userService.create({
-                email: `${phoneNumber}@shop.com`,
-                name: `User ${phoneNumber}`,
+                email: `${phoneNumber}${AUTH_CONFIG.DEFAULT_EMAIL_DOMAIN}`,
+                name: `${AUTH_CONFIG.DEFAULT_USER_NAME_PREFIX}${phoneNumber}`,
                 phone_number: phoneNumber,
-                avatar_url: '',
+                avatar_url: AUTH_CONFIG.EMPTY_FALLBACK,
             });
         }
 

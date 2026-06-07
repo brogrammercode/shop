@@ -20,7 +20,7 @@ Follow these steps in order when implementing a new feature:
 3.  **Repository**: Implement `[feature].repo.ts` using Prisma for all database operations.
 4.  **Service (Business Logic)**: Implement `[feature].service.ts` to handle logic and interact with Repositories.
 5.  **Security/Utilities**: Implement `src/infra/security/` utilities if specific hashing or token logic is needed.
-6.  **Constants**: Populate `[feature].constant.ts` with all messages, error strings, and configuration values.
+6.  **Constants**: Populate `[feature].constant.ts` with all messages, error strings, and configuration values. Absolutely nothing (such as endpoints, payload keys, regexes, separators, or default labels) will be hardcoded in logical files; everything must be moved to constants.
 7.  **Controller**: Implement `[feature].controller.ts` using the `asyncHandler` utility.
 8.  **Middleware**: Implement `[feature].middleware.ts` for authentication or validation if required.
 9.  **Route**: Create `[feature].route.ts` to map endpoints to controller methods.
@@ -251,6 +251,7 @@ Standards:
 - Endpoint constants live beside their repository in `features/[feature]/repo/[feature]_endpoints.dart`.
 - App-wide constants live in `constants`.
 - Feature-specific constants live in `features/[feature]/constants/` on mobile, split into `[feature].constant.dart` (for user-facing copy, statuses, default role names, and workflow labels), `[feature].endpoints.dart` (for endpoint paths), and `[feature].params.dart` (for payload/query parameter keys). For the API, they live in `[feature].constant.ts`.
+  - **Auth Feature Constant Splitting**: Specifically, for the authentication/user feature on mobile (`apps/user`), you must use `user.constant.dart`, `user.endpoints.dart`, and `user.params.dart` inside the `features/auth/constants/` directory instead of `auth.dart` or `auth.constant.dart`.
 - Constants must stay module-scoped. Do not put business constants in auth constants, auth constants in global constants, or endpoint paths in page files.
 - Prefer Dart-style lowerCamelCase constant names for new code unless matching an existing all-caps backend enum collection.
 - Backend enum values can stay uppercase when the server contract requires uppercase strings.
