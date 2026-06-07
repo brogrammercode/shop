@@ -54,4 +54,3 @@ const LoginAccount dummyLoginAccount = LoginAccount(
   phoneNumber: "+91 6XXXX X4184",
   avatarUrl: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=500",
 );
-

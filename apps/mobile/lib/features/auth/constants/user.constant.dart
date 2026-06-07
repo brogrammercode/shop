@@ -5,4 +5,3 @@ class UserConstant {
   static const String otpVerifiedSuccess = 'OTP verified successfully';
   static const String sessionTerminatedSuccess = 'Session terminated successfully';
 }
-

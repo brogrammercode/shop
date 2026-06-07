@@ -115,4 +115,3 @@ class UserState {
       createSessionInfo.hashCode ^
       loadAdBannersInfo.hashCode;
 }
-

@@ -8,4 +8,3 @@ class UserEndpoints {
   static const String sessions = '/auth/sessions';
   static const String adBanners = '/auth/ad-banners';
 }
-

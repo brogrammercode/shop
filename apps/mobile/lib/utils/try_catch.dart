@@ -35,4 +35,3 @@ SyncResult<T> tryCatchSync<T>(T Function() fn) {
     return Left(ServerFailure(e.toString()));
   }
 }
-

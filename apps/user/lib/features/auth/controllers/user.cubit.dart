@@ -6,13 +6,29 @@ import 'package:user/features/auth/controllers/user.state.dart';
 import 'package:user/features/auth/models/user_log.dart';
 import 'package:user/features/auth/models/user_session.dart';
 import 'package:user/utils/error.dart';
+import 'package:user/features/auth/models/user.dart';
+import 'package:user/services/json_cache.dart';
 
 class UserCubit extends Cubit<UserState> {
   final UserRepo _userRepo;
+  final JsonCache _jsonCache;
 
   UserCubit({required UserRepo userRepo})
       : _userRepo = userRepo,
-        super(const UserState());
+        _jsonCache = JsonCache(),
+        super(const UserState()) {
+    _initFromCache();
+  }
+
+  Future<void> _initFromCache() async {
+    final userData = await _jsonCache.getUser();
+    if (userData != null) {
+      try {
+        final user = UserModel.fromJson(userData);
+        emit(state.copyWith(user: user));
+      } catch (_) {}
+    }
+  }
 
   Future<void> loginWithGoogle(String idToken) async {
     emit(
@@ -35,7 +51,8 @@ class UserCubit extends Cubit<UserState> {
           ),
         );
       },
-      (user) {
+      (user) async {
+        await _jsonCache.saveUser(user.toJson());
         Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
         emit(
           state.copyWith(
@@ -65,12 +82,15 @@ class UserCubit extends Cubit<UserState> {
           ),
         ),
       ),
-      (user) => emit(
-        state.copyWith(
-          user: user,
-          loadUserInfo: const OperationInfo(status: OperationStatus.success),
-        ),
-      ),
+      (user) async {
+        await _jsonCache.saveUser(user.toJson());
+        emit(
+          state.copyWith(
+            user: user,
+            loadUserInfo: const OperationInfo(status: OperationStatus.success),
+          ),
+        );
+      },
     );
   }
 
@@ -95,7 +115,8 @@ class UserCubit extends Cubit<UserState> {
           ),
         );
       },
-      (_) {
+      (_) async {
+        await _jsonCache.clearUser();
         Fluttertoast.showToast(msg: UserConstant.logoutSuccessMessage);
         emit(
           const UserState(
@@ -212,7 +233,8 @@ class UserCubit extends Cubit<UserState> {
           ),
         );
       },
-      (user) {
+      (user) async {
+        await _jsonCache.saveUser(user.toJson());
         Fluttertoast.showToast(msg: UserConstant.otpVerifiedSuccess);
         emit(
           state.copyWith(

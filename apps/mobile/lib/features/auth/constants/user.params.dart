@@ -13,4 +13,3 @@ class UserParams {
   static const String ipAddressKey = 'ip_address';
   static const String statusKey = 'status';
 }
-

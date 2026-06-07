@@ -50,4 +50,3 @@ class _SessionPageState extends State<SessionPage> {
     );
   }
 }
-

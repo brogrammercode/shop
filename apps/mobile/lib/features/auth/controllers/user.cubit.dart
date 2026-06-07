@@ -5,14 +5,35 @@ import 'package:mobile/features/auth/controllers/user.repo.dart';
 import 'package:mobile/features/auth/controllers/user.state.dart';
 import 'package:mobile/features/auth/models/user_log.dart';
 import 'package:mobile/features/auth/models/user_session.dart';
+import 'package:mobile/features/auth/models/user.dart';
+import 'package:mobile/features/business/controllers/business.repo.dart';
+import 'package:mobile/services/json_cache.dart';
 import 'package:mobile/utils/error.dart';
 
 class UserCubit extends Cubit<UserState> {
   final UserRepo _userRepo;
+  final BusinessRepo _businessRepo;
+  final JsonCache _jsonCache;
 
-  UserCubit({required UserRepo userRepo})
-      : _userRepo = userRepo,
-        super(const UserState());
+  UserCubit({
+    required UserRepo userRepo,
+    required BusinessRepo businessRepo,
+  })  : _userRepo = userRepo,
+        _businessRepo = businessRepo,
+        _jsonCache = JsonCache(),
+        super(const UserState()) {
+    _initFromCache();
+  }
+
+  Future<void> _initFromCache() async {
+    final userData = await _jsonCache.getUser();
+    if (userData != null) {
+      try {
+        final user = UserModel.fromJson(userData);
+        emit(state.copyWith(user: user));
+      } catch (_) {}
+    }
+  }
 
   Future<void> loginWithGoogle(String idToken) async {
     emit(
@@ -23,8 +44,8 @@ class UserCubit extends Cubit<UserState> {
 
     final result = await _userRepo.loginWithGoogle(idToken);
 
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         Fluttertoast.showToast(msg: failure.message);
         emit(
           state.copyWith(
@@ -35,13 +56,34 @@ class UserCubit extends Cubit<UserState> {
           ),
         );
       },
-      (user) {
-        Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
-        emit(
-          state.copyWith(
-            user: user,
-            loginInfo: const OperationInfo(status: OperationStatus.success),
-          ),
+      (user) async {
+        final contextResult = await _businessRepo.getContext();
+        
+        await contextResult.fold(
+          (failure) async {
+            await _userRepo.logout();
+            await _jsonCache.clearAll();
+            Fluttertoast.showToast(msg: 'Access denied: Employee profile required.');
+            emit(
+              state.copyWith(
+                loginInfo: OperationInfo(
+                  status: OperationStatus.error,
+                  error: AuthFailure('No employee profile found.'),
+                ),
+              ),
+            );
+          },
+          (businessContext) async {
+            await _jsonCache.saveUser(user.toJson());
+            await _jsonCache.saveBusinessContext(businessContext.toJson());
+            Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
+            emit(
+              state.copyWith(
+                user: user,
+                loginInfo: const OperationInfo(status: OperationStatus.success),
+              ),
+            );
+          },
         );
       },
     );
@@ -56,8 +98,8 @@ class UserCubit extends Cubit<UserState> {
 
     final result = await _userRepo.getCurrentUser();
 
-    result.fold(
-      (failure) => emit(
+    await result.fold(
+      (failure) async => emit(
         state.copyWith(
           loadUserInfo: OperationInfo(
             status: OperationStatus.error,
@@ -65,12 +107,15 @@ class UserCubit extends Cubit<UserState> {
           ),
         ),
       ),
-      (user) => emit(
-        state.copyWith(
-          user: user,
-          loadUserInfo: const OperationInfo(status: OperationStatus.success),
-        ),
-      ),
+      (user) async {
+        await _jsonCache.saveUser(user.toJson());
+        emit(
+          state.copyWith(
+            user: user,
+            loadUserInfo: const OperationInfo(status: OperationStatus.success),
+          ),
+        );
+      },
     );
   }
 
@@ -83,8 +128,8 @@ class UserCubit extends Cubit<UserState> {
 
     final result = await _userRepo.logout();
 
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         Fluttertoast.showToast(msg: failure.message);
         emit(
           state.copyWith(
@@ -95,7 +140,8 @@ class UserCubit extends Cubit<UserState> {
           ),
         );
       },
-      (_) {
+      (_) async {
+        await _jsonCache.clearAll();
         Fluttertoast.showToast(msg: UserConstant.logoutSuccessMessage);
         emit(
           const UserState(
@@ -115,8 +161,8 @@ class UserCubit extends Cubit<UserState> {
 
     final result = await _userRepo.logActivity(log);
 
-    result.fold(
-      (failure) => emit(
+    await result.fold(
+      (failure) async => emit(
         state.copyWith(
           logActivityInfo: OperationInfo(
             status: OperationStatus.error,
@@ -124,7 +170,7 @@ class UserCubit extends Cubit<UserState> {
           ),
         ),
       ),
-      (_) => emit(
+      (_) async => emit(
         state.copyWith(
           logActivityInfo: const OperationInfo(status: OperationStatus.success),
         ),
@@ -141,8 +187,8 @@ class UserCubit extends Cubit<UserState> {
 
     final result = await _userRepo.getActivities(userId);
 
-    result.fold(
-      (failure) => emit(
+    await result.fold(
+      (failure) async => emit(
         state.copyWith(
           loadActivitiesInfo: OperationInfo(
             status: OperationStatus.error,
@@ -150,7 +196,7 @@ class UserCubit extends Cubit<UserState> {
           ),
         ),
       ),
-      (activities) => emit(
+      (activities) async => emit(
         state.copyWith(
           activities: activities,
           loadActivitiesInfo: const OperationInfo(status: OperationStatus.success),
@@ -168,8 +214,8 @@ class UserCubit extends Cubit<UserState> {
 
     final result = await _userRepo.sendOtp(phoneNumber);
 
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         Fluttertoast.showToast(msg: failure.message);
         emit(
           state.copyWith(
@@ -180,7 +226,7 @@ class UserCubit extends Cubit<UserState> {
           ),
         );
       },
-      (_) {
+      (_) async {
         Fluttertoast.showToast(msg: UserConstant.otpSentSuccess);
         emit(
           state.copyWith(
@@ -200,8 +246,8 @@ class UserCubit extends Cubit<UserState> {
 
     final result = await _userRepo.verifyOtp(phoneNumber, otp);
 
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         Fluttertoast.showToast(msg: failure.message);
         emit(
           state.copyWith(
@@ -212,13 +258,34 @@ class UserCubit extends Cubit<UserState> {
           ),
         );
       },
-      (user) {
-        Fluttertoast.showToast(msg: UserConstant.otpVerifiedSuccess);
-        emit(
-          state.copyWith(
-            user: user,
-            verifyOtpInfo: const OperationInfo(status: OperationStatus.success),
-          ),
+      (user) async {
+        final contextResult = await _businessRepo.getContext();
+        
+        await contextResult.fold(
+          (failure) async {
+            await _userRepo.logout();
+            await _jsonCache.clearAll();
+            Fluttertoast.showToast(msg: 'Access denied: Employee profile required.');
+            emit(
+              state.copyWith(
+                verifyOtpInfo: OperationInfo(
+                  status: OperationStatus.error,
+                  error: AuthFailure('No employee profile found.'),
+                ),
+              ),
+            );
+          },
+          (businessContext) async {
+            await _jsonCache.saveUser(user.toJson());
+            await _jsonCache.saveBusinessContext(businessContext.toJson());
+            Fluttertoast.showToast(msg: UserConstant.otpVerifiedSuccess);
+            emit(
+              state.copyWith(
+                user: user,
+                verifyOtpInfo: const OperationInfo(status: OperationStatus.success),
+              ),
+            );
+          },
         );
       },
     );
@@ -233,8 +300,8 @@ class UserCubit extends Cubit<UserState> {
 
     final result = await _userRepo.getSessions();
 
-    result.fold(
-      (failure) => emit(
+    await result.fold(
+      (failure) async => emit(
         state.copyWith(
           loadSessionsInfo: OperationInfo(
             status: OperationStatus.error,
@@ -242,7 +309,7 @@ class UserCubit extends Cubit<UserState> {
           ),
         ),
       ),
-      (sessions) => emit(
+      (sessions) async => emit(
         state.copyWith(
           sessions: sessions,
           loadSessionsInfo: const OperationInfo(status: OperationStatus.success),
@@ -260,8 +327,8 @@ class UserCubit extends Cubit<UserState> {
 
     final result = await _userRepo.createSession(session);
 
-    result.fold(
-      (failure) => emit(
+    await result.fold(
+      (failure) async => emit(
         state.copyWith(
           createSessionInfo: OperationInfo(
             status: OperationStatus.error,
@@ -269,7 +336,7 @@ class UserCubit extends Cubit<UserState> {
           ),
         ),
       ),
-      (_) => emit(
+      (_) async => emit(
         state.copyWith(
           createSessionInfo: const OperationInfo(status: OperationStatus.success),
         ),
@@ -286,8 +353,8 @@ class UserCubit extends Cubit<UserState> {
 
     final result = await _userRepo.terminateSession(sessionId);
 
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         Fluttertoast.showToast(msg: failure.message);
         emit(
           state.copyWith(
@@ -298,7 +365,7 @@ class UserCubit extends Cubit<UserState> {
           ),
         );
       },
-      (_) {
+      (_) async {
         Fluttertoast.showToast(msg: UserConstant.sessionTerminatedSuccess);
         final currentSessions = state.sessions != null
             ? List<UserSessionModel>.from(state.sessions!)
@@ -323,8 +390,8 @@ class UserCubit extends Cubit<UserState> {
 
     final result = await _userRepo.getAdBanners();
 
-    result.fold(
-      (failure) => emit(
+    await result.fold(
+      (failure) async => emit(
         state.copyWith(
           loadAdBannersInfo: OperationInfo(
             status: OperationStatus.error,
@@ -332,7 +399,7 @@ class UserCubit extends Cubit<UserState> {
           ),
         ),
       ),
-      (adBanners) => emit(
+      (adBanners) async => emit(
         state.copyWith(
           adBanners: adBanners,
           loadAdBannersInfo: const OperationInfo(status: OperationStatus.success),
@@ -341,4 +408,3 @@ class UserCubit extends Cubit<UserState> {
     );
   }
 }
-
