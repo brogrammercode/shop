@@ -1,5 +1,5 @@
 import prisma from '../../infra/database/client';
-import { User } from './user.type';
+import { User, UserLog, UserSession, UserAddress } from './user.type';
 
 export class UserRepo {
     async findById(id: string): Promise<User | null> {
@@ -14,9 +14,9 @@ export class UserRepo {
         });
     }
 
-    async findByUsername(username: string): Promise<User | null> {
-        return prisma.user.findUnique({
-            where: { username }
+    async findByPhoneNumber(phone_number: string): Promise<User | null> {
+        return prisma.user.findFirst({
+            where: { phone_number }
         });
     }
 
@@ -39,17 +39,61 @@ export class UserRepo {
         });
     }
 
-    async createUserActivity(data: Omit<import('./user.type').UserActivity, 'id' | 'created_at' | 'updated_at'>) {
-        return prisma.userActivity.create({
+    async createUserLog(data: Omit<UserLog, 'id' | 'created_at' | 'updated_at'>): Promise<UserLog> {
+        return prisma.userLog.create({
             data
         });
     }
 
-    async getUserActivities(user_id: string) {
-        return prisma.userActivity.findMany({
-            where: { user_id },
-            orderBy: { created_at: 'desc' },
-            include: { user: true }
+    async getUserLogs(uid: string): Promise<UserLog[]> {
+        return prisma.userLog.findMany({
+            where: { uid },
+            orderBy: { created_at: 'desc' }
+        });
+    }
+
+    async createSession(data: Omit<UserSession, 'id' | 'created_at' | 'updated_at'>): Promise<UserSession> {
+        return prisma.userSession.create({
+            data
+        });
+    }
+
+    async findSessionsByUserId(uid: string): Promise<UserSession[]> {
+        return prisma.userSession.findMany({
+            where: { uid },
+            orderBy: { created_at: 'desc' }
+        });
+    }
+
+    async deleteSession(id: string): Promise<UserSession> {
+        return prisma.userSession.delete({
+            where: { id }
+        });
+    }
+
+    async createAddress(data: Omit<UserAddress, 'id' | 'created_at' | 'updated_at'>): Promise<UserAddress> {
+        return prisma.userAddress.create({
+            data
+        });
+    }
+
+    async findAddressesByUserId(uid: string): Promise<UserAddress[]> {
+        return prisma.userAddress.findMany({
+            where: { uid },
+            orderBy: { created_at: 'desc' }
+        });
+    }
+
+    async updateAddress(id: string, data: Partial<Omit<UserAddress, 'id' | 'created_at' | 'updated_at'>>): Promise<UserAddress> {
+        return prisma.userAddress.update({
+            where: { id },
+            data
+        });
+    }
+
+    async deleteAddress(id: string): Promise<UserAddress> {
+        return prisma.userAddress.delete({
+            where: { id }
         });
     }
 }

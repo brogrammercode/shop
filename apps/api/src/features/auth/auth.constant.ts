@@ -6,10 +6,6 @@ export const AUTH_MESSAGES = {
     USER_NOT_FOUND: 'User not found',
     LOGIN_REQUIRED: 'Please log in to get access',
     USER_DELETED: 'The user belonging to this token no longer exists',
+    OTP_SENT: 'OTP sent successfully',
+    INVALID_OTP: 'Invalid OTP',
 };
-
-export const AUTH_DEFAULTS = {
-    EMPTY_COVER: '',
-    EMPTY_BIO: '',
-    USERNAME_FALLBACK: 'user',
-} as const;

@@ -1,8 +1,7 @@
 import { UserRepo } from './user.repo';
-import { User, UserActivity } from './user.type';
+import { User, UserLog, UserSession, UserAddress } from './user.type';
 import { Jwt } from '../../infra/security/jwt';
 import config from '../../core/config';
-import { BadRequestError } from '../../utils/error';
 
 export class UserService {
     private userRepo: UserRepo;
@@ -17,6 +16,10 @@ export class UserService {
 
     async getByEmail(email: string): Promise<User | null> {
         return this.userRepo.findByEmail(email);
+    }
+
+    async getByPhoneNumber(phone_number: string): Promise<User | null> {
+        return this.userRepo.findByPhoneNumber(phone_number);
     }
 
     async create(data: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
@@ -51,29 +54,39 @@ export class UserService {
         return Jwt.verify<T>(token, secret);
     }
 
-    async logActivity(data: Omit<UserActivity, 'id' | 'created_at' | 'updated_at'> & { username?: string, userId?: string }) {
-        const userId = data.user_id || data.userId || await this.resolveUserId(data.username);
-        if (!userId) {
-            throw new BadRequestError('user_id is required');
-        }
-
-        const { username, userId: _userId, ...activity } = data;
-        return this.userRepo.createUserActivity({
-            ...activity,
-            user_id: userId,
-        });
+    async logActivity(data: Omit<UserLog, 'id' | 'created_at' | 'updated_at'>) {
+        return this.userRepo.createUserLog(data);
     }
 
-    async getActivities(user_id: string) {
-        return this.userRepo.getUserActivities(user_id);
+    async getActivities(uid: string) {
+        return this.userRepo.getUserLogs(uid);
     }
 
-    private async resolveUserId(username?: string): Promise<string> {
-        if (!username) {
-            return '';
-        }
+    async createSession(data: Omit<UserSession, 'id' | 'created_at' | 'updated_at'>) {
+        return this.userRepo.createSession(data);
+    }
 
-        const user = await this.userRepo.findByUsername(username);
-        return user?.id || '';
+    async getSessions(uid: string) {
+        return this.userRepo.findSessionsByUserId(uid);
+    }
+
+    async terminateSession(id: string) {
+        return this.userRepo.deleteSession(id);
+    }
+
+    async createAddress(data: Omit<UserAddress, 'id' | 'created_at' | 'updated_at'>) {
+        return this.userRepo.createAddress(data);
+    }
+
+    async getAddresses(uid: string) {
+        return this.userRepo.findAddressesByUserId(uid);
+    }
+
+    async updateAddress(id: string, data: Partial<Omit<UserAddress, 'id' | 'created_at' | 'updated_at'>>) {
+        return this.userRepo.updateAddress(id, data);
+    }
+
+    async deleteAddress(id: string) {
+        return this.userRepo.deleteAddress(id);
     }
 }

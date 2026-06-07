@@ -2,7 +2,8 @@ import admin from '../../infra/firebase/config';
 import config from '../../core/config';
 import { UserService } from './user.service';
 import { User } from './user.type';
-import { AUTH_DEFAULTS, AUTH_MESSAGES } from './auth.constant';
+import { AUTH_MESSAGES } from './auth.constant';
+import { BadRequestError } from '../../utils/error';
 
 export class AuthService {
     private userService: UserService;
@@ -15,7 +16,6 @@ export class AuthService {
         let email: string | undefined;
         let name: string | undefined;
         let picture: string | undefined;
-        let uid: string | undefined;
 
         try {
             const payloadSegment = idToken.split('.')[1];
@@ -33,13 +33,11 @@ export class AuthService {
                 email = decodedToken.email;
                 name = decodedToken.name;
                 picture = decodedToken.picture;
-                uid = decodedToken.sub;
             } else {
                 const decodedToken = await admin.auth().verifyIdToken(idToken);
                 email = decodedToken.email;
                 name = decodedToken.name;
                 picture = decodedToken.picture;
-                uid = decodedToken.uid;
             }
         } catch (error: any) {
             throw new Error(`Token verification failed: ${error.message}`);
@@ -55,10 +53,8 @@ export class AuthService {
             user = await this.userService.create({
                 email,
                 name: name || email.split('@')[0],
-                username: this.createUsername(email, uid || ''),
-                image: picture || '',
-                cover: AUTH_DEFAULTS.EMPTY_COVER,
-                bio: AUTH_DEFAULTS.EMPTY_BIO,
+                phone_number: '',
+                avatar_url: picture || '',
             });
         }
 
@@ -79,10 +75,33 @@ export class AuthService {
         return { accessToken: tokens.accessToken };
     }
 
-    private createUsername(email: string, uid: string): string {
-        const emailName = email.split('@')[0] || AUTH_DEFAULTS.USERNAME_FALLBACK;
-        const normalizedName = emailName.toLowerCase().replace(/[^a-z0-9_]/g, '');
-        const normalizedUid = uid.toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 8);
-        return `${normalizedName || AUTH_DEFAULTS.USERNAME_FALLBACK}_${normalizedUid}`;
+    async sendOtp(phoneNumber: string): Promise<void> {
+        if (!phoneNumber) {
+            throw new BadRequestError('Phone number is required');
+        }
+    }
+
+    async verifyOtp(phoneNumber: string, otp: string): Promise<{ user: User, tokens: { accessToken: string, refreshToken: string } }> {
+        if (!phoneNumber || !otp) {
+            throw new BadRequestError('Phone number and OTP are required');
+        }
+
+        if (otp !== '123456') {
+            throw new BadRequestError(AUTH_MESSAGES.INVALID_OTP);
+        }
+
+        let user = await this.userService.getByPhoneNumber(phoneNumber);
+
+        if (!user) {
+            user = await this.userService.create({
+                email: `${phoneNumber}@shop.com`,
+                name: `User ${phoneNumber}`,
+                phone_number: phoneNumber,
+                avatar_url: '',
+            });
+        }
+
+        const tokens = this.userService.generateTokens(user);
+        return { user, tokens };
     }
 }

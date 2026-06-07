@@ -1,11 +1,19 @@
 class LocalStorage {
-  Future<void> saveToken(String token) async {}
+  static String? _token;
 
-  Future<String?> getToken() async {
-    return null;
+  Future<void> saveToken(String token) async {
+    _token = token;
   }
 
-  Future<void> clearToken() async {}
+  Future<String?> getToken() async {
+    return _token;
+  }
 
-  Future<void> clearSession() async {}
+  Future<void> clearToken() async {
+    _token = null;
+  }
+
+  Future<void> clearSession() async {
+    _token = null;
+  }
 }

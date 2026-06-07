@@ -1,4 +1,6 @@
 import 'package:get_it/get_it.dart';
+import 'package:user/features/auth/controllers/user.cubit.dart';
+import 'package:user/features/auth/controllers/user.repo.dart';
 import 'package:user/services/api_client.dart';
 import 'package:user/services/local_storage.dart';
 
@@ -12,6 +14,15 @@ Future<void> setupDependencies() async {
   serviceLocator.registerLazySingleton<ApiClient>(
     () => ApiClient(localStorage: serviceLocator<LocalStorage>()),
   );
+  serviceLocator.registerFactory<UserRepo>(
+    () => UserRepo(
+      apiClient: serviceLocator<ApiClient>(),
+      localStorage: serviceLocator<LocalStorage>(),
+    ),
+  );
+  serviceLocator.registerFactory<UserCubit>(
+    () => UserCubit(userRepo: serviceLocator<UserRepo>()),
+  );
 }
 
 class AppDependencies {
@@ -21,5 +32,13 @@ class AppDependencies {
 
   static ApiClient get apiClient {
     return serviceLocator<ApiClient>();
+  }
+
+  static UserRepo get userRepo {
+    return serviceLocator<UserRepo>();
+  }
+
+  static UserCubit get userCubit {
+    return serviceLocator<UserCubit>();
   }
 }

@@ -7,37 +7,80 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(cuid())
-  name       String
-  email      String   @unique
-  username   String   @unique @default("")
-  image      String
-  cover      String   @default("")
-  bio        String   @default("")
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  phone_number String        @default("")
+  avatar_url   String        @default("")
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @default(now())
 
   employee      Employee?
   orders        Order[]               @relation("OrderCustomer")
-  activities    UserActivity[]
+  logs          UserLog[]
+  sessions      UserSession[]
+  addresses     UserAddress[]
   join_requests BusinessJoinRequest[]
 
   @@map("users")
 }
 
-model UserActivity {
+model UserLog {
   id          String   @id @default(cuid())
-  user_id     String
+  uid         String
   type        String
   module      String
   title       String
   description String
+  meta        String
+  ref_link    String
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now())
 
-  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user User @relation(fields: [uid], references: [id], onDelete: Cascade)
 
-  @@map("user_activities")
+  @@map("user_logs")
+}
+
+model UserSession {
+  id          String   @id @default(cuid())
+  uid         String
+  platform    String
+  device_info String
+  ip_address  String
+  status      Boolean
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  user User @relation(fields: [uid], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+model UserAddress {
+  id                      String   @id @default(cuid())
+  uid                     String
+  phone_number            String
+  receiver_name           String
+  type                    String
+  name                    String
+  street                  String
+  country_code            String
+  country                 String
+  postal_code             String
+  administrative_area     String
+  sub_administrative_area String
+  locality                String
+  sub_locality            String
+  latitude                Float
+  longitude               Float
+  is_default              Int
+  created_at              DateTime @default(now())
+  updated_at              DateTime @default(now())
+
+  user User @relation(fields: [uid], references: [id], onDelete: Cascade)
+
+  @@map("user_addresses")
 }
 
 model Business {
