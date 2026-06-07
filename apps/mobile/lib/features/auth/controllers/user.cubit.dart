@@ -8,6 +8,7 @@ import 'package:mobile/features/auth/models/user_session.dart';
 import 'package:mobile/features/auth/models/user.dart';
 import 'package:mobile/features/business/controllers/business.repo.dart';
 import 'package:mobile/services/json_cache.dart';
+
 import 'package:mobile/utils/error.dart';
 
 class UserCubit extends Cubit<UserState> {
@@ -35,54 +36,42 @@ class UserCubit extends Cubit<UserState> {
     }
   }
 
-  Future<void> loginWithGoogle(String idToken) async {
-    emit(
-      state.copyWith(
-        loginInfo: const OperationInfo(status: OperationStatus.loading),
-      ),
-    );
+  Future<void> loginWithGoogle() async {
+    emit(state.copyWith(loginInfo: const OperationInfo(status: OperationStatus.loading)));
 
-    final result = await _userRepo.loginWithGoogle(idToken);
+    final result = await _userRepo.loginWithGoogle();
 
     await result.fold(
       (failure) async {
-        Fluttertoast.showToast(msg: failure.message);
-        emit(
-          state.copyWith(
-            loginInfo: OperationInfo(
-              status: OperationStatus.error,
-              error: failure,
-            ),
-          ),
-        );
+        if (failure.message != UserConstant.googleSignInCanceled) Fluttertoast.showToast(msg: failure.message);
+        emit(state.copyWith(
+          loginInfo: failure.message == UserConstant.googleSignInCanceled
+              ? const OperationInfo(status: OperationStatus.initial)
+              : OperationInfo(status: OperationStatus.error, error: failure),
+        ));
       },
       (user) async {
         final contextResult = await _businessRepo.getContext();
-        
         await contextResult.fold(
           (failure) async {
             await _userRepo.logout();
             await _jsonCache.clearAll();
-            Fluttertoast.showToast(msg: 'Access denied: Employee profile required.');
-            emit(
-              state.copyWith(
-                loginInfo: OperationInfo(
-                  status: OperationStatus.error,
-                  error: AuthFailure('No employee profile found.'),
-                ),
+            Fluttertoast.showToast(msg: UserConstant.accessDeniedEmployeeRequired);
+            emit(state.copyWith(
+              loginInfo: const OperationInfo(
+                status: OperationStatus.error,
+                error: AuthFailure(UserConstant.noEmployeeProfileFound),
               ),
-            );
+            ));
           },
           (businessContext) async {
             await _jsonCache.saveUser(user.toJson());
             await _jsonCache.saveBusinessContext(businessContext.toJson());
             Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
-            emit(
-              state.copyWith(
-                user: user,
-                loginInfo: const OperationInfo(status: OperationStatus.success),
-              ),
-            );
+            emit(state.copyWith(
+              user: user,
+              loginInfo: const OperationInfo(status: OperationStatus.success),
+            ));
           },
         );
       },
@@ -265,12 +254,12 @@ class UserCubit extends Cubit<UserState> {
           (failure) async {
             await _userRepo.logout();
             await _jsonCache.clearAll();
-            Fluttertoast.showToast(msg: 'Access denied: Employee profile required.');
+            Fluttertoast.showToast(msg: UserConstant.accessDeniedEmployeeRequired);
             emit(
               state.copyWith(
-                verifyOtpInfo: OperationInfo(
+                verifyOtpInfo: const OperationInfo(
                   status: OperationStatus.error,
-                  error: AuthFailure('No employee profile found.'),
+                  error: AuthFailure(UserConstant.noEmployeeProfileFound),
                 ),
               ),
             );

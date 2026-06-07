@@ -7,6 +7,9 @@ import 'package:mobile/features/auth/models/ad_banner.dart';
 import 'package:mobile/services/api_client.dart';
 import 'package:mobile/services/local_storage.dart';
 import 'package:mobile/utils/try_catch.dart';
+import 'package:mobile/utils/error.dart';
+import 'package:mobile/features/auth/constants/user.constant.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class UserRepo {
   final ApiClient _apiClient;
@@ -18,8 +21,22 @@ class UserRepo {
   })  : _apiClient = apiClient,
         _localStorage = localStorage;
 
-  TaskResult<UserModel> loginWithGoogle(String idToken) async {
+  TaskResult<UserModel> loginWithGoogle() async {
     return tryCatchAsync(() async {
+      final googleSignIn = GoogleSignIn();
+      final account = await googleSignIn.signIn();
+      
+      if (account == null) {
+        throw const ServerException(UserConstant.googleSignInCanceled);
+      }
+      
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+      
+      if (idToken == null) {
+        throw const ServerException(UserConstant.googleTokenRetrievalFailed);
+      }
+
       final response = await _apiClient.post(
         UserEndpoints.loginEndpoint,
         data: {UserParams.idTokenKey: idToken},

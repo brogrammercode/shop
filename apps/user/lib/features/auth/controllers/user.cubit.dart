@@ -9,6 +9,7 @@ import 'package:user/utils/error.dart';
 import 'package:user/features/auth/models/user.dart';
 import 'package:user/services/json_cache.dart';
 
+
 class UserCubit extends Cubit<UserState> {
   final UserRepo _userRepo;
   final JsonCache _jsonCache;
@@ -30,24 +31,28 @@ class UserCubit extends Cubit<UserState> {
     }
   }
 
-  Future<void> loginWithGoogle(String idToken) async {
+  Future<void> loginWithGoogle() async {
     emit(
       state.copyWith(
         loginInfo: const OperationInfo(status: OperationStatus.loading),
       ),
     );
 
-    final result = await _userRepo.loginWithGoogle(idToken);
+    final result = await _userRepo.loginWithGoogle();
 
     result.fold(
       (failure) {
-        Fluttertoast.showToast(msg: failure.message);
+        if (failure.message != UserConstant.googleSignInCanceled) {
+          Fluttertoast.showToast(msg: failure.message);
+        }
         emit(
           state.copyWith(
-            loginInfo: OperationInfo(
-              status: OperationStatus.error,
-              error: failure,
-            ),
+            loginInfo: failure.message == UserConstant.googleSignInCanceled 
+                ? const OperationInfo(status: OperationStatus.initial)
+                : OperationInfo(
+                    status: OperationStatus.error,
+                    error: failure,
+                  ),
           ),
         );
       },

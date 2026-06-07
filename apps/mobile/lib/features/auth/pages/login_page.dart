@@ -9,6 +9,7 @@ import 'package:mobile/features/auth/controllers/user.cubit.dart';
 import 'package:mobile/features/auth/controllers/user.state.dart';
 import 'package:mobile/features/auth/_data_dummy/login_page.dart';
 import 'package:mobile/utils/error.dart';
+import 'package:mobile/features/auth/constants/user.constant.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -529,7 +530,7 @@ class _LoginPageState extends State<LoginPage> {
                 : () {
                     final phone = _phoneController.text.trim();
                     if (phone.isEmpty) {
-                      Fluttertoast.showToast(msg: 'Please enter phone number');
+                      Fluttertoast.showToast(msg: UserConstant.pleaseEnterPhoneNumber);
                       return;
                     }
                     if (!_otpSent) {
@@ -537,7 +538,7 @@ class _LoginPageState extends State<LoginPage> {
                     } else {
                       final otp = _otpController.text.trim();
                       if (otp.isEmpty) {
-                        Fluttertoast.showToast(msg: 'Please enter OTP');
+                        Fluttertoast.showToast(msg: UserConstant.pleaseEnterOtp);
                         return;
                       }
                       context.read<UserCubit>().verifyOtp('+91$phone', otp);
@@ -577,7 +578,7 @@ class _LoginPageState extends State<LoginPage> {
               onTap: isLoading
                   ? null
                   : () {
-                      context.read<UserCubit>().loginWithGoogle('mock_google_id_token');
+                      context.read<UserCubit>().loginWithGoogle();
                     },
               child: Container(
                 width: 44.w,

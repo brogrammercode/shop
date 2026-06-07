@@ -255,6 +255,7 @@ Standards:
 - Constants must stay module-scoped. Do not put business constants in auth constants, auth constants in global constants, or endpoint paths in page files.
 - Prefer Dart-style lowerCamelCase constant names for new code unless matching an existing all-caps backend enum collection.
 - Backend enum values can stay uppercase when the server contract requires uppercase strings.
+- **Strict No-Hardcoding Rule**: Absolutely no strings (e.g. error messages, validation texts, toast messages, status labels) should be hardcoded in UI Pages, Cubits, or Repositories. All human-readable strings must be maintained in the `constants` files.
 
 ## 6.1 Environment Configuration
 
@@ -485,6 +486,7 @@ Repository standards:
 - Do not import Flutter widgets into repositories.
 - Do not navigate from repositories.
 - Do not emit Cubit state from repositories.
+- **Third-Party Encapsulation**: Any third-party integration logic (like Google Sign-In, Firebase Auth, or payment SDKs) must reside inside the Repository layer, not inside the Cubit layer. The Cubit should only call repository methods and react to success/failure.
 
 Use these method names:
 
@@ -518,6 +520,7 @@ Cubit standards:
 - Success updates the relevant data and operation status.
 - Failure updates only the relevant operation status and error.
 - **Toast Notifications**: Do not trigger toast notifications, snackbars, or alerts from the UI (Page/Widget layer). All notification and alert triggers must reside entirely in the Cubit layer (e.g. inside repository callbacks / results folding).
+- **No Hardcoded Strings**: Do not hardcode failure messages or toast messages inside the Cubit. Retrieve all error and success messages from the appropriate constant file.
 
 Standard Cubit method flow:
 
