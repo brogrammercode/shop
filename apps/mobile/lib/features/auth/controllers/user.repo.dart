@@ -47,7 +47,10 @@ class UserRepo {
 
       final response = await _apiClient.post(
         UserEndpoints.loginEndpoint,
-        data: {UserParams.idTokenKey: idToken},
+        data: {
+          UserParams.idTokenKey: idToken,
+          if (account.photoUrl != null) UserParams.pictureKey: account.photoUrl,
+        },
       );
       final data = response.data[UserParams.dataKey];
       final user = UserModel.fromJson(data[UserParams.userKey]);

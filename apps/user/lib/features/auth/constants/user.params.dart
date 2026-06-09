@@ -1,5 +1,6 @@
 class UserParams {
   static const String idTokenKey = 'idToken';
+  static const String pictureKey = 'picture';
   static const String dataKey = 'data';
   static const String userKey = 'user';
   static const String tokensKey = 'tokens';

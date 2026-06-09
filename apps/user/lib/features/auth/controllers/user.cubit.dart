@@ -59,6 +59,10 @@ class UserCubit extends Cubit<UserState> {
       (user) async {
         if (rememberLogin) {
           await _jsonCache.saveUser(user.toJson());
+          final token = await _userRepo.getToken();
+          if (token != null) {
+            await _jsonCache.saveSavedProfile({'user': user.toJson(), 'token': token});
+          }
         }
         Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
         emit(
@@ -69,6 +73,38 @@ class UserCubit extends Cubit<UserState> {
         );
       },
     );
+  }
+
+  Future<void> loginWithSavedProfile() async {
+    emit(state.copyWith(loginInfo: const OperationInfo(status: OperationStatus.loading)));
+    
+    final savedProfile = await _jsonCache.getSavedProfile();
+    if (savedProfile != null && savedProfile['token'] != null) {
+      await _userRepo.saveToken(savedProfile['token']);
+      
+      final result = await _userRepo.getCurrentUser();
+      
+      await result.fold(
+        (failure) async {
+          await _userRepo.logout();
+          await _jsonCache.clearAll();
+          emit(state.copyWith(
+            loginInfo: OperationInfo(status: OperationStatus.error, error: failure),
+          ));
+        },
+        (user) async {
+          Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
+          emit(state.copyWith(
+            user: user,
+            loginInfo: const OperationInfo(status: OperationStatus.success),
+          ));
+        },
+      );
+    } else {
+      emit(state.copyWith(
+        loginInfo: const OperationInfo(status: OperationStatus.initial),
+      ));
+    }
   }
 
   Future<void> getCurrentUser() async {
@@ -243,6 +279,10 @@ class UserCubit extends Cubit<UserState> {
       (user) async {
         if (rememberLogin) {
           await _jsonCache.saveUser(user.toJson());
+          final token = await _userRepo.getToken();
+          if (token != null) {
+            await _jsonCache.saveSavedProfile({'user': user.toJson(), 'token': token});
+          }
         }
         Fluttertoast.showToast(msg: UserConstant.otpVerifiedSuccess);
         emit(

@@ -121,13 +121,14 @@ class _LoginPageState extends State<LoginPage> {
             Navigator.pushReplacementNamed(context, AppRoutes.home);
           }
         },
-        child: SingleChildScrollView(
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height,
-            child: Column(
-              children: [
-                _buildTopCarousel(),
-                Expanded(
+        child: CustomScrollView(
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Column(
+                children: [
+                  _buildTopCarousel(),
+                  Expanded(
                   child: Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: 20.w,
@@ -181,10 +182,11 @@ class _LoginPageState extends State<LoginPage> {
               ],
             ),
           ),
-        ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTopCarousel() {
     final adBanners = context.watch<UserCubit>().state.adBanners ?? [];
@@ -339,8 +341,10 @@ class _LoginPageState extends State<LoginPage> {
     if (_savedProfile == null) return const SizedBox.shrink();
     final user = _savedProfile!['user'] as Map<String, dynamic>;
     final name = user['name'] ?? UserConstant.unknownUser;
-    final phone = user['phone_number'] ?? '';
-    final avatar = user['avatar_url'] ?? dummyLoginAccount.avatarUrl;
+    final phoneRaw = user['phone_number'] as String?;
+    final emailRaw = user['email'] as String?;
+    final contactDisplay = (phoneRaw != null && phoneRaw.isNotEmpty) ? phoneRaw : (emailRaw ?? '');
+    final avatar = user['avatar_url'] as String?;
 
     return BlocBuilder<UserCubit, UserState>(
       builder: (context, state) {
@@ -360,10 +364,17 @@ class _LoginPageState extends State<LoginPage> {
             ),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 20.r,
-                  backgroundImage: NetworkImage(avatar),
-                ),
+                if (avatar != null && avatar.isNotEmpty)
+                  CircleAvatar(
+                    radius: 20.r,
+                    backgroundImage: NetworkImage(avatar),
+                  )
+                else
+                  CircleAvatar(
+                    radius: 20.r,
+                    backgroundColor: const Color(0xFFF0F0F0),
+                    child: Icon(Icons.person, color: AppColors.textSecondary, size: 24.r),
+                  ),
                 SizedBox(width: 12.w),
                 Expanded(
                   child: Column(
@@ -379,7 +390,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       SizedBox(height: 2.h),
                       Text(
-                        phone,
+                        contactDisplay,
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
@@ -389,20 +400,21 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                 ),
-                isLoading
-                    ? SizedBox(
-                        width: 20.w,
-                        height: 20.w,
-                        child: const CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.primaryGreen,
-                        ),
-                      )
-                    : Icon(
-                        Icons.more_vert,
-                        color: AppColors.textSecondary,
-                        size: 20.w,
-                      ),
+                if (isLoading)
+                  SizedBox(
+                    width: 20.w,
+                    height: 20.w,
+                    child: const CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primaryGreen,
+                    ),
+                  )
+                else
+                  Icon(
+                    Icons.chevron_right,
+                    color: AppColors.textSecondary,
+                    size: 24.r,
+                  ),
               ],
             ),
           ),

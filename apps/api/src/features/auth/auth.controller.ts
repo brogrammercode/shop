@@ -16,8 +16,8 @@ export class AuthController {
     }
 
     login = asyncHandler(async (req: Request, res: Response) => {
-        const { idToken } = req.body;
-        const result = await this.authService.loginWithFirebase(idToken);
+        const { idToken, picture } = req.body;
+        const result = await this.authService.loginWithFirebase(idToken, picture);
         return sendSuccess(res, result, AUTH_MESSAGES.LOGIN_SUCCESS);
     });
 

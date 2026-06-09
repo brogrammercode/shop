@@ -23,6 +23,9 @@ class UserRepo {
   })  : _apiClient = apiClient,
         _localStorage = localStorage;
 
+  Future<String?> getToken() => _localStorage.getToken();
+  Future<void> saveToken(String token) => _localStorage.saveToken(token);
+
   TaskResult<UserModel> loginWithGoogle({required bool rememberLogin}) async {
     return tryCatchAsync(() async {
       final googleSignIn = GoogleSignIn(
@@ -44,7 +47,10 @@ class UserRepo {
 
       final response = await _apiClient.post(
         UserEndpoints.loginEndpoint,
-        data: {UserParams.idTokenKey: idToken},
+        data: {
+          UserParams.idTokenKey: idToken,
+          if (account.photoUrl != null) UserParams.pictureKey: account.photoUrl,
+        },
       );
       final data = response.data[UserParams.dataKey];
       final user = UserModel.fromJson(data[UserParams.userKey]);

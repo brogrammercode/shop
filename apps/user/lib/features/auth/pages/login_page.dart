@@ -12,6 +12,7 @@ import 'package:user/features/auth/controllers/user.state.dart';
 import 'package:user/features/auth/_data_dummy/login_page.dart';
 import 'package:user/utils/error.dart';
 import 'package:user/features/auth/constants/user.constant.dart';
+import 'package:user/services/json_cache.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -29,6 +30,7 @@ class _LoginPageState extends State<LoginPage> {
   int _resendSeconds = 30;
   Timer? _resendTimer;
   bool _canResend = false;
+  Map<String, dynamic>? _savedProfile;
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
 
@@ -49,8 +51,17 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  void _initData() {
-    context.read<UserCubit>().getAdBanners();
+  Future<void> _initData() async {
+    final cache = JsonCache();
+    final profile = await cache.getSavedProfile();
+    if (mounted && profile != null) {
+      setState(() {
+        _savedProfile = profile;
+      });
+    }
+    if (mounted) {
+      context.read<UserCubit>().getAdBanners();
+    }
   }
 
   void _startResendTimer() {
@@ -110,64 +121,68 @@ class _LoginPageState extends State<LoginPage> {
             Navigator.pushReplacementNamed(context, AppRoutes.home);
           }
         },
-        child: SingleChildScrollView(
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height,
-            child: Column(
-              children: [
-                _buildTopCarousel(),
-                Expanded(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20.w,
-                      vertical: 16.h,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          children: [
-                            Text(
-                              'Choose your account',
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.textSecondary,
+        child: CustomScrollView(
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Column(
+                children: [
+                  _buildTopCarousel(),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 16.h,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            children: [
+                              if (_savedProfile != null) ...[
+                                Text(
+                                  UserConstant.chooseYourAccount,
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                SizedBox(height: 12.h),
+                                _buildProfileCard(),
+                                SizedBox(height: 16.h),
+                              ],
+                              Text(
+                                UserConstant.logInOrSignUp,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textTertiary,
+                                ),
                               ),
-                            ),
-                            SizedBox(height: 12.h),
-                            _buildProfileCard(),
-                            SizedBox(height: 16.h),
-                            Text(
-                              UserConstant.logInOrSignUp,
-                              style: TextStyle(
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textTertiary,
-                              ),
-                            ),
-                            SizedBox(height: 12.h),
-                            _buildPhoneInputField(),
-                            if (_otpSent) ...[
                               SizedBox(height: 12.h),
-                              _buildOtpInputField(),
+                              _buildPhoneInputField(),
+                              if (_otpSent) ...[
+                                SizedBox(height: 12.h),
+                                _buildOtpInputField(),
+                              ],
+                              SizedBox(height: 12.h),
+                              _buildRememberLoginOption(),
+                              SizedBox(height: 16.h),
+                              _buildContinueButton(),
+                              SizedBox(height: 16.h),
+                              _buildSocialLoginRow(),
                             ],
-                            SizedBox(height: 12.h),
-                            _buildRememberLoginOption(),
-                            SizedBox(height: 16.h),
-                            _buildContinueButton(),
-                            SizedBox(height: 16.h),
-                            _buildSocialLoginRow(),
-                          ],
-                        ),
-                        _buildFooterLinks(),
-                      ],
+                          ),
+                          _buildFooterLinks(),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -323,14 +338,24 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildProfileCard() {
+    if (_savedProfile == null) return const SizedBox.shrink();
+    final user = _savedProfile!['user'] as Map<String, dynamic>;
+    final name = user['name'] ?? UserConstant.unknownUser;
+    final phoneRaw = user['phone_number'] as String?;
+    final emailRaw = user['email'] as String?;
+    final contactDisplay = (phoneRaw != null && phoneRaw.isNotEmpty)
+        ? phoneRaw
+        : (emailRaw ?? '');
+    final avatar = user['avatar_url'] as String?;
+
     return BlocBuilder<UserCubit, UserState>(
       builder: (context, state) {
-        final isLoading = state.loadUserInfo.status == OperationStatus.loading;
+        final isLoading = state.loginInfo.status == OperationStatus.loading;
         return GestureDetector(
           onTap: isLoading
               ? null
               : () {
-                  Navigator.pushReplacementNamed(context, AppRoutes.home);
+                  context.read<UserCubit>().loginWithSavedProfile();
                 },
           child: Container(
             padding: EdgeInsets.all(12.w),
@@ -341,17 +366,28 @@ class _LoginPageState extends State<LoginPage> {
             ),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 20.r,
-                  backgroundImage: NetworkImage(dummyLoginAccount.avatarUrl),
-                ),
+                if (avatar != null && avatar.isNotEmpty)
+                  CircleAvatar(
+                    radius: 20.r,
+                    backgroundImage: NetworkImage(avatar),
+                  )
+                else
+                  CircleAvatar(
+                    radius: 20.r,
+                    backgroundColor: const Color(0xFFF0F0F0),
+                    child: Icon(
+                      Icons.person,
+                      color: AppColors.textSecondary,
+                      size: 24.r,
+                    ),
+                  ),
                 SizedBox(width: 12.w),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        UserConstant.unknownUser,
+                        name,
                         style: TextStyle(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.w800,
@@ -360,7 +396,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       SizedBox(height: 2.h),
                       Text(
-                        dummyLoginAccount.phoneNumber,
+                        contactDisplay,
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w500,
@@ -370,11 +406,21 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.more_vert,
-                  color: AppColors.textSecondary,
-                  size: 20.w,
-                ),
+                if (isLoading)
+                  SizedBox(
+                    width: 20.w,
+                    height: 20.w,
+                    child: const CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AppColors.primaryGreen,
+                    ),
+                  )
+                else
+                  Icon(
+                    Icons.chevron_right,
+                    color: AppColors.textSecondary,
+                    size: 24.r,
+                  ),
               ],
             ),
           ),

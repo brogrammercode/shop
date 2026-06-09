@@ -18,7 +18,7 @@ export class AuthService {
         this.userRepo = new UserRepo();
     }
 
-    async loginWithFirebase(idToken: string): Promise<{ user: User, tokens: { accessToken: string, refreshToken: string } }> {
+    async loginWithFirebase(idToken: string, fallbackPicture?: string): Promise<{ user: User, tokens: { accessToken: string, refreshToken: string } }> {
         let email: string | undefined;
         let name: string | undefined;
         let picture: string | undefined;
@@ -38,12 +38,12 @@ export class AuthService {
                 const decodedToken = await response.json() as any;
                 email = decodedToken.email;
                 name = decodedToken.name;
-                picture = decodedToken.picture;
+                picture = decodedToken.picture || fallbackPicture;
             } else {
                 const decodedToken = await admin.auth().verifyIdToken(idToken);
                 email = decodedToken.email;
                 name = decodedToken.name;
-                picture = decodedToken.picture;
+                picture = decodedToken.picture || fallbackPicture;
             }
         } catch (error: any) {
             throw new Error(`${AUTH_MESSAGES.TOKEN_VERIFICATION_FAILED}: ${error.message}`);
@@ -62,6 +62,8 @@ export class AuthService {
                 phone_number: AUTH_CONFIG.EMPTY_FALLBACK,
                 avatar_url: picture || AUTH_CONFIG.EMPTY_FALLBACK,
             });
+        } else if (picture && (!user.avatar_url || user.avatar_url === AUTH_CONFIG.EMPTY_FALLBACK)) {
+            user = await this.userService.update(user.id, { avatar_url: picture });
         }
 
         const tokens = this.userService.generateTokens(user);
