@@ -112,6 +112,13 @@ export class UserRepo {
         }) as unknown as UserOtp | null;
     }
 
+    async findLatestOtpByActor(actor: string, type: OtpType): Promise<UserOtp | null> {
+        return prisma.userOtp.findFirst({
+            where: { actor, type },
+            orderBy: { created_at: 'desc' },
+        }) as unknown as UserOtp | null;
+    }
+
     async deleteOtpsByActor(actor: string, type: OtpType): Promise<void> {
         await prisma.userOtp.deleteMany({ where: { actor, type } });
     }

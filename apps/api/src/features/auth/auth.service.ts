@@ -97,6 +97,14 @@ export class AuthService {
             });
         }
 
+        const latestOtp = await this.userRepo.findLatestOtpByActor(user.id, AUTH_CONFIG.OTP_TYPE_LOGIN);
+        if (latestOtp && latestOtp.created_at) {
+            const timeSinceLastOtp = Date.now() - new Date(latestOtp.created_at).getTime();
+            if (timeSinceLastOtp < 30 * 1000) {
+                throw new BadRequestError(AUTH_MESSAGES.RATE_LIMIT_WAIT);
+            }
+        }
+
         await this.userRepo.deleteOtpsByActor(user.id, AUTH_CONFIG.OTP_TYPE_LOGIN);
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();

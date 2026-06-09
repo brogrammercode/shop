@@ -31,17 +31,17 @@ class UserCubit extends Cubit<UserState> {
     }
   }
 
-  Future<void> loginWithGoogle() async {
+  Future<void> loginWithGoogle({required bool rememberLogin}) async {
     emit(
       state.copyWith(
         loginInfo: const OperationInfo(status: OperationStatus.loading),
       ),
     );
 
-    final result = await _userRepo.loginWithGoogle();
+    final result = await _userRepo.loginWithGoogle(rememberLogin: rememberLogin);
 
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         if (failure.message != UserConstant.googleSignInCanceled) {
           Fluttertoast.showToast(msg: failure.message);
         }
@@ -57,7 +57,9 @@ class UserCubit extends Cubit<UserState> {
         );
       },
       (user) async {
-        await _jsonCache.saveUser(user.toJson());
+        if (rememberLogin) {
+          await _jsonCache.saveUser(user.toJson());
+        }
         Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
         emit(
           state.copyWith(
@@ -217,14 +219,14 @@ class UserCubit extends Cubit<UserState> {
     );
   }
 
-  Future<void> verifyOtp(String phoneNumber, String otp) async {
+  Future<void> verifyOtp(String phoneNumber, String otp, {required bool rememberLogin}) async {
     emit(
       state.copyWith(
         verifyOtpInfo: const OperationInfo(status: OperationStatus.loading),
       ),
     );
 
-    final result = await _userRepo.verifyOtp(phoneNumber, otp);
+    final result = await _userRepo.verifyOtp(phoneNumber, otp, rememberLogin: rememberLogin);
 
     result.fold(
       (failure) {
@@ -239,7 +241,9 @@ class UserCubit extends Cubit<UserState> {
         );
       },
       (user) async {
-        await _jsonCache.saveUser(user.toJson());
+        if (rememberLogin) {
+          await _jsonCache.saveUser(user.toJson());
+        }
         Fluttertoast.showToast(msg: UserConstant.otpVerifiedSuccess);
         emit(
           state.copyWith(

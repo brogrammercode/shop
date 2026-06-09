@@ -36,10 +36,10 @@ class UserCubit extends Cubit<UserState> {
     }
   }
 
-  Future<void> loginWithGoogle() async {
+  Future<void> loginWithGoogle({required bool rememberLogin}) async {
     emit(state.copyWith(loginInfo: const OperationInfo(status: OperationStatus.loading)));
 
-    final result = await _userRepo.loginWithGoogle();
+    final result = await _userRepo.loginWithGoogle(rememberLogin: rememberLogin);
 
     await result.fold(
       (failure) async {
@@ -65,11 +65,13 @@ class UserCubit extends Cubit<UserState> {
             ));
           },
           (businessContext) async {
-            await _jsonCache.saveUser(user.toJson());
-            await _jsonCache.saveBusinessContext(businessContext.toJson());
-            final token = await _userRepo.getToken();
-            if (token != null) {
-              await _jsonCache.saveSavedProfile({'user': user.toJson(), 'token': token});
+            if (rememberLogin) {
+              await _jsonCache.saveUser(user.toJson());
+              await _jsonCache.saveBusinessContext(businessContext.toJson());
+              final token = await _userRepo.getToken();
+              if (token != null) {
+                await _jsonCache.saveSavedProfile({'user': user.toJson(), 'token': token});
+              }
             }
             Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
             emit(state.copyWith(
@@ -230,14 +232,14 @@ class UserCubit extends Cubit<UserState> {
     );
   }
 
-  Future<void> verifyOtp(String phoneNumber, String otp) async {
+  Future<void> verifyOtp(String phoneNumber, String otp, {required bool rememberLogin}) async {
     emit(
       state.copyWith(
         verifyOtpInfo: const OperationInfo(status: OperationStatus.loading),
       ),
     );
 
-    final result = await _userRepo.verifyOtp(phoneNumber, otp);
+    final result = await _userRepo.verifyOtp(phoneNumber, otp, rememberLogin: rememberLogin);
 
     await result.fold(
       (failure) async {
@@ -269,11 +271,13 @@ class UserCubit extends Cubit<UserState> {
             );
           },
           (businessContext) async {
-            await _jsonCache.saveUser(user.toJson());
-            await _jsonCache.saveBusinessContext(businessContext.toJson());
-            final token = await _userRepo.getToken();
-            if (token != null) {
-              await _jsonCache.saveSavedProfile({'user': user.toJson(), 'token': token});
+            if (rememberLogin) {
+              await _jsonCache.saveUser(user.toJson());
+              await _jsonCache.saveBusinessContext(businessContext.toJson());
+              final token = await _userRepo.getToken();
+              if (token != null) {
+                await _jsonCache.saveSavedProfile({'user': user.toJson(), 'token': token});
+              }
             }
             Fluttertoast.showToast(msg: UserConstant.otpVerifiedSuccess);
             emit(

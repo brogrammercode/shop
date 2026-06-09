@@ -23,7 +23,7 @@ class UserRepo {
   })  : _apiClient = apiClient,
         _localStorage = localStorage;
 
-  TaskResult<UserModel> loginWithGoogle() async {
+  TaskResult<UserModel> loginWithGoogle({required bool rememberLogin}) async {
     return tryCatchAsync(() async {
       final googleSignIn = GoogleSignIn(
         clientId: Env.googleClientId,
@@ -49,7 +49,9 @@ class UserRepo {
       final data = response.data[UserParams.dataKey];
       final user = UserModel.fromJson(data[UserParams.userKey]);
       final token = data[UserParams.tokensKey][UserParams.accessTokenKey]?.toString() ?? '';
-      await _localStorage.saveToken(token);
+      if (rememberLogin) {
+        await _localStorage.saveToken(token);
+      }
       return user;
     });
   }
@@ -96,7 +98,7 @@ class UserRepo {
     });
   }
 
-  TaskResult<UserModel> verifyOtp(String phoneNumber, String otp) async {
+  TaskResult<UserModel> verifyOtp(String phoneNumber, String otp, {required bool rememberLogin}) async {
     return tryCatchAsync(() async {
       final response = await _apiClient.post(
         UserEndpoints.verifyOtp,
@@ -108,7 +110,9 @@ class UserRepo {
       final data = response.data[UserParams.dataKey];
       final user = UserModel.fromJson(data[UserParams.userKey]);
       final token = data[UserParams.tokensKey][UserParams.accessTokenKey]?.toString() ?? '';
-      await _localStorage.saveToken(token);
+      if (rememberLogin) {
+        await _localStorage.saveToken(token);
+      }
       return user;
     });
   }

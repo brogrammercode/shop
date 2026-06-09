@@ -25,6 +25,7 @@ export const AUTH_MESSAGES = {
     BANNERS_FETCHED: 'Ad banners fetched successfully',
     OTP_EXPIRED: 'OTP has expired',
     USER_NOT_FOUND_FOR_OTP: 'No user found for this phone number',
+    RATE_LIMIT_WAIT: 'Please wait 30 seconds before requesting a new OTP.',
 };
 
 export const AUTH_CONFIG = {

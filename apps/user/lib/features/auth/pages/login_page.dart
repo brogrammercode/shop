@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:user/core/color.dart';
 import 'package:user/core/routes.dart';
 import 'package:user/features/auth/controllers/user.cubit.dart';
@@ -24,6 +26,9 @@ class _LoginPageState extends State<LoginPage> {
   Timer? _slideTimer;
   bool _rememberLogin = true;
   bool _otpSent = false;
+  int _resendSeconds = 30;
+  Timer? _resendTimer;
+  bool _canResend = false;
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _otpController = TextEditingController();
 
@@ -31,6 +36,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     _pageController = PageController();
+    _initData();
     _slideTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
       if (_pageController.hasClients) {
         final nextIndex = (_activeSlideIndex + 1) % dummyLoginSlides.length;
@@ -43,9 +49,36 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
+  void _initData() {
+    context.read<UserCubit>().getAdBanners();
+  }
+
+  void _startResendTimer() {
+    setState(() {
+      _resendSeconds = 30;
+      _canResend = false;
+    });
+    _resendTimer?.cancel();
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_resendSeconds > 0 && mounted) {
+        setState(() {
+          _resendSeconds--;
+        });
+      } else {
+        if (mounted) {
+          setState(() {
+            _canResend = true;
+          });
+        }
+        timer.cancel();
+      }
+    });
+  }
+
   @override
   void dispose() {
     _slideTimer?.cancel();
+    _resendTimer?.cancel();
     _pageController.dispose();
     _phoneController.dispose();
     _otpController.dispose();
@@ -62,10 +95,13 @@ class _LoginPageState extends State<LoginPage> {
             previous.verifyOtpInfo.status != current.verifyOtpInfo.status ||
             previous.loginInfo.status != current.loginInfo.status,
         listener: (context, state) {
-          if (state.sendOtpInfo.status == OperationStatus.success && !_otpSent) {
-            setState(() {
-              _otpSent = true;
-            });
+          if (state.sendOtpInfo.status == OperationStatus.success) {
+            if (!_otpSent) {
+              setState(() {
+                _otpSent = true;
+              });
+            }
+            _startResendTimer();
           }
           if (state.verifyOtpInfo.status == OperationStatus.success) {
             Navigator.pushReplacementNamed(context, AppRoutes.home);
@@ -82,7 +118,10 @@ class _LoginPageState extends State<LoginPage> {
                 _buildTopCarousel(),
                 Expanded(
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 16.h,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -135,6 +174,10 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildTopCarousel() {
+    final adBanners = context.watch<UserCubit>().state.adBanners ?? [];
+    final hasBanners = adBanners.isNotEmpty;
+    final slideCount = hasBanners ? adBanners.length : dummyLoginSlides.length;
+
     return SizedBox(
       height: MediaQuery.of(context).size.height * 0.45,
       width: double.infinity,
@@ -147,16 +190,19 @@ class _LoginPageState extends State<LoginPage> {
                 _activeSlideIndex = index;
               });
             },
-            itemCount: dummyLoginSlides.length,
+            itemCount: slideCount,
             itemBuilder: (context, index) {
-              final slide = dummyLoginSlides[index];
+              final title = hasBanners
+                  ? adBanners[index].type
+                  : dummyLoginSlides[index].title;
+              final imageUrl = hasBanners
+                  ? adBanners[index].image_url
+                  : dummyLoginSlides[index].imageUrl;
+
               return Stack(
                 children: [
                   Positioned.fill(
-                    child: Image.network(
-                      slide.imageUrl,
-                      fit: BoxFit.cover,
-                    ),
+                    child: Image.network(imageUrl, fit: BoxFit.cover),
                   ),
                   Positioned.fill(
                     child: Container(
@@ -175,13 +221,16 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 40.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24.w,
+                      vertical: 40.h,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          slide.title,
+                          title,
                           style: TextStyle(
                             fontSize: 26.sp,
                             fontWeight: FontWeight.w900,
@@ -191,9 +240,13 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         SizedBox(height: 12.h),
-                        slide.isSpecialDeals
-                            ? _buildPercentBadge()
-                            : _buildZomatoLogoBadge(slide.logoText),
+                        if (!hasBanners) ...[
+                          dummyLoginSlides[index].isSpecialDeals
+                              ? _buildPercentBadge()
+                              : _buildZomatoLogoBadge(
+                                  dummyLoginSlides[index].logoText,
+                                ),
+                        ],
                       ],
                     ),
                   ),
@@ -207,7 +260,7 @@ class _LoginPageState extends State<LoginPage> {
             right: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(dummyLoginSlides.length, (index) {
+              children: List.generate(slideCount, (index) {
                 final isActive = _activeSlideIndex == index;
                 return Container(
                   width: 6.w,
@@ -334,7 +387,8 @@ class _LoginPageState extends State<LoginPage> {
     return Row(
       children: [
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 10.h),
+          height: 42.h,
+          padding: EdgeInsets.symmetric(horizontal: 10.w),
           decoration: BoxDecoration(
             color: AppColors.pureWhite,
             borderRadius: BorderRadius.circular(10.r),
@@ -355,7 +409,8 @@ class _LoginPageState extends State<LoginPage> {
         SizedBox(width: 8.w),
         Expanded(
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 2.h),
+            height: 42.h,
+            padding: EdgeInsets.symmetric(horizontal: 12.w),
             decoration: BoxDecoration(
               color: AppColors.pureWhite,
               borderRadius: BorderRadius.circular(10.r),
@@ -375,6 +430,26 @@ class _LoginPageState extends State<LoginPage> {
                   child: TextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      TextInputFormatter.withFunction((oldValue, newValue) {
+                        String text = newValue.text;
+                        if (text.startsWith('91') && text.length > 10) {
+                          text = text.substring(2);
+                        } else if (text.startsWith('0') && text.length > 10) {
+                          text = text.substring(1);
+                        }
+                        if (text.length > 10) {
+                          text = text.substring(0, 10);
+                        }
+                        return TextEditingValue(
+                          text: text,
+                          selection: TextSelection.collapsed(
+                            offset: text.length,
+                          ),
+                        );
+                      }),
+                    ],
                     style: TextStyle(
                       fontSize: 14.sp,
                       fontWeight: FontWeight.w700,
@@ -401,32 +476,72 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildOtpInputField() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 2.h),
-      decoration: BoxDecoration(
-        color: AppColors.pureWhite,
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: const Color(0xFFCCCCCC)),
-      ),
-      child: TextField(
-        controller: _otpController,
-        keyboardType: TextInputType.number,
-        style: TextStyle(
-          fontSize: 14.sp,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                height: 42.h,
+                margin: EdgeInsets.only(right: 10.w),
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 2.h),
+                decoration: BoxDecoration(
+                  color: AppColors.pureWhite,
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(color: const Color(0xFFCCCCCC)),
+                ),
+                child: Center(
+                  child: TextField(
+                    controller: _otpController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(6),
+                    ],
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: UserConstant.enterOtp,
+                      hintStyle: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textTertiary,
+                      ),
+                      border: InputBorder.none,
+                      isDense: true,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: 8.w),
+            GestureDetector(
+              onTap: _canResend
+                  ? () {
+                      final phone = _phoneController.text.trim();
+                      context.read<UserCubit>().sendOtp('+91$phone');
+                    }
+                  : null,
+              child: Text(
+                _canResend
+                    ? UserConstant.resendOtp
+                    : UserConstant.resendOtpIn(_resendSeconds),
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w600,
+                  color: _canResend
+                      ? const Color(0xFFEF4F5F)
+                      : AppColors.textTertiary,
+                ),
+              ),
+            ),
+          ],
         ),
-        decoration: InputDecoration(
-          hintText: UserConstant.enterOtp,
-          hintStyle: TextStyle(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textTertiary,
-          ),
-          border: InputBorder.none,
-          isDense: true,
-        ),
-      ),
+      ],
     );
   }
 
@@ -439,9 +554,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
       child: Column(
         children: [
-          Expanded(
-            child: Container(color: const Color(0xFFFF9933)),
-          ),
+          Expanded(child: Container(color: const Color(0xFFFF9933))),
           Expanded(
             child: Container(
               color: AppColors.pureWhite,
@@ -457,9 +570,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-          Expanded(
-            child: Container(color: const Color(0xFF128807)),
-          ),
+          Expanded(child: Container(color: const Color(0xFF128807))),
         ],
       ),
     );
@@ -478,19 +589,19 @@ class _LoginPageState extends State<LoginPage> {
             width: 18.w,
             height: 18.w,
             decoration: BoxDecoration(
-              color: _rememberLogin ? const Color(0xFFEF4F5F) : Colors.transparent,
+              color: _rememberLogin
+                  ? const Color(0xFFEF4F5F)
+                  : Colors.transparent,
               border: Border.all(
-                color: _rememberLogin ? const Color(0xFFEF4F5F) : AppColors.textSecondary,
+                color: _rememberLogin
+                    ? const Color(0xFFEF4F5F)
+                    : AppColors.textSecondary,
                 width: 1.5.w,
               ),
               borderRadius: BorderRadius.circular(4.r),
             ),
             child: _rememberLogin
-                ? Icon(
-                    Icons.check,
-                    color: AppColors.pureWhite,
-                    size: 12.w,
-                  )
+                ? Icon(Icons.check, color: AppColors.pureWhite, size: 12.w)
                 : null,
           ),
         ),
@@ -511,7 +622,8 @@ class _LoginPageState extends State<LoginPage> {
     return BlocBuilder<UserCubit, UserState>(
       builder: (context, state) {
         final isSending = state.sendOtpInfo.status == OperationStatus.loading;
-        final isVerifying = state.verifyOtpInfo.status == OperationStatus.loading;
+        final isVerifying =
+            state.verifyOtpInfo.status == OperationStatus.loading;
         final isLoading = isSending || isVerifying;
 
         return SizedBox(
@@ -530,7 +642,9 @@ class _LoginPageState extends State<LoginPage> {
                 : () {
                     final phone = _phoneController.text.trim();
                     if (phone.isEmpty) {
-                      Fluttertoast.showToast(msg: UserConstant.pleaseEnterPhoneNumber);
+                      Fluttertoast.showToast(
+                        msg: UserConstant.pleaseEnterPhoneNumber,
+                      );
                       return;
                     }
                     if (!_otpSent) {
@@ -538,10 +652,16 @@ class _LoginPageState extends State<LoginPage> {
                     } else {
                       final otp = _otpController.text.trim();
                       if (otp.isEmpty) {
-                        Fluttertoast.showToast(msg: UserConstant.pleaseEnterOtp);
+                        Fluttertoast.showToast(
+                          msg: UserConstant.pleaseEnterOtp,
+                        );
                         return;
                       }
-                      context.read<UserCubit>().verifyOtp('+91$phone', otp);
+                      context.read<UserCubit>().verifyOtp(
+                        '+91$phone',
+                        otp,
+                        rememberLogin: _rememberLogin,
+                      );
                     }
                   },
             child: Center(
@@ -551,11 +671,15 @@ class _LoginPageState extends State<LoginPage> {
                       height: 20.w,
                       child: const CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.pureWhite),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.pureWhite,
+                        ),
                       ),
                     )
                   : Text(
-                      _otpSent ? UserConstant.verifyOtp : UserConstant.continueText,
+                      _otpSent
+                          ? UserConstant.verifyOtp
+                          : UserConstant.continueText,
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w700,
@@ -580,7 +704,9 @@ class _LoginPageState extends State<LoginPage> {
               onTap: isLoading
                   ? null
                   : () {
-                      context.read<UserCubit>().loginWithGoogle();
+                      context.read<UserCubit>().loginWithGoogle(
+                        rememberLogin: _rememberLogin,
+                      );
                     },
               child: Container(
                 width: 44.w,
@@ -604,7 +730,9 @@ class _LoginPageState extends State<LoginPage> {
                           height: 16,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryGreen),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.primaryGreen,
+                            ),
                           ),
                         )
                       : Image.network(
@@ -615,7 +743,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
-
           ],
         );
       },
@@ -639,11 +766,20 @@ class _LoginPageState extends State<LoginPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildUnderlinedLink('Terms of Service'),
+              _buildUnderlinedLink(
+                UserConstant.termsOfService,
+                UserConstant.termsOfServiceUrl,
+              ),
               SizedBox(width: 8.w),
-              _buildUnderlinedLink('Privacy Policy'),
+              _buildUnderlinedLink(
+                UserConstant.privacyPolicy,
+                UserConstant.privacyPolicyUrl,
+              ),
               SizedBox(width: 8.w),
-              _buildUnderlinedLink('Content Policy'),
+              _buildUnderlinedLink(
+                UserConstant.contentPolicies,
+                UserConstant.contentPoliciesUrl,
+              ),
             ],
           ),
         ],
@@ -651,9 +787,14 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildUnderlinedLink(String text) {
+  Widget _buildUnderlinedLink(String text, String url) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () async {
+        final uri = Uri.parse(url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri);
+        }
+      },
       child: Text(
         text,
         style: TextStyle(

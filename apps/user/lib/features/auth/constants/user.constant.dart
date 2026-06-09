@@ -18,6 +18,8 @@ class UserConstant {
   static const String enterPhoneNumber = 'Enter Phone Number';
   static const String enterOtp = 'Enter 6-digit OTP';
   static const String verifyOtp = 'Verify OTP';
+  static const String resendOtp = 'Resend OTP';
+  static String resendOtpIn(int seconds) => 'Resend OTP in ${seconds}s';
   static const String googleSignInCanceled = 'Google sign in canceled';
   static const String rememberLogin = 'Remember my login for faster sign-in';
   static const String continueText = 'Continue';
@@ -25,5 +27,10 @@ class UserConstant {
   static const String termsOfService = 'Terms of Service';
   static const String privacyPolicy = 'Privacy Policy';
   static const String contentPolicies = 'Content Policies';
+  
+  static const String termsOfServiceUrl = 'https://example.com/terms';
+  static const String privacyPolicyUrl = 'https://example.com/privacy';
+  static const String contentPoliciesUrl = 'https://example.com/content';
+
   static const String unknownUser = 'Unknown User';
 }
