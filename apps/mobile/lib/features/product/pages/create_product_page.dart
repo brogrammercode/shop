@@ -6,12 +6,14 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/color.dart';
 import '../../../core/di.dart';
 import '../../../utils/error.dart';
+import '../models/product.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
 
 class CreateProductPage extends StatefulWidget {
   final String branchId;
-  const CreateProductPage({super.key, required this.branchId});
+  final ProductModel? productToEdit;
+  const CreateProductPage({super.key, required this.branchId, this.productToEdit});
 
   @override
   State<CreateProductPage> createState() => _CreateProductPageState();
@@ -30,8 +32,26 @@ class _CreateProductPageState extends State<CreateProductPage> {
   bool _isAvailable = true;
 
   final List<XFile> _images = [];
+  List<String> _existingImages = [];
   final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.productToEdit != null) {
+      final p = widget.productToEdit!;
+      _nameController.text = p.name;
+      _descController.text = p.description;
+      _priceController.text = p.price.toString();
+      _stockController.text = p.stock.toString();
+      _selectedCategoryId = p.category_id.isNotEmpty ? p.category_id : null;
+      _selectedSubCategoryId = p.sub_category_id.isNotEmpty ? p.sub_category_id : null;
+      _isVeg = p.is_veg;
+      _isAvailable = p.is_available;
+      _existingImages = List.from(p.images);
+    }
+  }
 
   @override
   void dispose() {
@@ -63,18 +83,33 @@ class _CreateProductPageState extends State<CreateProductPage> {
       }
 
       if (mounted) {
-        context.read<ProductCubit>().createProduct({
-          'branch_id': widget.branchId,
-          'name': _nameController.text.trim(),
-          'description': _descController.text.trim(),
-          'price': double.parse(_priceController.text),
-          'stock': int.parse(_stockController.text),
-          'category_id': _selectedCategoryId,
-          'sub_category_id': _selectedSubCategoryId,
-          'is_veg': _isVeg,
-          'is_available': _isAvailable,
-          'images': uploadedUrls,
-        });
+        final allImages = [..._existingImages, ...uploadedUrls];
+        if (widget.productToEdit != null) {
+          context.read<ProductCubit>().updateProduct(widget.productToEdit!.id, {
+            'name': _nameController.text.trim(),
+            'description': _descController.text.trim(),
+            'price': double.parse(_priceController.text),
+            'stock': int.parse(_stockController.text),
+            'category_id': _selectedCategoryId,
+            'sub_category_id': _selectedSubCategoryId,
+            'is_veg': _isVeg,
+            'is_available': _isAvailable,
+            'images': allImages,
+          });
+        } else {
+          context.read<ProductCubit>().createProduct({
+            'branch_id': widget.branchId,
+            'name': _nameController.text.trim(),
+            'description': _descController.text.trim(),
+            'price': double.parse(_priceController.text),
+            'stock': int.parse(_stockController.text),
+            'category_id': _selectedCategoryId,
+            'sub_category_id': _selectedSubCategoryId,
+            'is_veg': _isVeg,
+            'is_available': _isAvailable,
+            'images': allImages,
+          });
+        }
       }
     }
   }
@@ -214,7 +249,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
           ),
           SizedBox(width: 16.w),
           Text(
-            'Add Product',
+            widget.productToEdit != null ? 'Update Product' : 'Add Product',
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w900,
@@ -226,12 +261,19 @@ class _CreateProductPageState extends State<CreateProductPage> {
     );
   }
 
+  void _removeExistingImage(int index) {
+    setState(() {
+      _existingImages.removeAt(index);
+    });
+  }
+
   Widget _buildImageSelector() {
+    final totalCount = 1 + _existingImages.length + _images.length;
     return SizedBox(
       height: 100.w,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: _images.length + 1,
+        itemCount: totalCount,
         itemBuilder: (context, index) {
           if (index == 0) {
             return GestureDetector(
@@ -257,7 +299,42 @@ class _CreateProductPageState extends State<CreateProductPage> {
             );
           }
 
-          final imageFile = _images[index - 1];
+          if (index <= _existingImages.length) {
+            final imgUrl = _existingImages[index - 1];
+            return Container(
+              width: 100.w,
+              height: 100.w,
+              margin: EdgeInsets.only(right: 12.w),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12.r),
+                image: DecorationImage(
+                  image: NetworkImage(imgUrl),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 4.h,
+                    right: 4.w,
+                    child: GestureDetector(
+                      onTap: () => _removeExistingImage(index - 1),
+                      child: Container(
+                        padding: EdgeInsets.all(4.w),
+                        decoration: const BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.close, color: AppColors.pureWhite, size: 16.w),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final imageFile = _images[index - 1 - _existingImages.length];
           return Container(
             width: 100.w,
             height: 100.w,
@@ -275,7 +352,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
                   top: 4.h,
                   right: 4.w,
                   child: GestureDetector(
-                    onTap: () => _removeImage(index - 1),
+                    onTap: () => _removeImage(index - 1 - _existingImages.length),
                     child: Container(
                       padding: EdgeInsets.all(4.w),
                       decoration: const BoxDecoration(
@@ -402,7 +479,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
             child: isLoading
                 ? SizedBox(height: 24.w, width: 24.w, child: const CircularProgressIndicator(color: AppColors.pureWhite, strokeWidth: 2))
                 : Text(
-                    'Save Product',
+                    widget.productToEdit != null ? 'Update Product' : 'Save Product',
                     style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.pureWhite),
                   ),
           ),

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/color.dart';
 import '../../../core/widgets/action_bottom_sheet.dart';
+import '../models/product.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
 
@@ -25,7 +26,7 @@ class ProductDetailPage extends StatelessWidget {
 
             return Column(
               children: [
-                _buildAppBar(context, product.name),
+                _buildAppBar(context, product),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
@@ -148,7 +149,7 @@ class ProductDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, String title) {
+  Widget _buildAppBar(BuildContext context, ProductModel product) {
     return Container(
       color: AppColors.pureWhite,
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
@@ -171,7 +172,7 @@ class ProductDetailPage extends StatelessWidget {
           SizedBox(width: 16.w),
           Expanded(
             child: Text(
-              title,
+              product.name,
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w900,
@@ -193,7 +194,10 @@ class ProductDetailPage extends StatelessWidget {
                     label: 'Edit Product',
                     onTap: () {
                       Navigator.pop(context);
-                      // Navigate to edit product page
+                      Navigator.pushNamed(context, '/create-product', arguments: {
+                        'branchId': product.branch_id,
+                        'product': product,
+                      });
                     },
                   ),
                 ],

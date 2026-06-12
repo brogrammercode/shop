@@ -18,7 +18,7 @@ class AppRoutes {
   static const String session = '/session';
   static const String joinBranch = '/join-branch';
   static const String createBranch = '/create-branch';
-  
+
   static const String products = '/products';
   static const String categories = '/categories';
   static const String categoryDetail = '/category-detail';
@@ -40,16 +40,34 @@ class AppRoutes {
       return CategoryDetailPage(categoryId: categoryId);
     },
     createCategory: (context) {
-      final branchId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
-      return CreateCategoryPage(branchId: branchId);
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map<String, dynamic>) {
+        return CreateCategoryPage(
+          branchId: args['branchId'] ?? '',
+          categoryToEdit: args['category'],
+        );
+      }
+      return CreateCategoryPage(branchId: args as String? ?? '');
     },
     createSubCategory: (context) {
-      final categoryId = ModalRoute.of(context)!.settings.arguments as String;
-      return CreateSubCategoryPage(categoryId: categoryId);
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map<String, dynamic>) {
+        return CreateSubCategoryPage(
+          categoryId: args['categoryId'] ?? '',
+          subCategoryToEdit: args['subCategory'],
+        );
+      }
+      return CreateSubCategoryPage(categoryId: args as String? ?? '');
     },
     createProduct: (context) {
-      final branchId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
-      return CreateProductPage(branchId: branchId);
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Map<String, dynamic>) {
+        return CreateProductPage(
+          branchId: args['branchId'] ?? '',
+          productToEdit: args['product'],
+        );
+      }
+      return CreateProductPage(branchId: args as String? ?? '');
     },
     productDetail: (context) {
       final productId = ModalRoute.of(context)!.settings.arguments as String;
@@ -57,4 +75,3 @@ class AppRoutes {
     },
   };
 }
-

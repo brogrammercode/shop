@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/color.dart';
 import '../../../core/widgets/action_bottom_sheet.dart';
+import '../models/product_category.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
 
@@ -40,7 +41,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
 
             return Column(
               children: [
-                _buildAppBar(context, category.name),
+                _buildAppBar(context, category),
                 Expanded(
                   child: SingleChildScrollView(
                     child: Column(
@@ -114,6 +115,24 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                                     final sub = subCategories[index];
                                     return GestureDetector(
                                       onTap: () {
+                                        ActionBottomSheet.show(
+                                          context,
+                                          title: 'Sub-Category Options',
+                                          subtitle: sub.name,
+                                          actions: [
+                                            BottomSheetAction(
+                                              icon: Icons.edit,
+                                              label: 'Edit Sub-Category',
+                                              onTap: () {
+                                                Navigator.pop(context);
+                                                Navigator.pushNamed(context, '/create-sub-category', arguments: {
+                                                  'categoryId': widget.categoryId,
+                                                  'subCategory': sub,
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        );
                                       },
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -167,7 +186,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, String title) {
+  Widget _buildAppBar(BuildContext context, ProductCategoryModel category) {
     return Container(
       color: AppColors.pureWhite,
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
@@ -190,7 +209,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
           SizedBox(width: 16.w),
           Expanded(
             child: Text(
-              title,
+              category.name,
               style: TextStyle(
                 fontSize: 18.sp,
                 fontWeight: FontWeight.w900,
@@ -207,6 +226,17 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                 title: 'Category Options',
                 subtitle: 'Manage this category',
                 actions: [
+                  BottomSheetAction(
+                    icon: Icons.edit,
+                    label: 'Edit Category',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/create-category', arguments: {
+                        'branchId': category.branch_id,
+                        'category': category,
+                      });
+                    },
+                  ),
                   BottomSheetAction(
                     icon: Icons.add_circle_outline,
                     label: 'Add Sub-Category',

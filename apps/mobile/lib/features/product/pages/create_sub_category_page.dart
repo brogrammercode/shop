@@ -6,12 +6,14 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/color.dart';
 import '../../../core/di.dart';
 import '../../../utils/error.dart';
+import '../models/product_sub_category.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
 
 class CreateSubCategoryPage extends StatefulWidget {
   final String categoryId;
-  const CreateSubCategoryPage({super.key, required this.categoryId});
+  final ProductSubCategoryModel? subCategoryToEdit;
+  const CreateSubCategoryPage({super.key, required this.categoryId, this.subCategoryToEdit});
 
   @override
   State<CreateSubCategoryPage> createState() => _CreateSubCategoryPageState();
@@ -22,8 +24,19 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
   final List<XFile> _images = [];
+  List<String> _existingImages = [];
   final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.subCategoryToEdit != null) {
+      _nameController.text = widget.subCategoryToEdit!.name;
+      _descController.text = widget.subCategoryToEdit!.description;
+      _existingImages = List.from(widget.subCategoryToEdit!.images);
+    }
+  }
 
   @override
   void dispose() {
@@ -58,12 +71,21 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
       }
 
       if (mounted) {
-        context.read<ProductCubit>().createSubCategory({
-          'category_id': widget.categoryId,
-          'name': _nameController.text.trim(),
-          'description': _descController.text.trim(),
-          'images': uploadedUrls,
-        });
+        final allImages = [..._existingImages, ...uploadedUrls];
+        if (widget.subCategoryToEdit != null) {
+          context.read<ProductCubit>().updateSubCategory(widget.subCategoryToEdit!.id, {
+            'name': _nameController.text.trim(),
+            'description': _descController.text.trim(),
+            'images': allImages,
+          });
+        } else {
+          context.read<ProductCubit>().createSubCategory({
+            'category_id': widget.categoryId,
+            'name': _nameController.text.trim(),
+            'description': _descController.text.trim(),
+            'images': allImages,
+          });
+        }
       }
     }
   }
@@ -171,7 +193,7 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
           ),
           SizedBox(width: 16.w),
           Text(
-            'Add Sub-Category',
+            widget.subCategoryToEdit != null ? 'Update Sub-Category' : 'Add Sub-Category',
             style: TextStyle(
               fontSize: 18.sp,
               fontWeight: FontWeight.w900,
@@ -183,12 +205,19 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
     );
   }
 
+  void _removeExistingImage(int index) {
+    setState(() {
+      _existingImages.removeAt(index);
+    });
+  }
+
   Widget _buildImageSelector() {
+    final totalCount = 1 + _existingImages.length + _images.length;
     return SizedBox(
       height: 100.w,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: _images.length + 1,
+        itemCount: totalCount,
         itemBuilder: (context, index) {
           if (index == 0) {
             return GestureDetector(
@@ -224,7 +253,46 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
             );
           }
 
-          final imageFile = _images[index - 1];
+          if (index <= _existingImages.length) {
+            final imgUrl = _existingImages[index - 1];
+            return Container(
+              width: 100.w,
+              height: 100.w,
+              margin: EdgeInsets.only(right: 12.w),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12.r),
+                image: DecorationImage(
+                  image: NetworkImage(imgUrl),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              child: Stack(
+                children: [
+                  Positioned(
+                    top: 4.h,
+                    right: 4.w,
+                    child: GestureDetector(
+                      onTap: () => _removeExistingImage(index - 1),
+                      child: Container(
+                        padding: EdgeInsets.all(4.w),
+                        decoration: const BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          color: AppColors.pureWhite,
+                          size: 16.w,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          final imageFile = _images[index - 1 - _existingImages.length];
           return Container(
             width: 100.w,
             height: 100.w,
@@ -242,7 +310,7 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
                   top: 4.h,
                   right: 4.w,
                   child: GestureDetector(
-                    onTap: () => _removeImage(index - 1),
+                    onTap: () => _removeImage(index - 1 - _existingImages.length),
                     child: Container(
                       padding: EdgeInsets.all(4.w),
                       decoration: const BoxDecoration(
@@ -336,7 +404,7 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
                     ),
                   )
                 : Text(
-                    'Save Sub-Category',
+                    widget.subCategoryToEdit != null ? 'Update Sub-Category' : 'Save Sub-Category',
                     style: TextStyle(
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
