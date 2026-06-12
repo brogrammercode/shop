@@ -66,6 +66,20 @@ class ApiClient {
     }
   }
 
+  Future<Response> uploadFiles(String path, List<String> filePaths) async {
+    try {
+      final files = await Future.wait(
+        filePaths.map((path) => MultipartFile.fromFile(path)),
+      );
+      final formData = FormData.fromMap({
+        'images': files, // Matches 'images' in multer upload.array('images')
+      });
+      return await _dio.post(path, data: formData);
+    } on DioException catch (e) {
+      throw _mapDioException(e);
+    }
+  }
+
   Future<Response> put(String path, {dynamic data}) async {
     try {
       return await _dio.put(path, data: data);

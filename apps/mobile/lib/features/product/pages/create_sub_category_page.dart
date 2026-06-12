@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/color.dart';
+import '../../../core/di.dart';
 import '../../../utils/error.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
@@ -18,6 +21,9 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
+  final List<XFile> _images = [];
+  final ImagePicker _picker = ImagePicker();
+  bool _isUploading = false;
 
   @override
   void dispose() {
@@ -26,14 +32,55 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
     super.dispose();
   }
 
-  void _saveSubCategory() {
+  Future<void> _saveSubCategory() async {
     if (_formKey.currentState!.validate()) {
-      context.read<ProductCubit>().createSubCategory({
-        'category_id': widget.categoryId,
-        'name': _nameController.text.trim(),
-        'description': _descController.text.trim(),
+      List<String> uploadedUrls = [];
+      if (_images.isNotEmpty) {
+        setState(() => _isUploading = true);
+        try {
+          final paths = _images.map((f) => f.path).toList();
+          final response = await AppDependencies.apiClient.uploadFiles(
+            '/upload/images',
+            paths,
+          );
+          final urls = response.data['data']['urls'] as List;
+          uploadedUrls = urls.cast<String>();
+        } catch (e) {
+          setState(() => _isUploading = false);
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.toString())));
+          }
+          return;
+        }
+        setState(() => _isUploading = false);
+      }
+
+      if (mounted) {
+        context.read<ProductCubit>().createSubCategory({
+          'category_id': widget.categoryId,
+          'name': _nameController.text.trim(),
+          'description': _descController.text.trim(),
+          'images': uploadedUrls,
+        });
+      }
+    }
+  }
+
+  Future<void> _pickImages() async {
+    final List<XFile> picked = await _picker.pickMultiImage();
+    if (picked.isNotEmpty) {
+      setState(() {
+        _images.addAll(picked);
       });
     }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _images.removeAt(index);
+    });
   }
 
   @override
@@ -42,9 +89,9 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
       listenWhen: (previous, current) => previous.saveInfo != current.saveInfo,
       listener: (context, state) {
         if (state.saveInfo.status == OperationStatus.success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Success')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Success')));
           Navigator.pop(context);
         } else if (state.saveInfo.status == OperationStatus.error) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -72,7 +119,8 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
                           label: 'Sub-Category Name',
                           controller: _nameController,
                           hint: 'Enter sub-category name',
-                          validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                          validator: (val) =>
+                              val == null || val.isEmpty ? 'Required' : null,
                         ),
                         SizedBox(height: 16.h),
                         _buildInputField(
@@ -107,10 +155,18 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
                 color: AppColors.pureWhite,
                 shape: BoxShape.circle,
                 boxShadow: [
-                  BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)),
+                  BoxShadow(
+                    color: AppColors.shadowColor,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
                 ],
               ),
-              child: Icon(Icons.chevron_left, color: AppColors.textPrimary, size: 24.w),
+              child: Icon(
+                Icons.chevron_left,
+                color: AppColors.textPrimary,
+                size: 24.w,
+              ),
             ),
           ),
           SizedBox(width: 16.w),
@@ -128,16 +184,83 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
   }
 
   Widget _buildImageSelector() {
-    return Center(
-      child: Container(
-        width: 100.w,
-        height: 100.w,
-        decoration: BoxDecoration(
-          color: AppColors.softGrey,
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.textTertiary.withOpacity(0.3), width: 1),
-        ),
-        child: Icon(Icons.add_a_photo, color: AppColors.textTertiary, size: 32.w),
+    return SizedBox(
+      height: 100.w,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _images.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return GestureDetector(
+              onTap: _pickImages,
+              child: Container(
+                width: 100.w,
+                height: 100.w,
+                margin: EdgeInsets.only(right: 12.w),
+                decoration: BoxDecoration(
+                  color: AppColors.softGrey,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: AppColors.borderGrey),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.add_photo_alternate,
+                      color: AppColors.textTertiary,
+                      size: 32.w,
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      'Add Image',
+                      style: TextStyle(
+                        color: AppColors.textTertiary,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final imageFile = _images[index - 1];
+          return Container(
+            width: 100.w,
+            height: 100.w,
+            margin: EdgeInsets.only(right: 12.w),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12.r),
+              image: DecorationImage(
+                image: FileImage(File(imageFile.path)),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 4.h,
+                  right: 4.w,
+                  child: GestureDetector(
+                    onTap: () => _removeImage(index - 1),
+                    child: Container(
+                      padding: EdgeInsets.all(4.w),
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.close,
+                        color: AppColors.pureWhite,
+                        size: 16.w,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -154,7 +277,11 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textSecondary,
+          ),
         ),
         SizedBox(height: 8.h),
         TextFormField(
@@ -163,14 +290,20 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
           validator: validator,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 14.sp),
+            hintStyle: TextStyle(
+              color: AppColors.textTertiary,
+              fontSize: 14.sp,
+            ),
             filled: true,
             fillColor: AppColors.softGrey,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide.none,
             ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 14.h,
+            ),
           ),
         ),
       ],
@@ -180,7 +313,8 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
   Widget _buildBottomButton() {
     return BlocBuilder<ProductCubit, ProductState>(
       builder: (context, state) {
-        final isLoading = state.saveInfo.status == OperationStatus.loading;
+        final isLoading =
+            state.saveInfo.status == OperationStatus.loading || _isUploading;
         return Padding(
           padding: EdgeInsets.all(16.w),
           child: ElevatedButton(
@@ -188,13 +322,26 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryGreen,
               minimumSize: Size(double.infinity, 50.h),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+              ),
             ),
             child: isLoading
-                ? SizedBox(height: 24.w, width: 24.w, child: const CircularProgressIndicator(color: AppColors.pureWhite, strokeWidth: 2))
+                ? SizedBox(
+                    height: 24.w,
+                    width: 24.w,
+                    child: const CircularProgressIndicator(
+                      color: AppColors.pureWhite,
+                      strokeWidth: 2,
+                    ),
+                  )
                 : Text(
                     'Save Sub-Category',
-                    style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.pureWhite),
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.pureWhite,
+                    ),
                   ),
           ),
         );

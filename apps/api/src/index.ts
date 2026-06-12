@@ -1,7 +1,7 @@
+import config from "./core/config.js";
 import { createServer } from "http";
 import createApp from "./app.js";
 import database from "./infra/database/connection.js";
-import config from "./core/config.js";
 import logger from "./utils/logger.js";
 import socketManager from "./infra/socket/socket.manager.js";
 

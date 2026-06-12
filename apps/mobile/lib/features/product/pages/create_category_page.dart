@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/color.dart';
+import '../../../core/di.dart';
 import '../../../utils/error.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
@@ -18,6 +21,9 @@ class _CreateCategoryPageState extends State<CreateCategoryPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
+  final List<XFile> _images = [];
+  final ImagePicker _picker = ImagePicker();
+  bool _isUploading = false;
 
   @override
   void dispose() {
@@ -26,14 +32,50 @@ class _CreateCategoryPageState extends State<CreateCategoryPage> {
     super.dispose();
   }
 
-  void _saveCategory() {
+  Future<void> _saveCategory() async {
     if (_formKey.currentState!.validate()) {
-      context.read<ProductCubit>().createCategory({
-        'branch_id': widget.branchId,
-        'name': _nameController.text.trim(),
-        'description': _descController.text.trim(),
+      List<String> uploadedUrls = [];
+      if (_images.isNotEmpty) {
+        setState(() => _isUploading = true);
+        try {
+          final paths = _images.map((f) => f.path).toList();
+          final response = await AppDependencies.apiClient.uploadFiles('/upload/images', paths);
+          final urls = response.data['data']['urls'] as List;
+          uploadedUrls = urls.cast<String>();
+        } catch (e) {
+          setState(() => _isUploading = false);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString())));
+          }
+          return;
+        }
+        setState(() => _isUploading = false);
+      }
+
+      if (mounted) {
+        context.read<ProductCubit>().createCategory({
+          'branch_id': widget.branchId,
+          'name': _nameController.text.trim(),
+          'description': _descController.text.trim(),
+          'images': uploadedUrls,
+        });
+      }
+    }
+  }
+
+  Future<void> _pickImages() async {
+    final List<XFile> picked = await _picker.pickMultiImage();
+    if (picked.isNotEmpty) {
+      setState(() {
+        _images.addAll(picked);
       });
     }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _images.removeAt(index);
+    });
   }
 
   @override
@@ -128,16 +170,69 @@ class _CreateCategoryPageState extends State<CreateCategoryPage> {
   }
 
   Widget _buildImageSelector() {
-    return Center(
-      child: Container(
-        width: 100.w,
-        height: 100.w,
-        decoration: BoxDecoration(
-          color: AppColors.softGrey,
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.textTertiary.withOpacity(0.3), width: 1),
-        ),
-        child: Icon(Icons.add_a_photo, color: AppColors.textTertiary, size: 32.w),
+    return SizedBox(
+      height: 100.w,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _images.length + 1,
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return GestureDetector(
+              onTap: _pickImages,
+              child: Container(
+                width: 100.w,
+                height: 100.w,
+                margin: EdgeInsets.only(right: 12.w),
+                decoration: BoxDecoration(
+                  color: AppColors.softGrey,
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: AppColors.borderGrey),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.add_photo_alternate, color: AppColors.textTertiary, size: 32.w),
+                    SizedBox(height: 8.h),
+                    Text('Add Image', style: TextStyle(color: AppColors.textTertiary, fontSize: 12.sp)),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final imageFile = _images[index - 1];
+          return Container(
+            width: 100.w,
+            height: 100.w,
+            margin: EdgeInsets.only(right: 12.w),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12.r),
+              image: DecorationImage(
+                image: FileImage(File(imageFile.path)),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 4.h,
+                  right: 4.w,
+                  child: GestureDetector(
+                    onTap: () => _removeImage(index - 1),
+                    child: Container(
+                      padding: EdgeInsets.all(4.w),
+                      decoration: const BoxDecoration(
+                        color: Colors.black54,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.close, color: AppColors.pureWhite, size: 16.w),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -180,7 +275,7 @@ class _CreateCategoryPageState extends State<CreateCategoryPage> {
   Widget _buildBottomButton() {
     return BlocBuilder<ProductCubit, ProductState>(
       builder: (context, state) {
-        final isLoading = state.saveInfo.status == OperationStatus.loading;
+        final isLoading = state.saveInfo.status == OperationStatus.loading || _isUploading;
         return Padding(
           padding: EdgeInsets.all(16.w),
           child: ElevatedButton(

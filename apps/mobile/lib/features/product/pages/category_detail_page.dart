@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/color.dart';
+import '../../../core/widgets/action_bottom_sheet.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
 
@@ -18,6 +19,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
   @override
   void initState() {
     super.initState();
+    context.read<ProductCubit>().loadSubCategories(widget.categoryId);
   }
 
   @override
@@ -162,13 +164,6 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/create-sub-category', arguments: widget.categoryId);
-        },
-        backgroundColor: AppColors.primaryGreen,
-        child: const Icon(Icons.add, color: AppColors.pureWhite),
-      ),
     );
   }
 
@@ -203,6 +198,36 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              ActionBottomSheet.show(
+                context,
+                title: 'Category Options',
+                subtitle: 'Manage this category',
+                actions: [
+                  BottomSheetAction(
+                    icon: Icons.add_circle_outline,
+                    label: 'Add Sub-Category',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/create-sub-category', arguments: widget.categoryId);
+                    },
+                  ),
+                ],
+              );
+            },
+            child: Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: const BoxDecoration(
+                color: AppColors.pureWhite,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)),
+                ],
+              ),
+              child: Icon(Icons.more_vert, color: AppColors.textPrimary, size: 20.w),
             ),
           ),
         ],

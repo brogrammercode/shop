@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/color.dart';
+import '../../../core/widgets/action_bottom_sheet.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
 
@@ -39,14 +40,6 @@ class _CategoryPageState extends State<CategoryPage> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          final branchId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
-          Navigator.pushNamed(context, '/create-category', arguments: branchId);
-        },
-        backgroundColor: AppColors.primaryGreen,
-        child: const Icon(Icons.add, color: AppColors.pureWhite),
-      ),
     );
   }
 
@@ -77,6 +70,38 @@ class _CategoryPageState extends State<CategoryPage> {
               fontSize: 18.sp,
               fontWeight: FontWeight.w900,
               color: AppColors.textPrimary,
+            ),
+          ),
+          const Spacer(),
+          GestureDetector(
+            onTap: () {
+              final branchId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
+              ActionBottomSheet.show(
+                context,
+                title: 'Category Options',
+                subtitle: 'Manage your categories for this branch',
+                actions: [
+                  BottomSheetAction(
+                    icon: Icons.add_circle_outline,
+                    label: 'Add Category',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/create-category', arguments: branchId);
+                    },
+                  ),
+                ],
+              );
+            },
+            child: Container(
+              padding: EdgeInsets.all(8.w),
+              decoration: const BoxDecoration(
+                color: AppColors.pureWhite,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)),
+                ],
+              ),
+              child: Icon(Icons.more_vert, color: AppColors.textPrimary, size: 24.w),
             ),
           ),
         ],

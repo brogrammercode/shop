@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/color.dart';
+import '../../../core/widgets/action_bottom_sheet.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
 
@@ -182,6 +183,21 @@ class ProductDetailPage extends StatelessWidget {
           ),
           GestureDetector(
             onTap: () {
+              ActionBottomSheet.show(
+                context,
+                title: 'Product Options',
+                subtitle: 'Manage this product',
+                actions: [
+                  BottomSheetAction(
+                    icon: Icons.edit,
+                    label: 'Edit Product',
+                    onTap: () {
+                      Navigator.pop(context);
+                      // Navigate to edit product page
+                    },
+                  ),
+                ],
+              );
             },
             child: Container(
               padding: EdgeInsets.all(8.w),
@@ -192,7 +208,7 @@ class ProductDetailPage extends StatelessWidget {
                   BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)),
                 ],
               ),
-              child: Icon(Icons.edit, color: AppColors.textPrimary, size: 20.w),
+              child: Icon(Icons.more_vert, color: AppColors.textPrimary, size: 20.w),
             ),
           ),
         ],

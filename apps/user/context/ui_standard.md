@@ -456,6 +456,30 @@ Row(
 )
 ```
 
+### 4.13 Action Bottom Sheet Menu (Global Menu Pattern)
+All `Icons.more_vert` buttons (or similar menu icons) across the application must trigger a standard bottom sheet instead of an inline dropdown. The bottom sheet must use the `ActionBottomSheet` widget located in `lib/core/widgets/action_bottom_sheet.dart`.
+
+```dart
+import 'package:mobile/core/widgets/action_bottom_sheet.dart';
+
+// Example usage
+ActionBottomSheet.show(
+  context,
+  title: 'Category Options',
+  subtitle: 'Manage your category',
+  actions: [
+    BottomSheetAction(
+      label: 'Add Category',
+      icon: Icons.add_circle_outline,
+      onTap: () {
+        Navigator.pop(context);
+        Navigator.pushNamed(context, '/create-category', arguments: branchId);
+      },
+    ),
+  ],
+);
+```
+
 ---
 
 ## 5. Page-by-Page UI Breakdown
