@@ -4,6 +4,8 @@ class AddressModel {
   final String state;
   final String zip;
   final String country;
+  final String latitude;
+  final String longitude;
 
   const AddressModel({
     required this.street,
@@ -11,6 +13,8 @@ class AddressModel {
     required this.state,
     required this.zip,
     required this.country,
+    this.latitude = '',
+    this.longitude = '',
   });
 
   factory AddressModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +24,8 @@ class AddressModel {
       state: (json['state'] ?? '').toString(),
       zip: (json['zip'] ?? '').toString(),
       country: (json['country'] ?? '').toString(),
+      latitude: (json['latitude'] ?? '').toString(),
+      longitude: (json['longitude'] ?? '').toString(),
     );
   }
 
@@ -30,6 +36,8 @@ class AddressModel {
       'state': state,
       'zip': zip,
       'country': country,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 }

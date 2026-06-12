@@ -144,7 +144,7 @@ class _SearchResultPageState extends State<SearchResultPage> {
           SizedBox(width: 8.w),
           Expanded(
             child: Container(
-              height: 48.h,
+              height: 42.h,
               padding: EdgeInsets.symmetric(horizontal: 16.w),
               decoration: BoxDecoration(
                 color: AppColors.pureWhite,

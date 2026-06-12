@@ -6,7 +6,7 @@ import 'package:mobile/features/auth/controllers/user.state.dart';
 import 'package:mobile/features/auth/models/user_log.dart';
 import 'package:mobile/features/auth/models/user_session.dart';
 import 'package:mobile/features/auth/models/user.dart';
-import 'package:mobile/features/business/controllers/business.repo.dart';
+import 'package:mobile/features/business/repo/business_repo.dart';
 import 'package:mobile/services/json_cache.dart';
 
 import 'package:mobile/utils/error.dart';
@@ -28,10 +28,14 @@ class UserCubit extends Cubit<UserState> {
 
   Future<void> _initFromCache() async {
     final userData = await _jsonCache.getUser();
+    final businessContextData = await _jsonCache.getBusinessContext();
     if (userData != null) {
       try {
         final user = UserModel.fromJson(userData);
-        emit(state.copyWith(user: user));
+        emit(state.copyWith(
+          user: user,
+          hasEmployeeProfile: businessContextData != null,
+        ));
       } catch (_) {}
     }
   }
@@ -54,14 +58,18 @@ class UserCubit extends Cubit<UserState> {
         final contextResult = await _businessRepo.getContext();
         await contextResult.fold(
           (failure) async {
-            await _userRepo.logout();
-            await _jsonCache.clearAll();
-            Fluttertoast.showToast(msg: UserConstant.accessDeniedEmployeeRequired);
+            // User does not have a business context yet.
+            if (rememberLogin) {
+              await _jsonCache.saveUser(user.toJson());
+              final token = await _userRepo.getToken();
+              if (token != null) {
+                await _jsonCache.saveSavedProfile({'user': user.toJson(), 'token': token});
+              }
+            }
             emit(state.copyWith(
-              loginInfo: const OperationInfo(
-                status: OperationStatus.error,
-                error: AuthFailure(UserConstant.noEmployeeProfileFound),
-              ),
+              user: user,
+              hasEmployeeProfile: false,
+              loginInfo: const OperationInfo(status: OperationStatus.success),
             ));
           },
           (businessContext) async {
@@ -76,6 +84,7 @@ class UserCubit extends Cubit<UserState> {
             Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
             emit(state.copyWith(
               user: user,
+              hasEmployeeProfile: true,
               loginInfo: const OperationInfo(status: OperationStatus.success),
             ));
           },
@@ -104,11 +113,28 @@ class UserCubit extends Cubit<UserState> {
       ),
       (user) async {
         await _jsonCache.saveUser(user.toJson());
-        emit(
-          state.copyWith(
-            user: user,
-            loadUserInfo: const OperationInfo(status: OperationStatus.success),
-          ),
+        final contextResult = await _businessRepo.getContext();
+        
+        await contextResult.fold(
+          (failure) async {
+            emit(
+              state.copyWith(
+                user: user,
+                hasEmployeeProfile: false,
+                loadUserInfo: const OperationInfo(status: OperationStatus.success),
+              ),
+            );
+          },
+          (businessContext) async {
+            await _jsonCache.saveBusinessContext(businessContext.toJson());
+            emit(
+              state.copyWith(
+                user: user,
+                hasEmployeeProfile: true,
+                loadUserInfo: const OperationInfo(status: OperationStatus.success),
+              ),
+            );
+          },
         );
       },
     );
@@ -258,15 +284,18 @@ class UserCubit extends Cubit<UserState> {
         
         await contextResult.fold(
           (failure) async {
-            await _userRepo.logout();
-            await _jsonCache.clearAll();
-            Fluttertoast.showToast(msg: UserConstant.accessDeniedEmployeeRequired);
+            if (rememberLogin) {
+              await _jsonCache.saveUser(user.toJson());
+              final token = await _userRepo.getToken();
+              if (token != null) {
+                await _jsonCache.saveSavedProfile({'user': user.toJson(), 'token': token});
+              }
+            }
             emit(
               state.copyWith(
-                verifyOtpInfo: const OperationInfo(
-                  status: OperationStatus.error,
-                  error: AuthFailure(UserConstant.noEmployeeProfileFound),
-                ),
+                user: user,
+                hasEmployeeProfile: false,
+                verifyOtpInfo: const OperationInfo(status: OperationStatus.success),
               ),
             );
           },
@@ -283,6 +312,7 @@ class UserCubit extends Cubit<UserState> {
             emit(
               state.copyWith(
                 user: user,
+                hasEmployeeProfile: true,
                 verifyOtpInfo: const OperationInfo(status: OperationStatus.success),
               ),
             );
@@ -314,14 +344,10 @@ class UserCubit extends Cubit<UserState> {
           
           await contextResult.fold(
             (failure) async {
-              await _userRepo.logout();
-              await _jsonCache.clearAll();
-              Fluttertoast.showToast(msg: UserConstant.accessDeniedEmployeeRequired);
               emit(state.copyWith(
-                loginInfo: const OperationInfo(
-                  status: OperationStatus.error,
-                  error: AuthFailure(UserConstant.noEmployeeProfileFound),
-                ),
+                user: user,
+                hasEmployeeProfile: false,
+                loginInfo: const OperationInfo(status: OperationStatus.success),
               ));
             },
             (businessContext) async {
@@ -330,6 +356,7 @@ class UserCubit extends Cubit<UserState> {
               Fluttertoast.showToast(msg: UserConstant.loginSuccessMessage);
               emit(state.copyWith(
                 user: user,
+                hasEmployeeProfile: true,
                 loginInfo: const OperationInfo(status: OperationStatus.success),
               ));
             },

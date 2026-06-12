@@ -3,6 +3,7 @@ type Branch = {
   readonly name: string;
   readonly branch_code: string;
   readonly address?: Address;
+  readonly employees?: Employee[];
   readonly created_at: Date;
   readonly updated_at: Date;
 };
@@ -60,6 +61,8 @@ type Address = {
   readonly state: string;
   readonly zip: string;
   readonly country: string;
+  readonly latitude?: string;
+  readonly longitude?: string;
 };
 
 type Employee = {

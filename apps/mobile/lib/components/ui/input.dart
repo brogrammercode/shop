@@ -22,39 +22,41 @@ class AppInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      onChanged: onChanged,
-      style: TextStyle(fontSize: 16.sp),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TextStyle(
-          color: AppColors.textSecondary.withValues(alpha: 0.5),
-          fontSize: 16.sp,
-        ),
-        prefixIcon: prefixIcon,
-        filled: true,
-        fillColor: AppColors.softGrey,
-        contentPadding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 18.h),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.r),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.r),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16.r),
-          borderSide: const BorderSide(
-            color: AppColors.primaryGreen,
-            width: 2,
+    return SizedBox(
+      height: 42.h,
+      child: TextField(
+        controller: controller,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        onChanged: onChanged,
+        style: TextStyle(fontSize: 14.sp),
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(
+            color: AppColors.textSecondary.withValues(alpha: 0.5),
+            fontSize: 14.sp,
+          ),
+          prefixIcon: prefixIcon,
+          filled: true,
+          fillColor: AppColors.softGrey,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 0),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.r),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.r),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.r),
+            borderSide: const BorderSide(
+              color: AppColors.primaryGreen,
+              width: 2,
+            ),
           ),
         ),
       ),
     );
   }
 }
-

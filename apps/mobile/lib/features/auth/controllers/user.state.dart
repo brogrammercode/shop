@@ -9,6 +9,7 @@ class UserState {
   final List<UserLogModel>? activities;
   final List<UserSessionModel>? sessions;
   final List<AdBannerModel>? adBanners;
+  final bool? hasEmployeeProfile;
   final OperationInfo loginInfo;
   final OperationInfo logoutInfo;
   final OperationInfo loadUserInfo;
@@ -26,6 +27,7 @@ class UserState {
     this.activities,
     this.sessions,
     this.adBanners,
+    this.hasEmployeeProfile,
     this.loginInfo = const OperationInfo(status: OperationStatus.initial),
     this.logoutInfo = const OperationInfo(status: OperationStatus.initial),
     this.loadUserInfo = const OperationInfo(status: OperationStatus.initial),
@@ -44,6 +46,7 @@ class UserState {
     List<UserLogModel>? activities,
     List<UserSessionModel>? sessions,
     List<AdBannerModel>? adBanners,
+    bool? hasEmployeeProfile,
     OperationInfo? loginInfo,
     OperationInfo? logoutInfo,
     OperationInfo? loadUserInfo,
@@ -61,6 +64,7 @@ class UserState {
       activities: activities ?? this.activities,
       sessions: sessions ?? this.sessions,
       adBanners: adBanners ?? this.adBanners,
+      hasEmployeeProfile: hasEmployeeProfile ?? this.hasEmployeeProfile,
       loginInfo: loginInfo ?? this.loginInfo,
       logoutInfo: logoutInfo ?? this.logoutInfo,
       loadUserInfo: loadUserInfo ?? this.loadUserInfo,
@@ -84,6 +88,7 @@ class UserState {
         other.activities == activities &&
         other.sessions == sessions &&
         other.adBanners == adBanners &&
+        other.hasEmployeeProfile == hasEmployeeProfile &&
         other.loginInfo == loginInfo &&
         other.logoutInfo == logoutInfo &&
         other.loadUserInfo == loadUserInfo &&
@@ -103,6 +108,7 @@ class UserState {
       activities.hashCode ^
       sessions.hashCode ^
       adBanners.hashCode ^
+      hasEmployeeProfile.hashCode ^
       loginInfo.hashCode ^
       logoutInfo.hashCode ^
       loadUserInfo.hashCode ^

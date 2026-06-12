@@ -63,8 +63,15 @@ class JsonCache {
   }
 
   Future<void> clearAll() async {
-    await clearUser();
-    await clearBusinessContext();
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final files = directory.listSync();
+      for (var file in files) {
+        if (file is File && file.path.endsWith('.json')) {
+          await file.delete();
+        }
+      }
+    } catch (_) {}
   }
 
   static const String _savedProfileFile = 'saved_profile.json';

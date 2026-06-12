@@ -115,10 +115,18 @@ class _LoginPageState extends State<LoginPage> {
             _startResendTimer();
           }
           if (state.verifyOtpInfo.status == OperationStatus.success) {
-            Navigator.pushReplacementNamed(context, AppRoutes.home);
+            if (state.hasEmployeeProfile == true) {
+              Navigator.pushReplacementNamed(context, AppRoutes.home);
+            } else {
+              Navigator.pushReplacementNamed(context, AppRoutes.joinBranch);
+            }
           }
           if (state.loginInfo.status == OperationStatus.success) {
-            Navigator.pushReplacementNamed(context, AppRoutes.home);
+            if (state.hasEmployeeProfile == true) {
+              Navigator.pushReplacementNamed(context, AppRoutes.home);
+            } else {
+              Navigator.pushReplacementNamed(context, AppRoutes.joinBranch);
+            }
           }
         },
         child: CustomScrollView(

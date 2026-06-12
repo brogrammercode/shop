@@ -1,7 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:mobile/features/auth/controllers/user.cubit.dart';
+import 'package:mobile/features/business/controllers/business.cubit.dart';
 import 'package:mobile/features/auth/controllers/user.repo.dart';
-import 'package:mobile/features/business/controllers/business.repo.dart';
+import 'package:mobile/features/business/repo/business_repo.dart';
 import 'package:mobile/services/api_client.dart';
 import 'package:mobile/services/local_storage.dart';
 
@@ -27,6 +28,9 @@ Future<void> setupDependencies() async {
       businessRepo: serviceLocator<BusinessRepo>(),
     ),
   );
+  serviceLocator.registerFactory<BusinessCubit>(
+    () => BusinessCubit(businessRepo: serviceLocator<BusinessRepo>()),
+  );
   serviceLocator.registerFactory<BusinessRepo>(
     () => BusinessRepo(apiClient: serviceLocator<ApiClient>()),
   );
@@ -51,6 +55,10 @@ class AppDependencies {
 
   static BusinessRepo get businessRepo {
     return serviceLocator<BusinessRepo>();
+  }
+
+  static BusinessCubit get businessCubit {
+    return serviceLocator<BusinessCubit>();
   }
 }
 

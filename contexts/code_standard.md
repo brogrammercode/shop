@@ -232,6 +232,7 @@ UI standards:
   - Radii use `.r`.
 - Follow `contexts/ui_standard.md` for visual style.
 - Do not introduce hardcoded spacing systems that conflict with the existing `24.w`, `40.h`, `16.r`, and `56.h` rhythm.
+- For loading states: Widgets like buttons must use a thin circular indicator inside them. For the whole page or major widgets, use a shimmer loading effect. The shimmer widget must be the exact size of the upcoming widget.
 
 ## 6. Constants Standard
 
@@ -638,8 +639,10 @@ Current global components:
 
 Component standards:
 
+- **Mandate Reusability**: Always check and utilize existing reusable widgets from `lib/core/widgets` (e.g., `ActionBottomSheet`, `ConfirmationDialog`) before constructing raw or generic Flutter elements (like `showModalBottomSheet` or `AlertDialog`) locally inside feature files.
+- **Avoid Duplication**: If a generic layout pattern (like a bottom sheet menu or a confirmation modal) is used in multiple places, abstract it into a reusable component inside `lib/core/widgets` immediately instead of repeating the code.
 - Global components must be generic and reusable.
-- Feature-specific components must not be placed in `components/ui`.
+- Feature-specific components must not be placed in `components/ui` or `core/widgets`.
 - Components should receive values and callbacks through constructors.
 - Components should not read repositories or services.
 - Components may use `Theme.of(context)`, `AppColors`, and ScreenUtil.

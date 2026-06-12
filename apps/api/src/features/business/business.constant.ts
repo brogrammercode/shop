@@ -21,6 +21,7 @@ export const BUSINESS_MESSAGES = {
     JOIN_REQUESTS_FETCHED: 'Join requests fetched successfully',
     JOIN_REQUEST_APPROVED: 'Join request approved successfully',
     JOIN_REQUEST_REJECTED: 'Join request rejected successfully',
+    JOIN_REQUEST_WITHDRAWN: 'Join request withdrawn successfully',
     INITIALIZE_SUCCESS: 'Branch initialized successfully',
     CONTEXT_FETCHED: 'User context fetched successfully',
     NOT_FOUND: 'Resource not found in branch module',

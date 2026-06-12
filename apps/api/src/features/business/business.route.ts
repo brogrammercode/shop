@@ -13,6 +13,7 @@ router.get('/join-requests', protect, controller.getJoinRequests);
 router.get('/join-requests/me', protect, controller.getMyJoinRequests);
 router.post('/join-requests/:id/approve', protect, controller.approveJoinRequest);
 router.post('/join-requests/:id/reject', protect, controller.rejectJoinRequest);
+router.delete('/join-requests/:id', protect, controller.withdrawJoinRequest);
 
 router.get('/branches', protect, controller.getBranches);
 router.get('/branches/:id', protect, controller.getBranch);

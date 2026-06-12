@@ -222,4 +222,8 @@ export class BusinessRepo {
             },
         }) as any;
     }
+
+    async deleteJoinRequest(id: string): Promise<void> {
+        await prisma.businessJoinRequest.delete({ where: { id } });
+    }
 }

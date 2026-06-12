@@ -66,6 +66,13 @@ export class BusinessController {
         return sendSuccess(res, result, BUSINESS_MESSAGES.JOIN_REQUEST_REJECTED);
     });
 
+    withdrawJoinRequest = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const id = req.params.id as string;
+        await this.businessService.withdrawJoinRequest(user, id);
+        return sendSuccess(res, null, BUSINESS_MESSAGES.JOIN_REQUEST_WITHDRAWN);
+    });
+
     getContext = asyncHandler(async (req: Request, res: Response) => {
         const user = (req as any).user as User;
         const result = await this.businessService.getUserContext(user.id);

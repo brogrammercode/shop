@@ -31,7 +31,11 @@ class _SessionPageState extends State<SessionPage> {
             previous.loadUserInfo.status != current.loadUserInfo.status,
         listener: (context, state) {
           if (state.loadUserInfo.status == OperationStatus.success) {
-            Navigator.pushReplacementNamed(context, AppRoutes.home);
+            if (state.hasEmployeeProfile == true) {
+              Navigator.pushReplacementNamed(context, AppRoutes.home);
+            } else {
+              Navigator.pushReplacementNamed(context, AppRoutes.joinBranch);
+            }
           } else if (state.loadUserInfo.status == OperationStatus.error) {
             Navigator.pushReplacementNamed(context, AppRoutes.login);
           }

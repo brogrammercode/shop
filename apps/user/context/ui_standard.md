@@ -239,7 +239,7 @@ Padding(
 ### 4.1 Search Bar Container
 ```dart
 Container(
-  height: 48.h,
+  height: 42.h, // At max 42.h height for all textfields in mobile app
   padding: EdgeInsets.symmetric(horizontal: 16.w),
   decoration: BoxDecoration(
     color: AppColors.pureWhite,
@@ -935,6 +935,114 @@ ListTile(
   title: Text(label, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w800, color: AppColors.primaryGreen)),
   trailing: Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 18.w),
   onTap: () {},
+)
+```
+
+### 6.3 Menu Action Bottom Sheet (Standard)
+When replacing `PopupMenuButton` or providing context menus, ALWAYS use this bottom sheet pattern:
+- **Top handle**: A grey horizontal pill `40.w` by `4.h`.
+- **Header**: Row with `<<` back/close button and a bold title (e.g., "Branch Actions").
+- **Subtitle**: Contextual description below the title.
+- **List Items**: Each menu item consists of a row containing text inside a light grey pill background on the left, and an action toggle/icon on the right.
+
+```dart
+void _showMenuBottomSheet(BuildContext context, String title, String subtitle, List<Widget> items) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: Colors.transparent,
+    isScrollControlled: true,
+    builder: (context) {
+      return Container(
+        decoration: BoxDecoration(
+          color: AppColors.pureWhite,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        ),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom + 20.h),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 12.h),
+            Center(
+              child: Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE0E0E0),
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
+              ),
+            ),
+            SizedBox(height: 24.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Icon(Icons.keyboard_double_arrow_left, color: AppColors.textPrimary, size: 24.w),
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18.sp,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16.h),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+            SizedBox(height: 24.h),
+            ...items.map((item) => Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+              child: item,
+            )),
+          ],
+        ),
+      );
+    },
+  );
+}
+```
+**Item Row Example:**
+```dart
+GestureDetector(
+  onTap: () { ... },
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+        child: Text(
+          'Action Name',
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ),
+      Icon(Icons.chevron_right, color: AppColors.primaryGreen, size: 24.w),
+    ],
+  ),
 )
 ```
 

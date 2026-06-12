@@ -287,9 +287,50 @@ export class BusinessService {
         });
     }
 
+    async withdrawJoinRequest(user: User, requestId: string): Promise<void> {
+        const request = await this.businessRepo.findJoinRequestById(requestId);
+        if (!request) {
+            throw new NotFoundError(BUSINESS_MESSAGES.JOIN_REQUEST_NOT_FOUND);
+        }
+
+        if (request.uid !== user.id) {
+            throw new ForbiddenError(BUSINESS_MESSAGES.FORBIDDEN);
+        }
+
+        if (request.status !== 'PENDING') {
+            throw new BadRequestError(BUSINESS_MESSAGES.JOIN_REQUEST_NOT_PENDING);
+        }
+
+        await this.businessRepo.deleteJoinRequest(request.id);
+    }
+
     async initializeBranch(user: User, branchData: Omit<Branch, 'id' | 'created_at' | 'updated_at'>): Promise<{ branch: Branch, employee: Employee }> {
+        let branchCode = 'BRN00';
+        if (branchData.name) {
+            const name = branchData.name.trim();
+            const words = name.split(/\s+/);
+            let prefix = '';
+            if (words.length === 1) {
+                prefix = words[0].substring(0, 3).toUpperCase();
+            } else if (words.length === 2) {
+                prefix = (words[0].charAt(0) + words[1].substring(0, 2)).toUpperCase();
+            } else if (words.length >= 3) {
+                prefix = (words[0].charAt(0) + words[1].charAt(0) + words[2].charAt(0)).toUpperCase();
+            }
+            prefix = prefix.padEnd(3, 'X').replace(/[^A-Z]/g, 'X').substring(0, 3);
+
+            const addressObj = branchData.address as any;
+            const postalCode = addressObj?.postal_code || '';
+            const zip = postalCode.replace(/[^0-9]/g, '');
+            const suffix = zip.length >= 2 ? zip.slice(-2) : '00';
+
+            branchCode = prefix + suffix;
+        }
+
+        const dataToSave = { ...branchData, branch_code: branchCode };
+
         return prisma.$transaction(async (tx) => {
-            const branch = await tx.branch.create({ data: branchData as any });
+            const branch = await tx.branch.create({ data: dataToSave as any });
             const department = await tx.department.create({
                 data: {
                     name: BUSINESS_DEFAULTS.OWNER_DEPARTMENT,
@@ -338,13 +379,22 @@ export class BusinessService {
     }
 
     async searchBranches(query: string): Promise<Branch[]> {
+        if (!query.trim()) {
+            return prisma.branch.findMany({
+                take: 5,
+                orderBy: { created_at: 'desc' },
+                include: { employees: true }
+            }) as any;
+        }
+
         return prisma.branch.findMany({
             where: {
                 name: {
                     contains: query,
                     mode: 'insensitive'
                 }
-            }
+            },
+            include: { employees: true }
         }) as any;
     }
 
