@@ -8,6 +8,8 @@ import 'package:mobile/core/theme.dart';
 import 'package:mobile/features/auth/controllers/user.cubit.dart';
 import 'package:mobile/features/business/controllers/business.cubit.dart';
 
+import 'package:mobile/features/product/cubit/product_cubit.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
@@ -32,6 +34,9 @@ class MyApp extends StatelessWidget {
             ),
             BlocProvider<BusinessCubit>(
               create: (context) => AppDependencies.businessCubit,
+            ),
+            BlocProvider<ProductCubit>(
+              create: (context) => AppDependencies.productCubit,
             ),
           ],
           child: MaterialApp(

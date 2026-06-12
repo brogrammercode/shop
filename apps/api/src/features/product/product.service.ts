@@ -3,7 +3,7 @@ import { BadRequestError, ForbiddenError, NotFoundError } from '../../utils/erro
 import { User } from '../auth/user.type';
 import { PRODUCT_DEFAULTS, PRODUCT_MESSAGES } from './product.constant';
 import { ProductRepo } from './product.repo';
-import { Product, ProductInput, ProductQuery, ProductUpdateInput } from './product.type';
+import { Product, ProductInput, ProductQuery, ProductUpdateInput, ProductCategory, ProductCategoryInput, ProductCategoryUpdateInput, ProductSubCategory, ProductSubCategoryInput, ProductSubCategoryUpdateInput } from './product.type';
 
 export class ProductService {
     private productRepo: ProductRepo;
@@ -69,6 +69,96 @@ export class ProductService {
             PRODUCT_DEFAULTS.PRODUCT_WRITE_PERMISSION
         ]);
         return this.productRepo.delete(id);
+    }
+
+    // ---- PRODUCT CATEGORIES ----
+    async getCategoriesByBranch(user: User, branch_id: string): Promise<ProductCategory[]> {
+        await this.ensureBranchAccess(user.id, branch_id, [
+            PRODUCT_DEFAULTS.PRODUCT_READ_PERMISSION,
+            PRODUCT_DEFAULTS.PRODUCT_WRITE_PERMISSION
+        ]);
+        return this.productRepo.findCategoriesByBranch(branch_id);
+    }
+
+    async getCategoryById(user: User, id: string): Promise<ProductCategory> {
+        const category = await this.productRepo.findCategoryById(id);
+        if (!category) {
+            throw new NotFoundError(PRODUCT_MESSAGES.CATEGORY_NOT_FOUND);
+        }
+        await this.ensureBranchAccess(user.id, category.branch_id, [
+            PRODUCT_DEFAULTS.PRODUCT_READ_PERMISSION,
+            PRODUCT_DEFAULTS.PRODUCT_WRITE_PERMISSION
+        ]);
+        return category;
+    }
+
+    async createCategory(user: User, data: ProductCategoryInput): Promise<ProductCategory> {
+        if (!data.branch_id) throw new BadRequestError(PRODUCT_MESSAGES.BRANCH_ID_REQUIRED);
+        if (!data.name?.trim()) throw new BadRequestError(PRODUCT_MESSAGES.NAME_REQUIRED);
+        
+        await this.ensureBranchAccess(user.id, data.branch_id, [
+            PRODUCT_DEFAULTS.PRODUCT_WRITE_PERMISSION
+        ]);
+
+        return this.productRepo.createCategory({
+            ...data,
+            images: data.images ?? [],
+            videos: data.videos ?? []
+        });
+    }
+
+    async updateCategory(user: User, id: string, data: ProductCategoryUpdateInput): Promise<ProductCategory> {
+        const category = await this.getCategoryById(user, id);
+        await this.ensureBranchAccess(user.id, category.branch_id, [
+            PRODUCT_DEFAULTS.PRODUCT_WRITE_PERMISSION
+        ]);
+        return this.productRepo.updateCategory(id, data);
+    }
+
+    async deleteCategory(user: User, id: string): Promise<ProductCategory> {
+        const category = await this.getCategoryById(user, id);
+        await this.ensureBranchAccess(user.id, category.branch_id, [
+            PRODUCT_DEFAULTS.PRODUCT_WRITE_PERMISSION
+        ]);
+        return this.productRepo.deleteCategory(id);
+    }
+
+    // ---- PRODUCT SUB-CATEGORIES ----
+    async getSubCategoriesByCategory(user: User, category_id: string): Promise<ProductSubCategory[]> {
+        const category = await this.getCategoryById(user, category_id);
+        return this.productRepo.findSubCategoriesByCategory(category_id);
+    }
+
+    async getSubCategoryById(user: User, id: string): Promise<ProductSubCategory> {
+        const subCategory = await this.productRepo.findSubCategoryById(id);
+        if (!subCategory) {
+            throw new NotFoundError(PRODUCT_MESSAGES.SUB_CATEGORY_NOT_FOUND);
+        }
+        await this.getCategoryById(user, subCategory.category_id); // ensure access
+        return subCategory;
+    }
+
+    async createSubCategory(user: User, data: ProductSubCategoryInput): Promise<ProductSubCategory> {
+        if (!data.category_id) throw new BadRequestError(PRODUCT_MESSAGES.CATEGORY_ID_REQUIRED);
+        if (!data.name?.trim()) throw new BadRequestError(PRODUCT_MESSAGES.NAME_REQUIRED);
+        
+        await this.getCategoryById(user, data.category_id); // ensure access
+
+        return this.productRepo.createSubCategory({
+            ...data,
+            images: data.images ?? [],
+            videos: data.videos ?? []
+        });
+    }
+
+    async updateSubCategory(user: User, id: string, data: ProductSubCategoryUpdateInput): Promise<ProductSubCategory> {
+        const subCategory = await this.getSubCategoryById(user, id);
+        return this.productRepo.updateSubCategory(id, data);
+    }
+
+    async deleteSubCategory(user: User, id: string): Promise<ProductSubCategory> {
+        const subCategory = await this.getSubCategoryById(user, id);
+        return this.productRepo.deleteSubCategory(id);
     }
 
     private validateProduct(data: ProductInput): void {

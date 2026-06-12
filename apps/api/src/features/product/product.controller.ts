@@ -16,12 +16,12 @@ export class ProductController {
         const user = (req as any).user as User;
         const branchId = requireSingleValue(req.query.branch_id ?? req.query.branchId, PRODUCT_FIELDS.BRANCH_ID);
         const search = typeof req.query.search === 'string' ? req.query.search : undefined;
-        const category = typeof req.query.category === 'string' ? req.query.category : undefined;
+        const category_id = typeof req.query.category_id === 'string' ? req.query.category_id : undefined;
         const available = req.query.available === undefined ? undefined : req.query.available === 'true';
         const result = await this.productService.getList(user, {
             branch_id: branchId,
             search,
-            category,
+            category_id,
             available
         });
         return sendSuccess(res, result, PRODUCT_MESSAGES.PRODUCTS_FETCHED);
@@ -52,5 +52,75 @@ export class ProductController {
         const id = requireSingleValue(req.params.id, PRODUCT_FIELDS.ID);
         const result = await this.productService.delete(user, id);
         return sendSuccess(res, result, PRODUCT_MESSAGES.PRODUCT_DELETED);
+    });
+
+    // ---- CATEGORIES ----
+    getCategories = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const branchId = requireSingleValue(req.query.branch_id ?? req.query.branchId, PRODUCT_FIELDS.BRANCH_ID);
+        const result = await this.productService.getCategoriesByBranch(user, branchId);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.CATEGORIES_FETCHED);
+    });
+
+    getCategoryById = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const id = requireSingleValue(req.params.id, PRODUCT_FIELDS.ID);
+        const result = await this.productService.getCategoryById(user, id);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.CATEGORY_FETCHED);
+    });
+
+    createCategory = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const result = await this.productService.createCategory(user, req.body);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.CATEGORY_CREATED);
+    });
+
+    updateCategory = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const id = requireSingleValue(req.params.id, PRODUCT_FIELDS.ID);
+        const result = await this.productService.updateCategory(user, id, req.body);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.CATEGORY_UPDATED);
+    });
+
+    deleteCategory = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const id = requireSingleValue(req.params.id, PRODUCT_FIELDS.ID);
+        const result = await this.productService.deleteCategory(user, id);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.CATEGORY_DELETED);
+    });
+
+    // ---- SUB-CATEGORIES ----
+    getSubCategories = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const categoryId = requireSingleValue(req.query.category_id ?? req.query.categoryId, PRODUCT_FIELDS.CATEGORY_ID);
+        const result = await this.productService.getSubCategoriesByCategory(user, categoryId);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.SUB_CATEGORIES_FETCHED);
+    });
+
+    getSubCategoryById = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const id = requireSingleValue(req.params.id, PRODUCT_FIELDS.ID);
+        const result = await this.productService.getSubCategoryById(user, id);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.SUB_CATEGORY_FETCHED);
+    });
+
+    createSubCategory = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const result = await this.productService.createSubCategory(user, req.body);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.SUB_CATEGORY_CREATED);
+    });
+
+    updateSubCategory = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const id = requireSingleValue(req.params.id, PRODUCT_FIELDS.ID);
+        const result = await this.productService.updateSubCategory(user, id, req.body);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.SUB_CATEGORY_UPDATED);
+    });
+
+    deleteSubCategory = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const id = requireSingleValue(req.params.id, PRODUCT_FIELDS.ID);
+        const result = await this.productService.deleteSubCategory(user, id);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.SUB_CATEGORY_DELETED);
     });
 }

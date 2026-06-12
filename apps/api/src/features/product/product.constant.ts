@@ -9,17 +9,37 @@ export const PRODUCT_MESSAGES = {
     NAME_REQUIRED: 'Product name is required',
     PRICE_INVALID: 'Product price must be zero or greater',
     STOCK_INVALID: 'Product stock must be zero or greater',
-    FORBIDDEN: 'You do not have permission to manage products for this branch'
+    FORBIDDEN: 'You do not have permission to manage products for this branch',
+    
+    CATEGORY_FETCHED: 'Category fetched successfully',
+    CATEGORIES_FETCHED: 'Categories fetched successfully',
+    CATEGORY_CREATED: 'Category created successfully',
+    CATEGORY_UPDATED: 'Category updated successfully',
+    CATEGORY_DELETED: 'Category deleted successfully',
+    CATEGORY_NOT_FOUND: 'Category not found',
+    
+    SUB_CATEGORY_FETCHED: 'Sub-category fetched successfully',
+    SUB_CATEGORIES_FETCHED: 'Sub-categories fetched successfully',
+    SUB_CATEGORY_CREATED: 'Sub-category created successfully',
+    SUB_CATEGORY_UPDATED: 'Sub-category updated successfully',
+    SUB_CATEGORY_DELETED: 'Sub-category deleted successfully',
+    SUB_CATEGORY_NOT_FOUND: 'Sub-category not found',
+    CATEGORY_ID_REQUIRED: 'category_id is required'
 };
 
 export const PRODUCT_ROUTES = {
     LIST: '/',
-    DETAIL: '/:id'
+    DETAIL: '/:id',
+    CATEGORIES: '/categories',
+    CATEGORY_DETAIL: '/categories/:id',
+    SUB_CATEGORIES: '/sub-categories',
+    SUB_CATEGORY_DETAIL: '/sub-categories/:id'
 };
 
 export const PRODUCT_FIELDS = {
     ID: 'id',
-    BRANCH_ID: 'branch_id'
+    BRANCH_ID: 'branch_id',
+    CATEGORY_ID: 'category_id'
 };
 
 export const PRODUCT_DEFAULTS = {

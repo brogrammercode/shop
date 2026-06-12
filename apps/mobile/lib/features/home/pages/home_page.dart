@@ -9,11 +9,11 @@ import 'package:mobile/services/json_cache.dart';
 import 'package:mobile/features/business/models/business_context.dart';
 import 'package:mobile/utils/error.dart';
 
-import 'package:mobile/features/home/pages/billing_page.dart';
-import 'package:mobile/features/home/pages/orders_page.dart';
+import 'package:mobile/features/order/pages/billing_page.dart';
+import 'package:mobile/features/order/pages/orders_page.dart';
 import 'package:mobile/features/home/pages/employees_page.dart';
-import 'package:mobile/features/home/pages/products_page.dart';
-import 'package:mobile/features/home/pages/settings_page.dart';
+import 'package:mobile/features/product/pages/products_page.dart';
+import 'package:mobile/features/setting/pages/settings_page.dart';
 
 enum MainTab { billing, orders, more }
 

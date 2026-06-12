@@ -3,6 +3,34 @@ type ProductVariant = {
     readonly price: number;
 }
 
+type ProductCategory = {
+    readonly id: string;
+    readonly branch_id: string;
+    readonly name: string;
+    readonly description?: string;
+    readonly images: readonly string[];
+    readonly videos: readonly string[];
+    readonly created_at: Date;
+    readonly updated_at: Date;
+}
+
+type ProductCategoryInput = Omit<ProductCategory, 'id' | 'created_at' | 'updated_at'>;
+type ProductCategoryUpdateInput = Partial<Omit<ProductCategory, 'id' | 'branch_id' | 'created_at' | 'updated_at'>>;
+
+type ProductSubCategory = {
+    readonly id: string;
+    readonly category_id: string;
+    readonly name: string;
+    readonly description?: string;
+    readonly images: readonly string[];
+    readonly videos: readonly string[];
+    readonly created_at: Date;
+    readonly updated_at: Date;
+}
+
+type ProductSubCategoryInput = Omit<ProductSubCategory, 'id' | 'created_at' | 'updated_at'>;
+type ProductSubCategoryUpdateInput = Partial<Omit<ProductSubCategory, 'id' | 'category_id' | 'created_at' | 'updated_at'>>;
+
 type Product = {
     readonly id: string;
     readonly branch_id: string;
@@ -12,10 +40,12 @@ type Product = {
     readonly description?: string;
     readonly price: number;
     readonly stock: number;
-    readonly category?: string;
+    readonly category_id?: string;
+    readonly sub_category_id?: string;
     readonly unit: string;
     readonly low_stock_alert: number;
     readonly images: readonly string[];
+    readonly videos: readonly string[];
     readonly is_veg: boolean;
     readonly preparation_time: number;
     readonly variants: readonly ProductVariant[];
@@ -31,7 +61,8 @@ type ProductUpdateInput = Partial<Omit<Product, 'id' | 'branch_id' | 'created_at
 type ProductQuery = {
     readonly branch_id: string;
     readonly search?: string;
-    readonly category?: string;
+    readonly category_id?: string;
+    readonly sub_category_id?: string;
     readonly available?: boolean;
 }
 
@@ -40,5 +71,11 @@ export {
     ProductInput,
     ProductQuery,
     ProductUpdateInput,
-    ProductVariant
+    ProductVariant,
+    ProductCategory,
+    ProductCategoryInput,
+    ProductCategoryUpdateInput,
+    ProductSubCategory,
+    ProductSubCategoryInput,
+    ProductSubCategoryUpdateInput
 };

@@ -131,6 +131,7 @@ model Branch {
   roles         Role[]
   employees     Employee[]
   products      Product[]
+  product_categories ProductCategory[]
   orders        Order[]
   join_requests BusinessJoinRequest[]
 
@@ -297,6 +298,39 @@ enum DeliveryStatus {
   FAILED
 }
 
+model ProductCategory {
+  id          String   @id @default(cuid())
+  branch_id   String
+  name        String
+  description String?
+  images      String[] @default([])
+  videos      String[] @default([])
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  branch        Branch               @relation(fields: [branch_id], references: [id])
+  sub_categories ProductSubCategory[]
+  products      Product[]
+
+  @@map("product_categories")
+}
+
+model ProductSubCategory {
+  id          String   @id @default(cuid())
+  category_id String
+  name        String
+  description String?
+  images      String[] @default([])
+  videos      String[] @default([])
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  category ProductCategory @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  products Product[]
+
+  @@map("product_sub_categories")
+}
+
 model Product {
   id               String   @id @default(cuid())
   branch_id        String
@@ -306,10 +340,12 @@ model Product {
   description      String?
   price            Float
   stock            Int
-  category         String?
+  category_id      String?
+  sub_category_id  String?
   unit             String   @default("pcs")
   low_stock_alert  Int      @default(0)
   images           String[] @default([])
+  videos           String[] @default([])
   is_veg           Boolean  @default(false)
   preparation_time Int      @default(0)
   variants         Json     @default("[]")
@@ -317,8 +353,10 @@ model Product {
   created_at       DateTime @default(now())
   updated_at       DateTime @default(now())
 
-  branch Branch      @relation(fields: [branch_id], references: [id])
-  items  OrderItem[]
+  branch       Branch              @relation(fields: [branch_id], references: [id])
+  category     ProductCategory?    @relation(fields: [category_id], references: [id])
+  sub_category ProductSubCategory? @relation(fields: [sub_category_id], references: [id])
+  items        OrderItem[]
 
   @@map("products")
 }
