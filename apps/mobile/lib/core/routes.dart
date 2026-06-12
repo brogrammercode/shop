@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile/features/auth/pages/login_page.dart';
 import 'package:mobile/features/auth/pages/session_page.dart';
-import 'package:mobile/features/business/pages/business_page.dart';
+import 'package:mobile/features/home/pages/home_page.dart';
 import 'package:mobile/features/business/pages/join_branch_page.dart';
 import 'package:mobile/features/business/pages/create_branch_page.dart';
 
@@ -13,7 +13,7 @@ class AppRoutes {
   static const String createBranch = '/create-branch';
 
   static Map<String, WidgetBuilder> get routes => {
-    home: (context) => const BusinessPage(),
+    home: (context) => const HomePage(),
     login: (context) => const LoginPage(),
     session: (context) => const SessionPage(),
     joinBranch: (context) => const JoinBranchPage(),
