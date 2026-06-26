@@ -1258,12 +1258,14 @@ enum RoyaltyStatus {
 
 ## NEW FILES AND FOLDER STRUCTURE
 
-Based on the existing codebase style, the architecture strictly follows a **Feature-Based Domain-Driven Design (DDD)**. 
+Based on the existing codebase style, the architecture strictly follows a **Feature-Based Domain-Driven Design (DDD)**.
 
 ### API Codebase (`apps/api/src/features`)
+
 The backend uses a completely flat structure inside each feature folder. For the new ERP system, we will create 7 distinct feature domains.
 
 **1. `core_hr`**
+
 - `apps/api/src/features/core_hr/core.constant.ts`
 - `apps/api/src/features/core_hr/core.controller.ts`
 - `apps/api/src/features/core_hr/core.middleware.ts`
@@ -1273,6 +1275,7 @@ The backend uses a completely flat structure inside each feature folder. For the
 - `apps/api/src/features/core_hr/core.type.ts`
 
 **2. `catalog`**
+
 - `apps/api/src/features/catalog/catalog.constant.ts`
 - `apps/api/src/features/catalog/catalog.controller.ts`
 - `apps/api/src/features/catalog/catalog.middleware.ts`
@@ -1282,6 +1285,7 @@ The backend uses a completely flat structure inside each feature folder. For the
 - `apps/api/src/features/catalog/catalog.type.ts`
 
 **3. `inventory`**
+
 - `apps/api/src/features/inventory/inventory.constant.ts`
 - `apps/api/src/features/inventory/inventory.controller.ts`
 - `apps/api/src/features/inventory/inventory.middleware.ts`
@@ -1291,6 +1295,7 @@ The backend uses a completely flat structure inside each feature folder. For the
 - `apps/api/src/features/inventory/inventory.type.ts`
 
 **4. `manufacturing`**
+
 - `apps/api/src/features/manufacturing/manufacturing.constant.ts`
 - `apps/api/src/features/manufacturing/manufacturing.controller.ts`
 - `apps/api/src/features/manufacturing/manufacturing.middleware.ts`
@@ -1300,6 +1305,7 @@ The backend uses a completely flat structure inside each feature folder. For the
 - `apps/api/src/features/manufacturing/manufacturing.type.ts`
 
 **5. `pos_kds`**
+
 - `apps/api/src/features/pos_kds/pos_kds.constant.ts`
 - `apps/api/src/features/pos_kds/pos_kds.controller.ts`
 - `apps/api/src/features/pos_kds/pos_kds.middleware.ts`
@@ -1309,6 +1315,7 @@ The backend uses a completely flat structure inside each feature folder. For the
 - `apps/api/src/features/pos_kds/pos_kds.type.ts`
 
 **6. `crm`**
+
 - `apps/api/src/features/crm/crm.constant.ts`
 - `apps/api/src/features/crm/crm.controller.ts`
 - `apps/api/src/features/crm/crm.middleware.ts`
@@ -1318,6 +1325,7 @@ The backend uses a completely flat structure inside each feature folder. For the
 - `apps/api/src/features/crm/crm.type.ts`
 
 **7. `finance`**
+
 - `apps/api/src/features/finance/finance.constant.ts`
 - `apps/api/src/features/finance/finance.controller.ts`
 - `apps/api/src/features/finance/finance.middleware.ts`
@@ -1329,9 +1337,11 @@ The backend uses a completely flat structure inside each feature folder. For the
 ---
 
 ### Mobile App Codebase (`apps/mobile/lib/features`)
+
 We will now use a **completely flat file structure** for the Flutter app as well, perfectly mirroring the DDD approach used in the API backend.
 
 **1. `core_hr`**
+
 - `apps/mobile/lib/features/core_hr/core_hr.constant.dart`
 - `apps/mobile/lib/features/core_hr/core_hr.controller.dart`
 - `apps/mobile/lib/features/core_hr/core_hr.model.dart`
@@ -1339,6 +1349,7 @@ We will now use a **completely flat file structure** for the Flutter app as well
 - `apps/mobile/lib/features/core_hr/core_hr.data.dart`
 
 **2. `catalog`**
+
 - `apps/mobile/lib/features/catalog/catalog.constant.dart`
 - `apps/mobile/lib/features/catalog/catalog.controller.dart`
 - `apps/mobile/lib/features/catalog/catalog.model.dart`
@@ -1346,6 +1357,7 @@ We will now use a **completely flat file structure** for the Flutter app as well
 - `apps/mobile/lib/features/catalog/catalog.data.dart`
 
 **3. `inventory`**
+
 - `apps/mobile/lib/features/inventory/inventory.constant.dart`
 - `apps/mobile/lib/features/inventory/inventory.controller.dart`
 - `apps/mobile/lib/features/inventory/inventory.model.dart`
@@ -1353,6 +1365,7 @@ We will now use a **completely flat file structure** for the Flutter app as well
 - `apps/mobile/lib/features/inventory/inventory.data.dart`
 
 **4. `manufacturing`**
+
 - `apps/mobile/lib/features/manufacturing/manufacturing.constant.dart`
 - `apps/mobile/lib/features/manufacturing/manufacturing.controller.dart`
 - `apps/mobile/lib/features/manufacturing/manufacturing.model.dart`
@@ -1360,6 +1373,7 @@ We will now use a **completely flat file structure** for the Flutter app as well
 - `apps/mobile/lib/features/manufacturing/manufacturing.data.dart`
 
 **5. `pos_kds`**
+
 - `apps/mobile/lib/features/pos_kds/pos_kds.constant.dart`
 - `apps/mobile/lib/features/pos_kds/pos_kds.controller.dart`
 - `apps/mobile/lib/features/pos_kds/pos_kds.model.dart`
@@ -1367,6 +1381,7 @@ We will now use a **completely flat file structure** for the Flutter app as well
 - `apps/mobile/lib/features/pos_kds/pos_kds.data.dart`
 
 **6. `crm`**
+
 - `apps/mobile/lib/features/crm/crm.constant.dart`
 - `apps/mobile/lib/features/crm/crm.controller.dart`
 - `apps/mobile/lib/features/crm/crm.model.dart`
@@ -1374,8 +1389,656 @@ We will now use a **completely flat file structure** for the Flutter app as well
 - `apps/mobile/lib/features/crm/crm.data.dart`
 
 **7. `finance`**
+
 - `apps/mobile/lib/features/finance/finance.constant.dart`
 - `apps/mobile/lib/features/finance/finance.controller.dart`
 - `apps/mobile/lib/features/finance/finance.model.dart`
 - `apps/mobile/lib/features/finance/finance.page.dart`
 - `apps/mobile/lib/features/finance/finance.data.dart`
+
+# FLOW: End-to-End System Workflows
+
+This section outlines every major flow in the F&B ERP system. Each step details the UI Page involved, the underlying Prisma Models, the precise database fields being written/read, and a real-world example.
+
+---
+
+## 1. CORE / HR Module Flows
+
+### Flow 1.1: Complete Branch & Franchise Setup
+
+**Scenario:** The company opens a new franchise branch in "Downtown Dubai" owned by "Ahmad".
+
+- **Step 1: Create Branch Profile**
+  - **Page:** Admin Dashboard -> Branches -> Create Branch
+  - **Models:** `Branch`
+  - **Fields Involved:** `name` (Downtown Dubai), `code` (DXB-01), `address` (Sheikh Zayed Rd), `is_hq` (false), `status` (ACTIVE).
+  - **Example Action:** The admin clicks "Save", inserting a new `Branch` record.
+- **Step 2: Assign Franchise Agreement**
+  - **Page:** Admin Dashboard -> Branches -> DXB-01 -> Franchise Settings
+  - **Models:** `Franchise`
+  - **Fields Involved:** `branch_id` (DXB-01 ID), `owner_name` (Ahmad Ali), `royalty_pct` (5.0), `agreement_doc` (url_to_pdf).
+  - **Example Action:** The branch is now flagged as a franchise, meaning 5% of its sales will trigger a `RoyaltyTrans` at month-end.
+
+### Flow 1.2: Employee Shift & Time Tracking
+
+**Scenario:** A cashier clocks in for their morning shift.
+
+- **Step 1: Employee Registration**
+  - **Page:** HR Manager -> Employees -> Add Employee
+  - **Models:** `Employee`
+  - **Fields Involved:** `branch_id`, `name` (Sarah), `role` (CASHIER), `hourly_rate` (15.50), `status` (ACTIVE).
+  - **Example Action:** Sarah is assigned to DXB-01.
+- **Step 2: Manager Schedules Shift**
+  - **Page:** HR Manager -> Roster -> Assign Shift
+  - **Models:** `Shift`
+  - **Fields Involved:** `employee_id` (Sarah's ID), `start_time` (08:00 AM), `end_time` (04:00 PM), `status` (ACTIVE).
+- **Step 3: Employee Clocks In**
+  - **Page:** POS Terminal -> Lock Screen -> Clock In (PIN entry)
+  - **Models:** `TimeLog`
+  - **Fields Involved:** `employee_id`, `clock_in` (07:55 AM).
+  - **Example Action:** The system logs her exact punch-in time against the expected `Shift`.
+- **Step 4: Employee Clocks Out**
+  - **Page:** POS Terminal -> Lock Screen -> Clock Out
+  - **Models:** `TimeLog`
+  - **Fields Involved:** `clock_out` (04:05 PM), `total_hours` (8.16).
+
+---
+
+## 2. CATALOG Module Flows
+
+### Flow 2.1: Advanced Menu Item with Modifiers
+
+**Scenario:** Setting up a "Build-Your-Own Burger" menu item.
+
+- **Step 1: Setup Modifier Group**
+  - **Page:** Catalog -> Modifiers -> Create Group
+  - **Models:** `ModifierGroup`
+  - **Fields Involved:** `name` (Cheese Add-ons), `min_select` (0), `max_select` (2).
+- **Step 2: Add Modifiers**
+  - **Page:** Catalog -> Modifiers -> Cheese Add-ons -> Add Items
+  - **Models:** `Modifier`
+  - **Fields Involved:** `group_id`, `name` (Cheddar), `extra_price` (1.50), `variant_id` (Linked to Inventory Cheddar Slice).
+- **Step 3: Create Menu Item**
+  - **Page:** Catalog -> Menu -> Add Item
+  - **Models:** `MenuItem`, `MenuCategory`
+  - **Fields Involved:** `category_id` (Burgers), `display_name` (Custom Burger), `selling_price` (12.00), `variant_id` (Linked to Inventory Bun/Patty generic variant).
+  - **Example Action:** When a customer orders this, the POS prompts the "Cheese Add-ons" `ModifierGroup`.
+
+### Flow 2.2: Combo Meal Definition
+
+**Scenario:** A "Lunch Special" combo including a Burger, Fries, and Drink.
+
+- **Step 1: Define Combo Header**
+  - **Page:** Catalog -> Combos -> Create Combo
+  - **Models:** `ComboMeal`
+  - **Fields Involved:** `name` (Lunch Special), `fixed_price` (15.00).
+- **Step 2: Attach Menu Items to Combo**
+  - **Page:** Catalog -> Combos -> Manage Items
+  - **Models:** `ComboItem`
+  - **Fields Involved:** `combo_id`, `menu_item_id` (Burger ID), `qty_included` (1).
+  - **Example Action:** Adds Burger, Fries, and Soda as `ComboItem`s to the `ComboMeal`.
+
+---
+
+## 3. INVENTORY Module Flows
+
+### Flow 3.1: Procurement (PO to Goods Receipt)
+
+**Scenario:** Branch runs low on Coffee Beans and orders from a Supplier.
+
+- **Step 1: Raise Purchase Order (PO)**
+  - **Page:** Inventory -> Procurement -> New PO
+  - **Models:** `PurchaseOrder`, `POItem`
+  - **Fields Involved (PO):** `supplier_id`, `status` (DRAFT), `total_amount` (500.00).
+  - **Fields Involved (Item):** `po_id`, `variant_id` (Arabica Beans 1KG), `qty_ordered` (50), `unit_price` (10.00).
+- **Step 2: Receive Goods (GRN)**
+  - **Page:** Inventory -> Receiving -> Inbound POs
+  - **Models:** `GoodsReceipt`, `StockLedger`
+  - **Fields Involved (GRN):** `po_id`, `invoice_number` (INV-992).
+  - **Fields Involved (Ledger):** `variant_id`, `transaction_type` (PURCHASE), `quantity_change` (+50), `running_balance` (calculates previous + 50).
+  - **Example Action:** Stock is instantly updated in the `StockLedger`, and the PO `status` changes to RECEIVED.
+
+### Flow 3.2: Inter-Branch Stock Transfer
+
+**Scenario:** HQ transfers 100 empty branded cups to the Dubai branch.
+
+- **Step 1: Dispatch Transfer**
+  - **Page:** Inventory -> Transfers -> Dispatch
+  - **Models:** `StockTransfer`, `TransferItem`, `StockLedger`
+  - **Fields Involved (Transfer):** `from_branch_id` (HQ), `to_branch_id` (DXB-01), `status` (DISPATCHED).
+  - **Fields Involved (Ledger):** Subtracts 100 from HQ (`transaction_type` = TRANSFER_OUT).
+- **Step 2: Receive Transfer**
+  - **Page:** Inventory -> Transfers -> Inbound
+  - **Models:** `StockTransfer`, `StockLedger`
+  - **Fields Involved:** `status` changes to RECEIVED. Adds 100 to DXB-01 Ledger (`transaction_type` = TRANSFER_IN).
+
+---
+
+## 4. MANUFACTURING Module Flows
+
+### Flow 4.1: Kitchen Production Batch (Central Kitchen)
+
+**Scenario:** Producing 10 Liters of signature Tomato Sauce.
+
+- **Step 1: Define Recipe (BOM)**
+  - **Page:** Manufacturing -> Recipes (BOM)
+  - **Models:** `BillOfMaterial`, `BOMItem`
+  - **Fields Involved (BOM):** `output_variant_id` (Tomato Sauce 1L), `yield_quantity` (1).
+  - **Fields Involved (Items):** `input_variant_id` (Fresh Tomatoes KG), `quantity` (1.5).
+- **Step 2: Execute Production Batch**
+  - **Page:** Manufacturing -> Batches -> Start Batch
+  - **Models:** `ProductionBatch`, `StockLedger`
+  - **Fields Involved (Batch):** `bom_id`, `planned_qty` (10), `status` (COMPLETED).
+  - **Fields Involved (Ledger):** Automatically loops through `BOMItem`s and deducts 15 KG of Tomatoes (`PRODUCTION_OUT`), and adds 10 Liters of Tomato Sauce (`PRODUCTION_IN`).
+- **Step 3: Quality Control**
+  - **Page:** Manufacturing -> Batches -> QC Audit
+  - **Models:** `QCAudit`
+  - **Fields Involved:** `audit_type` (TEMPERATURE), `result_value` (4°C), `batch_id`.
+
+---
+
+## 5. POS / KDS Module Flows
+
+### Flow 5.1: Dine-In Order Lifecycle
+
+**Scenario:** Table 4 orders a Burger, and it routes to the Kitchen.
+
+- **Step 1: Open Table Order**
+  - **Page:** POS -> Floor Plan -> Table 4
+  - **Models:** `Table`, `Order`
+  - **Fields Involved (Table):** `status` (OCCUPIED).
+  - **Fields Involved (Order):** `table_id`, `order_type` (DINE_IN), `status` (OPEN).
+- **Step 2: Add Items & Fire to Kitchen**
+  - **Page:** POS -> Menu Screen -> Send
+  - **Models:** `OrderItem`, `KitchenOrderTicket` (KOT)
+  - **Fields Involved (Item):** `menu_item_id`, `qty` (1).
+  - **Fields Involved (KOT):** `station` (HOT_FOOD), `status` (PREPARING), `print_count` (1).
+  - **Example Action:** A ticket prints at the Grill station KDS.
+- **Step 3: Settle Bill**
+  - **Page:** POS -> Checkout -> Pay
+  - **Models:** `AdvancePayment`, `Order`, `Table`
+  - **Fields Involved (Payment):** `amount_paid` (15.00), `payment_method` (CARD).
+  - **Fields Involved (Order):** `status` (PAID).
+  - **Fields Involved (Table):** `status` (AVAILABLE).
+
+---
+
+## 6. CRM Module Flows
+
+### Flow 6.1: Loyalty Points Earn & Burn
+
+**Scenario:** Customer buys a coffee and earns points, then uses points for a discount.
+
+- **Step 1: Customer Identification**
+  - **Page:** POS -> Add Customer
+  - **Models:** `Customer`
+  - **Fields Involved:** `phone` (+971501234567), `points_balance`.
+- **Step 2: Earn Points on Purchase**
+  - **Page:** POS -> Checkout (Background Process)
+  - **Models:** `LoyaltyTrans`, `Customer`
+  - **Fields Involved (Trans):** `trans_type` (EARNED), `points` (+10).
+  - **Fields Involved (Customer):** `points_balance` updates to 10.
+- **Step 3: Redeem Points**
+  - **Page:** POS -> Checkout -> Apply Points
+  - **Models:** `LoyaltyTrans`, `AdvancePayment`
+  - **Fields Involved (Trans):** `trans_type` (REDEEMED), `points` (-10).
+  - **Fields Involved (Payment):** `payment_method` (LOYALTY_POINTS), `amount_paid` (Equivalent monetary value).
+
+---
+
+## 7. FINANCE Module Flows
+
+### Flow 7.1: End of Day Reconciliation
+
+**Scenario:** The Cashier closes the till at the end of their shift.
+
+- **Step 1: Open Register (Start of Shift)**
+  - **Page:** POS -> Shift Management -> Open Till
+  - **Models:** `CashRegister`
+  - **Fields Involved:** `expected_cash` (100.00 - float), `status` (OPEN), `opened_by`.
+- **Step 2: Close Register**
+  - **Page:** POS -> Shift Management -> Close Till
+  - **Models:** `CashRegister`, `LedgerEntry`
+  - **Fields Involved:** `actual_cash` (Customer counts 550.00), `status` (CLOSED).
+  - **Example Action:** The system compares `expected_cash` (Float + Cash Sales) vs `actual_cash`. Any discrepancy is flagged. A `LedgerEntry` is created moving Cash Asset to Revenue.
+
+### Flow 7.2: Franchise Royalty Auto-Calculation
+
+**Scenario:** Month-end processing for the Dubai Franchise (DXB-01).
+
+- **Step 1: Revenue Calculation**
+  - **Page:** Admin -> Finance -> Royalty Run
+  - **Models:** `Order`, `Franchise`, `RoyaltyTrans`
+  - **Example Action:** System sums all `Order.total_amount` where `branch_id = DXB-01` and `status = PAID`. E.g., Total Sales = 100,000.
+- **Step 2: Generate Royalty Invoice**
+  - **Fields Involved (Franchise):** Reads `royalty_pct` (5%).
+  - **Fields Involved (RoyaltyTrans):** `franchise_id`, `calculated_amt` (5,000.00), `status` (INVOICED).
+
+---
+
+---
+
+## FLOW ORIENTED
+
+### 1st Flow: End-to-End Procurement (Items, Suppliers & Bulk Goods)
+
+**Overview:**
+This flow encompasses the complete lifecycle of procurement. Before a manager can buy bulk goods, they must first configure the catalog (Items, Item Categories, UOMs, UOM Conversions, and Item Variants) and manage vendors (Suppliers). Once the foundation is set, they can execute a Purchase Order (PO) and receive the goods via a Goods Receipt Note (GRN) to update the Stock Ledger.
+
+#### 1. Database Entities Involved
+
+- **ItemCategory**: Grouping for materials (e.g., "Dairy", "Spices").
+- **UnitOfMeasure (UOM)**: Base measuring units (e.g., "KG", "GRAM").
+- **UOMConversion**: Mathematical relationship between units (e.g., 1 KG = 1000 GRAMS).
+- **Item**: The core product definition (e.g., "Sugar").
+- **ItemVariant**: Specific stocking units (SKUs) of an item (e.g., "50 KG Bag of Sugar").
+- **Supplier**: Vendors, including nested `addresses` and `bank_details`.
+- **PurchaseOrder**: The document tracking the purchase. Fields: `supplier_id`, `status` (`DRAFT`, `SENT`, `RECEIVED`), `total_amount`.
+- **POItem**: Line items in the PO. Fields: `variant_id`, `qty_ordered`, `unit_price`, `total_price`.
+- **GoodsReceipt**: Logs the physical arrival of goods.
+- **StockLedger**: Journal where the actual inventory increment is recorded (`transaction_type: PURCHASE`).
+
+#### 2. API / Backend Architecture
+
+**A. Types / DTOs (`apps/api/src/features/inventory/`)**
+
+- `ItemCategoryDTO`, `UnitOfMeasureDTO`, `UOMConversionDTO`, `ItemDTO`, `ItemVariantDTO`, `SupplierDTO`, `PurchaseOrderDTO`, `POItemDTO`, `GoodsReceiptDTO`.
+- `CreatePOPayload`: Contains `supplier_id`, `notes`, and an array of `{ variant_id, qty, unit_price }`.
+
+**B. Repositories (`apps/api/src/features/inventory/[entity].repo.ts`)**
+
+- `ItemCategoryRepo`, `UOMRepo`, `ItemRepo`, `SupplierRepo`: Standard CRUD operations.
+- `PurchaseOrderRepo.createPO(data)`: Inserts PO and POItems within a database transaction.
+- `PurchaseOrderRepo.logGoodsReceipt(data)`: Inserts GRN record and triggers Stock Ledger updates.
+
+**C. Services (`apps/api/src/features/inventory/[entity].service.ts`)**
+
+- `SupplierService`: Validates and manages vendors.
+- `ItemService`: Handles item creation, automatically generating base `ItemVariant`s.
+- `POService.initiatePurchase(...)`: Business logic to validate supplier, calculate totals, and create the PO.
+- `POService.receiveGoods(poId, invoiceDetails)`:
+  1. Validates PO is `SENT`.
+  2. Calls `logGoodsReceipt`.
+  3. Uses `StockService` to automatically increment inventory based on received variant quantities and configured `UOMConversion`s.
+  4. Marks PO as `RECEIVED`.
+
+**D. Controllers & Routes (`apps/api/src/features/inventory/[entity].controller.ts & .route.ts`)**
+
+- Full RESTful endpoints for `categories`, `uoms`, `items`, `suppliers`.
+- `POST /api/inventory/po`
+- `POST /api/inventory/po/:id/receive`
+
+#### 3. Mobile App Architecture (Flutter)
+
+**A. Models (`apps/mobile/lib/features/inventory/`)**
+
+- `item_category.model.dart`, `unit_of_measure.model.dart`, `u_o_m_conversion.model.dart`, `item.model.dart`, `item_variant.model.dart`, `supplier.model.dart`, `purchase_order.model.dart`, `goods_receipt.model.dart`.
+
+**B. Repositories & State Management (`Cubit` & `Repo` pairs)**
+
+- `SupplierRepo` + `SupplierCubit`: Fetch, Create, Edit suppliers.
+- `ItemRepo` + `ItemCubit`: Catalog management.
+- `PORepo` + `POCubit`: Draft POs, submit, mark as received.
+
+**C. Pages & UI Elements**
+
+1. **Inventory Settings / Setup Hub**
+   - **Elements**: Tile navigation leading to Categories, UOMs, and UOM Conversions.
+   - **Actions**: Simple list views with Floating Action Buttons to add/edit.
+
+2. **Supplier Management Pages (`/suppliers` & `/suppliers/create`)**
+   - **Elements**:
+     - List view showing Supplier Name, Phone, and Tax Number.
+     - Detail form featuring nested `Address` forms (street, city, pin) and `BankDetail` forms (account number, IFSC code).
+
+3. **Item & Variant Management Pages (`/items` & `/items/create`)**
+   - **Elements**:
+     - Main list grouped by `ItemCategory`.
+     - Creation form: Name, Type (Raw Material, Asset), Shelf Life.
+     - Sub-form to attach `ItemVariant`s (e.g., creating the 50KG SKU, assigning base cost, and selecting the `UnitOfMeasure`).
+
+4. **Procurement Dashboard (`/procurement`)**
+   - **Elements**:
+     - Active PO summary cards.
+     - "Create New PO" green CTA button.
+     - Status Badge indicators (DRAFT, SENT, RECEIVED).
+
+5. **Create Purchase Order Flow (`/po/create`)**
+   - **Elements**:
+     - Supplier selection dropdown.
+     - "Add Item" bottom sheet opening a searchable list of `ItemVariant`s.
+     - Dynamic cart showing selected variants with a green quantity stepper and unit price input.
+     - "Submit PO" sticky footer.
+
+6. **Receive Goods Modal/Page (`/po/:id/receive`)**
+   - **Elements**:
+     - Input fields for `Invoice Number` and `Notes`.
+     - Checklist UI confirming the quantities physically arriving.
+     - "Confirm Receipt" CTA to trigger the GRN and stock ledger update.
+
+## PART 3: FLOW ORIENTED
+
+### 1. Buying bulk goods from suppliers
+
+This flow covers the absolute end-to-end process of sourcing raw materials, packaging, or assets from vendors, receiving them into inventory, and updating financial ledgers. Because this impacts the physical supply chain and financials, it intrinsically involves the following sub-domains:
+1. **Supplier Management:** Onboarding vendors, tracking their bank details, mapping tax info.
+2. **Item & Variant Management:** Cataloging the raw materials, their units of measure (e.g. Kg, Ltr), and standard costs.
+3. **Purchase Orders (PO):** The intent to buy.
+4. **Goods Receipt Note (GRN):** The physical reception of goods.
+5. **Stock Ledgers:** The real-time injection of stock into the branch warehouse.
+6. **Vendor Returns (RTV):** Managing damaged goods.
+
+#### Backend Architecture (API)
+
+**1. API Types (`src/features/inventory/*.type.ts`)**
+- `SupplierDTO`: `id`, `name`, `tax_number`, `addresses` (List<AddressDTO>), `bank_details` (List<BankDetailDTO>).
+- `ItemVariantDTO`: `id`, `item_id`, `uom_id`, `sku`, `base_cost`, `min_stock_lvl`.
+- `PurchaseOrderDTO`: `id`, `supplier_id`, `status` (`DRAFT`, `SENT`, `RECEIVED`), `total_amount`.
+- `POItemDTO`: `id`, `po_id`, `variant_id`, `qty_ordered`, `unit_price`, `total_price`.
+- `GoodsReceiptDTO`: `id`, `po_id`, `received_date`, `invoice_number`.
+- `StockLedgerDTO`: `id`, `variant_id`, `transaction_type` (`PURCHASE`), `quantity_change`, `running_balance`.
+
+**2. Repositories (`*.repo.ts`)**
+- `SupplierRepo.createSupplier(data)`: Handles nested creation of Addresses and Bank Details.
+- `ItemRepo.createItemWithVariants(data)`: Ensures raw materials are linked to a UoM.
+- `PurchaseOrderRepo.createPO(data)`: Executes a Prisma transaction to save the PO and POItems.
+- `PurchaseOrderRepo.updateStatus(id, status)`: Transitions PO state.
+- `StockLedgerRepo.recordInward(poId, items)`: Critical transaction. Locks the variant rows, reads current `running_balance`, adds the new `qty`, and inserts the `StockLedger` audit trail.
+
+**3. Services (`*.service.ts`)**
+- `SupplierService.onboardVendor()`: Validates IFSC codes and Tax numbers.
+- `POService.draftOrder(input)`: Validates active variants, auto-calculates totals.
+- `POService.receiveGoods(grnInput)`: The most complex logic. Validates that `received_qty` <= `ordered_qty`. If there are damaged goods, it triggers `VendorReturnService`. Finally, it invokes `StockLedgerRepo.recordInward` and changes PO status to `RECEIVED`.
+
+**4. Controllers & Routes (`*.route.ts`)**
+- `POST /api/v1/inventory/suppliers`
+- `GET /api/v1/inventory/suppliers`
+- `POST /api/v1/inventory/items` (Cataloging)
+- `POST /api/v1/inventory/purchase-orders`
+- `GET /api/v1/inventory/purchase-orders/:id`
+- `POST /api/v1/inventory/purchase-orders/:id/receive` (GRN execution)
+
+#### Mobile Architecture (Flutter)
+
+**1. Models (`features/inventory/*.model.dart`)**
+- `SupplierModel`, `ItemModel`, `ItemVariantModel`, `PurchaseOrderModel`, `POItemModel`, `GoodsReceiptModel`, `StockLedgerModel`.
+- All strictly use `snake_case` mapping natively generated by our pipeline.
+
+**2. Repositories (`features/inventory/*.repo.dart`)**
+- `SupplierRepo`, `ItemRepo`, `PurchaseOrderRepo`.
+- All inject `ApiClient` and use `TaskResult<T>`.
+
+**3. State Management / Cubits (`features/inventory/*.cubit.dart`)**
+- `SupplierCubit`: Manages `loadInfo`, `saveInfo`, and `List<SupplierModel>`.
+- `CatalogCubit`: Handles the infinite scrolling list of `ItemVariantModel`.
+- `PurchaseOrderCubit`: Emits `PurchaseOrderState`. Handles cart mechanics locally before calling `submitPO()`.
+- `GrnCubit`: Manages the scanning and receiving checklist state.
+
+**4. Pages & UI Elements**
+- The UI must encompass the complete flow from adding the supplier, adding the items, creating the PO, to receiving it. (See Stitch Prompt below for exactly what to generate).
+
+#### Stitch Prompt for UI Generation
+
+***
+
+**Prompt for Stitch:**
+```text
+You are an expert Flutter UI Architect. We are building the completely comprehensive "Buying Bulk Goods" flow for our Enterprise ERP. This is a massive, highly detailed module.
+
+**CRITICAL DIRECTIVE:**
+I need you to design and implement the exact UI pages and elements for this ENTIRE flow. You MUST generate **MORE THAN 20 PAGES/SCREENS**. Do NOT generate less than 20 pages. You must NOT stop generating until all 20+ screens/modal variations are completely outputted. Keep generating continuously. Automatically build them in batches if needed, but do not stop. Follow the STRICT mobile standards: no comments, everything uses ScreenUtil (.w, .h, .sp, .r), and features are grouped in a flat structure (e.g. `features/inventory/purchase_order.page.dart`). STRICTLY adhere to the base UI file I will paste next.
+
+**Required Screens & Elements (Generate ALL of these, amounting to 20+ files/components):**
+
+**A. Supplier Management Sub-Flow**
+1. `supplier_list.page.dart`: List of all vendors, search bar, active/inactive badges.
+2. `supplier_detail.page.dart`: View vendor info, their past POs, and account balance.
+3. `create_supplier.page.dart`: Form to onboard a vendor.
+4. `supplier_address_sheet.widget.dart`: Bottom sheet to add their nested `Address`.
+5. `supplier_bank_sheet.widget.dart`: Bottom sheet to add their nested `BankDetail`.
+
+**B. Item & Catalog Setup Sub-Flow**
+6. `raw_material_list.page.dart`: List of all `RAW_MATERIAL` items.
+7. `create_item.page.dart`: Form to define a new Item.
+8. `create_variant_sheet.widget.dart`: Bottom sheet to add SKUs, UoM, and base cost to the Item.
+9. `uom_picker_sheet.widget.dart`: Bottom sheet selecting KG, GM, LTR, etc.
+
+**C. Purchase Order (PO) Sub-Flow**
+10. `purchase_order_list.page.dart`: List of all DRAFT, SENT, RECEIVED orders.
+11. `purchase_order_detail.page.dart`: Read-only view of a specific PO and its items.
+12. `create_po.page.dart`: The main drafting screen.
+13. `po_supplier_picker.widget.dart`: Modal to search and select a Supplier for the PO.
+14. `po_add_item_sheet.widget.dart`: Modal with search bar to select an `ItemVariant`.
+15. `po_cart_item_card.widget.dart`: The custom widget showing the added item, with a green quantity stepper and unit price input field.
+16. `po_review_sheet.widget.dart`: Bottom sheet summarizing the Grand Total before final dispatch.
+
+**D. Goods Receipt (GRN) Sub-Flow**
+17. `grn_pending_list.page.dart`: List of SENT POs awaiting delivery.
+18. `goods_receipt.page.dart`: The main receiving checklist. Displays ordered items alongside numeric inputs for "Actual Received Qty".
+19. `grn_damage_report_sheet.widget.dart`: Bottom sheet triggered if received qty < ordered qty, logging it as damaged.
+20. `grn_success_modal.widget.dart`: A massive success screen showing +Stock added to the Ledger.
+
+**E. Stock Ledger & Verification Sub-Flow**
+21. `stock_ledger.page.dart`: The real-time running balance screen showing exactly what came in.
+22. `vendor_return_form.page.dart`: (RTV) Screen to send damaged goods back.
+
+**UI Rules:**
+- Use `AppColors.primaryIndigo`, `pureWhite`, `softGrey`, and `AppColors.textPrimary`.
+- Form layouts must use `SingleChildScrollView` and `SafeArea`.
+- Modals must use the standard Bottom Sheet Template (40.w handle, << back button). No Scaffolds inside Modals.
+- Generate them continuously. Do not stop.
+```
+
+### 2. Table Order and Kitchen Action (POS & KDS Flow)
+
+This flow manages the core operations of a dine-in restaurant environment, covering everything from seating a customer, punching in an order, splitting the ticket into station-specific KOTs (Kitchen Order Tickets), kitchen preparation feedback, order fulfillment, and ultimately the table checkout and ledger update. It strictly bridges the Front-of-House (POS) and Back-of-House (KDS).
+
+#### Backend Architecture (API)
+
+**1. API Types (`src/features/pos_kds/*.type.ts`, `src/features/catalog/*.type.ts`)**
+- `TableZoneDTO`: `id`, `branch_id`, `name`.
+- `TableDTO`: `id`, `zone_id`, `table_number`, `capacity`, `status` (`AVAILABLE`, `OCCUPIED`, `CLEANING`).
+- `OrderDTO`: `id`, `table_id`, `status` (`OPEN`, `BILLED`, `PAID`, `CANCELLED`), `total_amount`, `items` (List<OrderItemDTO>).
+- `OrderItemDTO`: `id`, `order_id`, `menu_item_id`, `qty`, `price`, `modifier_notes`.
+- `KitchenOrderTicketDTO` (KOT): `id`, `order_id`, `station` (`HOT_FOOD`, `BAKERY`, `DRINKS`), `status` (`PREPARING`, `READY`, `SERVED`).
+- `MenuItemDTO` & `ModifierDTO`: Used for the POS catalog layout.
+
+**2. Repositories (`*.repo.ts`)**
+- `TableRepo.getZonesAndTables()`: Retrieves visual floor plans.
+- `TableRepo.updateStatus(id, status)`: Transitions a table's occupancy.
+- `OrderRepo.createOrderWithKOT(data)`: A complex Prisma transaction that saves the `Order`, `OrderItems`, and intelligently splits the items into multiple `KOT` rows based on their respective kitchen stations.
+- `KOTRepo.updateTicketStatus(id, status)`: Moves a ticket from `PREPARING` to `READY`.
+
+**3. Services (`*.service.ts`)**
+- `TableService.seatCustomer()`: Assigns a table, marks it `OCCUPIED`.
+- `OrderService.punchOrder(input)`: Validates stock availability in `StockLedger`, calculates combo/modifier prices, triggers `OrderRepo.createOrderWithKOT`.
+- `KDSService.bumpTicket(kotId)`: Called by the kitchen display when a chef finishes a dish. Changes KOT status and sends a real-time event (e.g. WebSocket/SSE) to the waiters to serve the food.
+- `CheckoutService.settleBill(orderId)`: Calculates taxes, processes loyalty points (`LoyaltyTrans`), logs the financial `LedgerEntry` (Revenue), and marks the Table as `CLEANING`.
+
+**4. Controllers & Routes (`*.route.ts`)**
+- `GET /api/v1/pos/tables`
+- `PATCH /api/v1/pos/tables/:id/status`
+- `POST /api/v1/pos/orders`
+- `GET /api/v1/kds/tickets` (Long-polling or standard fetch for the kitchen display)
+- `PATCH /api/v1/kds/tickets/:id/bump`
+- `POST /api/v1/pos/orders/:id/checkout`
+
+#### Mobile Architecture (Flutter)
+
+**1. Models (`features/pos_kds/*.model.dart`)**
+- `TableModel`, `TableZoneModel`, `OrderModel`, `OrderItemModel`, `KitchenOrderTicketModel`.
+- `MenuItemModel`, `ModifierModel` (from Catalog feature).
+- All use `snake_case` properties matching the API exact schemas.
+
+**2. Repositories (`features/pos_kds/*.repo.dart`)**
+- `PosRepo`, `KdsRepo`.
+- Uses `ApiClient` mapping Dio calls to `TaskResult<T>`.
+
+**3. State Management / Cubits (`features/pos_kds/*.cubit.dart`)**
+- `FloorPlanCubit`: Manages the visual grid of tables and their live statuses.
+- `PosCartCubit`: A robust local state manager handling the active order, modifier selections, and price tallying before hitting the API.
+- `KdsBoardCubit`: Manages the kanban-style board for chefs, grouping tickets by `station`. Auto-refreshes periodically.
+
+**4. Pages & UI Elements**
+- The UI demands two completely distinct interfaces: The **POS Interface** (Waitstaff/Cashier) and the **KDS Interface** (Chefs). (See Stitch Prompt below for 25+ specific UI targets).
+
+#### Stitch Prompt for UI Generation
+
+***
+
+**Prompt for Stitch:**
+```text
+You are an expert Flutter UI Architect. We are building the massive "Table Order & Kitchen Management (POS/KDS)" flow for our Enterprise ERP. This bridges front-of-house ordering with back-of-house kitchen displays.
+
+**CRITICAL DIRECTIVE:**
+I need you to design and implement the exact UI pages and elements for this ENTIRE flow. You MUST generate **MORE THAN 25 PAGES/SCREENS**. Do NOT generate less than 25 pages. You must NOT stop generating until all 25+ screens/modal variations are completely outputted. Keep generating continuously. Automatically build them in batches if needed, but do not stop. Follow the STRICT mobile standards: no comments, everything uses ScreenUtil (.w, .h, .sp, .r), and features are grouped in a flat structure (e.g. `features/pos_kds/floor_plan.page.dart`). STRICTLY adhere to the base UI file I will paste next.
+
+**Required Screens & Elements (Generate ALL of these, amounting to 25+ files/components):**
+
+**A. Floor Plan & Table Management Sub-Flow**
+1. `floor_plan.page.dart`: Grid layout of Tables grouped by Zones. Color-coded (Green=Available, Red=Occupied, Yellow=Cleaning).
+2. `table_card.widget.dart`: Visual representation of a table, showing seat count and active order time.
+3. `table_action_sheet.widget.dart`: Bottom sheet popping up on a Table tap (Options: "New Order", "View Bill", "Mark Clean").
+4. `zone_selector_tabs.widget.dart`: Horizontal scrollable tabs to switch between "Patio", "Main Dining", "Bar".
+
+**B. POS Ordering (Catalog & Cart) Sub-Flow**
+5. `pos_terminal.page.dart`: The main dual-pane POS screen (Left: Menu Grid, Right: Active Cart).
+6. `pos_category_sidebar.widget.dart`: Vertical list of `MenuCategory` items with icons.
+7. `pos_menu_grid.widget.dart`: Grid of `MenuItem` cards displaying prices and images.
+8. `modifier_selection_modal.widget.dart`: A large modal popping up when an item is tapped, allowing selection of `ModifierGroup` options (e.g. Extra Cheese, Crust Type).
+9. `combo_builder_modal.widget.dart`: Specialized modal for selecting `ComboItem` variations.
+10. `pos_cart_pane.widget.dart`: The right-side pane holding the current order.
+11. `cart_item_row.widget.dart`: A single row in the cart showing the item name, selected modifiers underneath in small text, quantity stepper, and price.
+12. `cart_action_footer.widget.dart`: Sticky bottom area in the cart pane with Grand Total and massive "Punch Order (Send to KDS)" button.
+
+**C. Kitchen Display System (KDS) Sub-Flow**
+13. `kds_board.page.dart`: Kanban style board for the kitchen. Landscape-oriented layout.
+14. `kds_station_filter.widget.dart`: Toggle to show tickets for "Hot Food", "Bakery", or "Drinks".
+15. `kot_card.widget.dart`: A Kitchen Order Ticket card showing Table Number, Waiter Name, Elapsed Timer (red if > 15 mins), and a checklist of items.
+16. `kot_item_row.widget.dart`: Inside the KOT card, the specific item (with modifiers highlighted for the chef).
+17. `bump_ticket_button.widget.dart`: The "Done / Ready" action button on the KOT card.
+18. `kds_history.page.dart`: A side-panel or page showing recently bumped/completed tickets in case of mistakes.
+
+**D. Waitstaff Fulfillment Sub-Flow**
+19. `service_queue.page.dart`: A screen for waiters showing items that are "READY" in the kitchen, waiting to be taken to tables.
+20. `serve_action_sheet.widget.dart`: Bottom sheet confirming the food was dropped at the table.
+
+**E. Checkout & Billing Sub-Flow**
+21. `checkout_split.page.dart`: Screen to split the bill (By Item, or Equal Split).
+22. `loyalty_redeem_sheet.widget.dart`: Modal to enter customer phone number and apply loyalty points to the bill.
+23. `payment_tender_modal.widget.dart`: Grid of payment options (Cash, Card, UPI). If Cash, shows quick exact-change buttons (e.g. $20, $50, $100).
+24. `digital_receipt.page.dart`: Final summary screen showing the generated invoice.
+25. `tip_adjustment_sheet.widget.dart`: Modal to add a tip post-payment for card transactions.
+
+**UI Rules:**
+- Use `AppColors.primaryIndigo`, `pureWhite`, `softGrey`, and `AppColors.textPrimary`.
+- Use the standard Bottom Sheet Template for all modals (40.w handle, << back button). No Scaffolds inside Modals.
+- POS/KDS interfaces heavily rely on GridViews and dual-pane layouts.
+- Generate them continuously. Do not stop.
+
+[PASTE BASE UI FILE CONTENT HERE]
+```
+
+### 3. Preparing Food Items (Manufacturing & Production Flow)
+
+This flow manages the back-of-house manufacturing process where raw materials are transformed into semi-finished or finished goods. This is crucial for bakeries, sweet shops, and central kitchens. It involves creating a master recipe (Bill of Materials), running a production batch, consuming raw inventory, performing quality control, and logging wastage.
+
+#### Backend Architecture (API)
+
+**1. API Types (`src/features/manufacturing/*.type.ts`)**
+- `BillOfMaterialDTO`: `id`, `output_variant_id`, `yield_quantity`, `items` (List<BOMItemDTO>).
+- `BOMItemDTO`: `id`, `bom_id`, `input_variant_id`, `quantity`.
+- `ProductionBatchDTO`: `id`, `bom_id`, `status` (`PLANNED`, `IN_PROGRESS`, `COMPLETED`), `produced_qty`.
+- `QCAuditDTO`: `id`, `batch_id`, `temperature`, `taste_status`, `notes`.
+- `WastageLogDTO`: `id`, `variant_id`, `qty`, `reason`.
+
+**2. Repositories (`*.repo.ts`)**
+- `BOMRepo.createBOM(data)`: Saves the master recipe.
+- `ProductionBatchRepo.startBatch(id)`: Changes status to `IN_PROGRESS`.
+- `ProductionBatchRepo.completeBatch(id, actualYield)`: This is a massive Prisma transaction. It calculates theoretical consumption from the BOM, deducts those raw materials from `StockLedger`, and adds the `actualYield` to the finished goods `StockLedger`.
+- `WastageRepo.logWaste(data)`: Deducts inventory directly via `StockLedger`.
+
+**3. Services (`*.service.ts`)**
+- `BOMService.calculateCost(bomId)`: Dynamically sums up the `base_cost` of all `BOMItem` ingredients to determine the exact cost to produce the finished good.
+- `ProductionService.executeBatch(batchId, yield)`: Validates that enough raw material exists in the warehouse before starting. If short, it throws an `InsufficientStockException`.
+- `QCService.auditBatch()`: Prevents a batch from being marked `COMPLETED` and entering inventory if it fails health/taste standards.
+
+**4. Controllers & Routes (`*.route.ts`)**
+- `POST /api/v1/manufacturing/boms`
+- `GET /api/v1/manufacturing/boms/:id`
+- `POST /api/v1/manufacturing/batches`
+- `PATCH /api/v1/manufacturing/batches/:id/complete`
+- `POST /api/v1/manufacturing/qc-audits`
+- `POST /api/v1/manufacturing/wastage`
+
+#### Mobile Architecture (Flutter)
+
+**1. Models (`features/manufacturing/*.model.dart`)**
+- `BillOfMaterialModel`, `BOMItemModel`, `ProductionBatchModel`, `QCAuditModel`, `WastageLogModel`.
+- All strictly use `snake_case` properties.
+
+**2. Repositories (`features/manufacturing/*.repo.dart`)**
+- `ManufacturingRepo`, `WastageRepo`.
+- Uses `ApiClient` mapping Dio calls to `TaskResult<T>`.
+
+**3. State Management / Cubits (`features/manufacturing/*.cubit.dart`)**
+- `BomBuilderCubit`: Manages the complex state of adding/removing ingredients and adjusting yields before saving a recipe.
+- `ActiveBatchCubit`: Tracks running kitchen batches, timer durations, and actual vs expected yields.
+- `QCCubit`: Handles health inspection forms and batch approvals.
+
+**4. Pages & UI Elements**
+- The UI handles the intricate workflow of recipe formulation, kitchen batch execution, and health compliance. (See Stitch Prompt below for 25+ specific UI targets).
+
+#### Stitch Prompt for UI Generation
+
+***
+
+**Prompt for Stitch:**
+```text
+You are an expert Flutter UI Architect. We are building the massive "Preparing Food Items (Manufacturing & Production)" flow for our Enterprise ERP. This manages recipes, bulk production, QC, and wastage.
+
+**CRITICAL DIRECTIVE:**
+I need you to design and implement the exact UI pages and elements for this ENTIRE flow. You MUST generate **MORE THAN 25 PAGES/SCREENS**. Do NOT generate less than 25 pages. You must NOT stop generating until all 25+ screens/modal variations are completely outputted. Keep generating continuously. Automatically build them in batches if needed, but do not stop. Follow the STRICT mobile standards: no comments, everything uses ScreenUtil (.w, .h, .sp, .r), and features are grouped in a flat structure (e.g. `features/manufacturing/bom_list.page.dart`). STRICTLY adhere to the base UI file I will paste next.
+
+**Required Screens & Elements (Generate ALL of these, amounting to 25+ files/components):**
+
+**A. Bill of Materials (Recipe) Sub-Flow**
+1. `bom_list.page.dart`: List of all master recipes, showing Output Item Name, Yield, and Total Cost.
+2. `bom_detail.page.dart`: Read-only view of a recipe, showing theoretical cost breakdowns per ingredient.
+3. `create_bom.page.dart`: The main drafting screen for a new recipe.
+4. `bom_output_picker.widget.dart`: Modal to select the `ItemVariant` that this recipe produces.
+5. `bom_ingredient_sheet.widget.dart`: Bottom sheet with search to add a raw material ingredient.
+6. `bom_ingredient_row.widget.dart`: A custom list tile in the builder showing ingredient name, required qty, and cost contribution.
+7. `bom_yield_calculator.widget.dart`: A sliding scale or input to adjust the expected output yield (e.g. "Makes 10 Kg").
+
+**B. Production Batch Execution Sub-Flow**
+8. `production_dashboard.page.dart`: Kanban board or list of `PLANNED`, `IN_PROGRESS`, and `COMPLETED` batches.
+9. `plan_batch_sheet.widget.dart`: Modal to schedule a new batch based on a selected BOM.
+10. `active_batch.page.dart`: The execution screen for chefs. Shows ingredients to gather.
+11. `batch_ingredient_checklist.widget.dart`: Checkboxes for chefs to tick off ingredients as they dump them into the mixer.
+12. `batch_timer.widget.dart`: A visual countdown timer for baking/cooking durations.
+13. `complete_batch_modal.widget.dart`: Crucial modal where the chef enters the *Actual Yield* (e.g. expected 10kg, got 9.5kg) to finalize the batch.
+
+**C. Quality Control (QC) Sub-Flow**
+14. `qc_audit_list.page.dart`: Log of all past quality inspections.
+15. `perform_qc_audit.page.dart`: A form-based screen for managers.
+16. `qc_temperature_input.widget.dart`: Custom numeric input for logging food/fridge temperatures.
+17. `qc_taste_toggle.widget.dart`: Thumbs up / Thumbs down (or Pass/Fail) toggle for sensory audits.
+18. `qc_signature_pad.widget.dart`: A canvas area for the manager to sign off on the audit.
+19. `qc_reject_sheet.widget.dart`: Modal triggered if the batch fails, requiring a reason code before discarding.
+
+**D. Wastage & Spoilage Sub-Flow**
+20. `wastage_log.page.dart`: History of thrown away items.
+21. `report_waste.page.dart`: Form to log expired or dropped items.
+22. `waste_item_picker.widget.dart`: Bottom sheet to select the ruined variant from inventory.
+23. `waste_reason_dropdown.widget.dart`: Standardized dropdown (e.g. "Expired", "Dropped", "Burnt").
+24. `waste_cost_impact.widget.dart`: A red banner calculating how much money was lost due to this waste entry.
+25. `waste_photo_capture.widget.dart`: A UI element to snap a photo of the ruined goods for auditing.
+
+**UI Rules:**
+- Use `AppColors.primaryIndigo`, `pureWhite`, `softGrey`, and `AppColors.errorRed` (for wastage/QC failures).
+- Use the standard Bottom Sheet Template for all modals (40.w handle, << back button). No Scaffolds inside Modals.
+- Generate them continuously. Do not stop.
+
+[PASTE BASE UI FILE CONTENT HERE]
+```

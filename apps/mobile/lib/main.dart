@@ -1,14 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/di.dart';
 import 'package:mobile/core/routes.dart';
 import 'package:mobile/core/theme.dart';
-import 'package:mobile/features/auth/controllers/user.cubit.dart';
-import 'package:mobile/features/business/controllers/business.cubit.dart';
-
-import 'package:mobile/features/product/cubit/product_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,25 +22,12 @@ class MyApp extends StatelessWidget {
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider<UserCubit>(
-              create: (context) => AppDependencies.userCubit,
-            ),
-            BlocProvider<BusinessCubit>(
-              create: (context) => AppDependencies.businessCubit,
-            ),
-            BlocProvider<ProductCubit>(
-              create: (context) => AppDependencies.productCubit,
-            ),
-          ],
-          child: MaterialApp(
-            title: 'Mobile App',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            initialRoute: AppRoutes.session,
-            routes: AppRoutes.routes,
-          ),
+        return MaterialApp(
+          title: 'F&B ERP App',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.lightTheme,
+          initialRoute: AppRoutes.login,
+          routes: AppRoutes.routes,
         );
       },
     );

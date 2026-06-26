@@ -133,18 +133,19 @@ apps/mobile/lib/
       cubit/
 ```
 
-Use this shape for every mobile feature:
+Use this shape for every mobile feature (strictly flat, matching the backend DDD style, with one file per entity):
 
 ```text
 features/[feature]/
-  models/
-  repo/
-  cubit/
-  pages/
-  components/
+  [entity_name].model.dart // e.g. branch.model.dart
+  [feature].repo.dart
+  [feature].cubit.dart
+  [feature].state.dart
+  [feature].page.dart
+  [feature].constant.dart
 ```
 
-`components/ui` is only for global reusable primitives such as buttons and inputs. Feature-only widgets must live inside `features/[feature]/components`. Shared services such as HTTP, storage, analytics, notifications, and device APIs belong in `services`. Cross-feature helpers belong in `utils`. App-wide routing, theme, dependency setup, and colors belong in `core`. App-wide constants belong in `constants`.
+Note: Sub-directories are generally discouraged now to keep the mobile and API repos fully synchronized in style. Only `components/ui` exists globally for reusable primitives such as buttons and inputs. Feature-only widgets must live inside the flat `features/[feature]/` directory. Shared services belong in `services`. Cross-feature helpers belong in `utils`. App-wide routing, theme, dependency setup, and colors belong in `core`. App-wide constants belong in `constants`.
 
 ## 3. Application Startup
 
@@ -686,20 +687,19 @@ Current DI uses `GetIt` through `serviceLocator` and `AppDependencies`. New func
 
 ## 16. Feature Development Workflow
 
-For a new mobile feature, implement in this order:
+For a new mobile feature, implement in this flat order:
 
 1. Add feature folder under `features/[feature]`.
-2. Add models in `models`.
-3. Add endpoint constants in `repo/[feature]_endpoints.dart`.
-4. Add repository in `repo/[feature]_repo.dart`.
-5. Add state in `cubit/[feature]_state.dart`.
-6. Add Cubit in `cubit/[feature]_cubit.dart`.
-7. Add feature components in `components` when needed.
-8. Add pages in `pages`.
-9. Register routes in `core/routes.dart`.
-10. Wire dependencies in `core/di.dart` or route-level `BlocProvider`.
-11. Verify UI against `contexts/ui_standard.md`.
-12. Run analysis and tests.
+2. Add models in `[feature].model.dart`.
+3. Add endpoint constants in `[feature].endpoint.dart` (or bundled in `[feature].constant.dart`).
+4. Add repository in `[feature].repo.dart`.
+5. Add state in `[feature].state.dart`.
+6. Add Cubit in `[feature].cubit.dart`.
+7. Add feature UI/components directly in `[feature].page.dart` (or separate flat files if too large).
+8. Register routes in `core/routes.dart`.
+9. Wire dependencies in `core/di.dart` or route-level `BlocProvider`.
+10. Verify UI against `contexts/ui_standard.md`.
+11. Run analysis and tests.
 
 ## 17. Different Coding Situations
 

@@ -6,486 +6,1188 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id           String   @id @default(cuid())
-  name         String
-  email        String   @unique
-  phone_number String   @default("")
-  avatar_url   String   @default("")
-  created_at   DateTime @default(now())
-  updated_at   DateTime @default(now())
-
-  employee      Employee?
-  orders        Order[]               @relation("OrderCustomer")
-  logs          UserLog[]
-  sessions      UserSession[]
-  addresses     UserAddress[]
-  join_requests BusinessJoinRequest[]
-  otps          UserOtp[]
-
-  @@map("users")
-}
-
-model AdBanner {
-  id         String    @id @default(cuid())
-  title      String
-  image_url  String
-  link_url   String?
-  status     String    @default("ACTIVE")
-  start_date DateTime?
-  end_date   DateTime?
-  created_at DateTime  @default(now())
-  updated_at DateTime  @default(now())
-
-  @@map("ad_banners")
-}
-
-enum OtpType {
-  LOGIN
-  RESET
-  VERIFY
-}
-
-model UserOtp {
-  id         String   @id @default(cuid())
-  actor      String
-  otp        String
-  type       OtpType
-  valid_till DateTime
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now())
-
-  user User @relation(fields: [actor], references: [id], onDelete: Cascade)
-
-  @@map("user_otps")
-}
-
-model UserLog {
-  id          String   @id @default(cuid())
-  uid         String
-  type        String
-  module      String
-  title       String
-  description String
-  meta        String
-  ref_link    String
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now())
-
-  user User @relation(fields: [uid], references: [id], onDelete: Cascade)
-
-  @@map("user_logs")
-}
-
-model UserSession {
-  id          String   @id @default(cuid())
-  uid         String
-  platform    String
-  device_info String
-  ip_address  String
-  status      Boolean
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now())
-
-  user User @relation(fields: [uid], references: [id], onDelete: Cascade)
-
-  @@map("user_sessions")
-}
-
-model UserAddress {
-  id                      String   @id @default(cuid())
-  uid                     String
-  phone_number            String
-  receiver_name           String
-  type                    String
-  name                    String
-  street                  String
-  country_code            String
-  country                 String
-  postal_code             String
-  administrative_area     String
-  sub_administrative_area String
-  locality                String
-  sub_locality            String
-  latitude                Float
-  longitude               Float
-  is_default              Int
-  created_at              DateTime @default(now())
-  updated_at              DateTime @default(now())
-
-  user User @relation(fields: [uid], references: [id], onDelete: Cascade)
-
-  @@map("user_addresses")
-}
+// ==========================================
+// MODULE 1: CORE / AUTH / HR / SETUP
+// ==========================================
 
 model Branch {
-  id          String   @id @default(cuid())
-  name        String
-  branch_code String   @default("")
-  address     Json?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now())
+  id             String         @id @default(cuid())
+  name           String
+  code           String         @unique
+  is_hq          Boolean        @default(false)
+  status         BranchStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  created_by     String?
+  updated_by     String?
+  is_deleted     Boolean        @default(false)
 
-  departments        Department[]
-  shifts             Shift[]
-  roles              Role[]
-  employees          Employee[]
-  products           Product[]
-  product_categories ProductCategory[]
-  orders             Order[]
-  join_requests      BusinessJoinRequest[]
-  subProducts        SubProduct[]
+  // System Hub Relations
+  franchise      Franchise?
+  employees      Employee[]
+  shifts         Shift[]
+  departments    Department[]
+  posts          Post[]
+  roles          Role[]
+  time_logs      TimeLog[]
+  cash_registers CashRegister[]
+
+  menu_categories MenuCategory[]
+  menu_items      MenuItem[]
+  modifiers       Modifier[]
+  combo_meals     ComboMeal[]
+
+  items           Item[]
+  suppliers       Supplier[]
+  purchase_orders PurchaseOrder[]
+  stock_ledgers   StockLedger[]
+  stock_out       StockTransfer[] @relation("TransferOut")
+  stock_in        StockTransfer[] @relation("TransferIn")
+  
+  bom             BillOfMaterial[]
+  production      ProductionBatch[]
+  
+  table_zones     TableZone[]
+  orders          Order[]
+  accounts        Account[]
 
   @@map("branches")
 }
 
+enum BranchStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model Franchise {
+  id             String         @id @default(cuid())
+  branch_id      String         @unique
+  owner_name     String
+  royalty_pct    Float          @default(5.0)
+  agreement_doc  String?
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  royalties      RoyaltyTrans[]
+
+  @@map("franchises")
+}
+
+model User {
+  id             String         @id @default(cuid()) // Firebase UID or CUID
+  name           String
+  avatar         String?
+  phone          String         @unique
+  email          String?        @unique
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+
+  employee       Employee?
+  user_logs      UserLog[]
+  orders         Order[]
+  loyalty_trans  LoyaltyTrans[]
+  complaints     Complaint[]
+
+  @@map("users")
+}
+
+model UserLog {
+  id             String         @id @default(cuid())
+  uid            String
+  action         String
+  ip_address     String?
+  device_info    String?
+  
+  type           String
+  module         String
+  title          String
+  description    String
+  meta           Json
+  ref_link       String
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+
+  user           User           @relation(fields: [uid], references: [id])
+
+  @@map("user_logs")
+}
+
+model Address {
+  id             String         @id @default(cuid())
+  entity_type    AddressType
+  entity_id      String
+  lat            Float?
+  long           Float?
+  area           String?
+  locality       String?
+  city           String?
+  state          String?
+  country        String?
+  pin_code       String?
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+
+  @@map("addresses")
+}
+
+enum AddressType {
+  BRANCH
+  EMPLOYEE
+  USER
+  SUPPLIER
+  DELIVERY_PARTNER
+}
+
+model BankDetail {
+  id             String         @id @default(cuid())
+  entity_type    BankDetailType
+  entity_id      String
+  bank_name      String
+  account_name   String
+  account_number String
+  ifsc_code      String?
+  swift_code     String?
+  branch_name    String?
+  is_primary     Boolean        @default(true)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+
+  @@map("bank_details")
+}
+
+enum BankDetailType {
+  BRANCH
+  FRANCHISE
+  EMPLOYEE
+  SUPPLIER
+  DELIVERY_PARTNER
+  USER
+}
+
 model Department {
-  id         String   @id @default(cuid())
-  name       String
-  branch_id  String
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now())
-
-  branch Branch @relation(fields: [branch_id], references: [id])
-  posts  Post[]
-
+  id             String         @id @default(cuid())
+  branch_id      String
+  name           String
+  description    String?
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+  
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  posts          Post[]
+  employees      Employee[]
+  
   @@map("departments")
 }
 
 model Post {
-  id            String   @id @default(cuid())
-  name          String
-  department_id String
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now())
-
-  department Department @relation(fields: [department_id], references: [id])
-  employees  Employee[]
-
+  id             String         @id @default(cuid())
+  branch_id      String
+  department_id  String
+  name           String
+  description    String?
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+  
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  department     Department     @relation(fields: [department_id], references: [id])
+  employees      Employee[]
+  
   @@map("posts")
 }
 
-enum ShiftBasis {
-  DAY
-  MONTH
-  YEAR
-}
-
-enum ShiftType {
-  MORNING
-  AFTERNOON
-  EVENING
-  NIGHT
-  GENERAL
-}
-
 model Shift {
-  id         String     @id @default(cuid())
-  branch_id  String
-  name       String
-  start_time String
-  end_time   String
-  basis      ShiftBasis
-  type       ShiftType
-  created_at DateTime   @default(now())
-  updated_at DateTime   @default(now())
-
-  branch    Branch     @relation(fields: [branch_id], references: [id])
-  employees Employee[]
-
+  id             String         @id @default(cuid())
+  branch_id      String
+  name           String
+  start_time     String
+  end_time       String
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+  
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  employees      Employee[]
+  
   @@map("shifts")
 }
 
 model Role {
-  id          String   @id @default(cuid())
-  branch_id   String
-  name        String
-  permissions String[]
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now())
-
-  branch        Branch                @relation(fields: [branch_id], references: [id])
-  employees     Employee[]
-  join_requests BusinessJoinRequest[]
-
+  id             String         @id @default(cuid())
+  branch_id      String
+  name           String
+  permissions    String[]
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+  
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  employees      Employee[]
+  
   @@map("roles")
 }
 
 model Employee {
-  id           String   @id @default(cuid())
-  uid          String   @unique
-  name         String
-  email        String
-  phone        String?
-  bank_details Json
-  address      Json
-  branch_id    String
-  role_id      String
-  shift_id     String
-  post_id      String
-  created_at   DateTime @default(now())
-  updated_at   DateTime @default(now())
-
-  user   User   @relation(fields: [uid], references: [id])
-  branch Branch @relation(fields: [branch_id], references: [id])
-  role   Role   @relation(fields: [role_id], references: [id])
-  shift  Shift  @relation(fields: [shift_id], references: [id])
-  post   Post   @relation(fields: [post_id], references: [id])
-
-  orders Order[]
-  rider  Rider?
+  id             String         @id @default(cuid())
+  branch_id      String
+  uid            String         @unique
+  department     String?
+  post           String?
+  shift          String?
+  role           String?
+  status         EmployeeStatus @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+  
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  user           User           @relation(fields: [uid], references: [id])
+  
+  department_rel Department?    @relation(fields: [department], references: [id])
+  post_rel       Post?          @relation(fields: [post], references: [id])
+  shift_rel      Shift?         @relation(fields: [shift], references: [id])
+  role_rel       Role?          @relation(fields: [role], references: [id])
+  
+  time_logs      TimeLog[]
+  orders_handled Order[]
 
   @@map("employees")
 }
 
-enum BusinessJoinRequestStatus {
+enum EmployeeStatus {
+  ACTIVE
+  ON_LEAVE
+  TERMINATED
+}
+
+model TimeLog {
+  id             String         @id @default(cuid())
+  branch_id      String
+  employee_id    String
+  clock_in       DateTime
+  clock_out      DateTime?
+  total_hours    Float?
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  employee       Employee       @relation(fields: [employee_id], references: [id])
+
+  @@map("time_logs")
+}
+
+model CashRegister {
+  id             String         @id @default(cuid())
+  branch_id      String
+  register_name  String
+  mac_address    String?
+  expected_cash  Float          @default(0)
+  actual_cash    Float?
+  status         RegisterStatus @default(OPEN)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  opened_by      String?
+  closed_by      String?
+
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+
+  @@map("cash_registers")
+}
+
+enum RegisterStatus {
+  OPEN
+  CLOSED
+}
+
+// ==========================================
+// MODULE 2: MENU / CATALOG (POS Front-End)
+// ==========================================
+
+model MenuCategory {
+  id             String         @id @default(cuid())
+  branch_id      String
+  name           String
+  description    String?
+  display_order  Int            @default(0)
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  items          MenuItem[]
+
+  @@map("menu_categories")
+}
+
+enum EntityStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model MenuItem {
+  id             String         @id @default(cuid())
+  branch_id      String
+  category_id    String
+  variant_id     String         // Links to Inventory
+  display_name   String
+  description    String?
+  selling_price  Float
+  image_url      String?
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  created_by     String?
+  is_deleted     Boolean        @default(false)
+
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  category       MenuCategory   @relation(fields: [category_id], references: [id])
+  variant        ItemVariant    @relation(fields: [variant_id], references: [id])
+  
+  order_items    OrderItem[]
+  combo_items    ComboItem[]
+
+  @@map("menu_items")
+}
+
+model ModifierGroup {
+  id             String         @id @default(cuid())
+  branch_id      String
+  name           String
+  min_select     Int            @default(0)
+  max_select     Int            @default(1)
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+
+  modifiers      Modifier[]
+
+  @@map("modifier_groups")
+}
+
+model Modifier {
+  id             String         @id @default(cuid())
+  branch_id      String
+  group_id       String
+  variant_id     String?        // Links to Inventory (e.g. Cheese)
+  name           String
+  extra_price    Float          @default(0)
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  group          ModifierGroup  @relation(fields: [group_id], references: [id])
+  variant        ItemVariant?   @relation(fields: [variant_id], references: [id])
+
+  @@map("modifiers")
+}
+
+model ComboMeal {
+  id             String         @id @default(cuid())
+  branch_id      String
+  name           String
+  fixed_price    Float
+  image_url      String?
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  items          ComboItem[]
+
+  @@map("combo_meals")
+}
+
+model ComboItem {
+  id             String         @id @default(cuid())
+  combo_id       String
+  menu_item_id   String
+  qty_included   Float          @default(1)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+
+  combo          ComboMeal      @relation(fields: [combo_id], references: [id])
+  menu_item      MenuItem       @relation(fields: [menu_item_id], references: [id])
+
+  @@map("combo_items")
+}
+
+// ==========================================
+// MODULE 3: INVENTORY / SUPPLY CHAIN (Back-End)
+// ==========================================
+
+model ItemCategory {
+  id             String         @id @default(cuid())
+  branch_id      String
+  name           String
+  description    String?
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+
+  items          Item[]
+
+  @@map("item_categories")
+}
+
+model Item {
+  id             String         @id @default(cuid())
+  branch_id      String
+  category_id    String
+  name           String
+  item_type      ItemType
+  shelf_life_days Int?
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  category       ItemCategory   @relation(fields: [category_id], references: [id])
+  variants       ItemVariant[]
+
+  @@map("items")
+}
+
+enum ItemType {
+  RAW_MATERIAL
+  SEMI_FINISHED
+  FINISHED_GOOD
+  ASSET
+  PACKAGING
+}
+
+model UnitOfMeasure {
+  id             String         @id @default(cuid())
+  branch_id      String
+  code           String         // KG, GM, LTR, BOX, PCS
+  description    String?
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+
+  variants       ItemVariant[]
+  conversions_from UOMConversion[] @relation("FromUOM")
+  conversions_to   UOMConversion[] @relation("ToUOM")
+
+  @@map("units_of_measure")
+}
+
+model UOMConversion {
+  id             String         @id @default(cuid())
+  branch_id      String
+  from_uom_id    String
+  to_uom_id      String
+  factor         Float
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+
+  from_uom       UnitOfMeasure  @relation("FromUOM", fields: [from_uom_id], references: [id])
+  to_uom         UnitOfMeasure  @relation("ToUOM", fields: [to_uom_id], references: [id])
+
+  @@map("uom_conversions")
+}
+
+model ItemVariant {
+  id             String         @id @default(cuid())
+  branch_id      String
+  item_id        String
+  uom_id         String
+  sku            String         @unique
+  barcode        String?
+  base_cost      Float          @default(0)
+  min_stock_lvl  Float          @default(0)
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+
+  item           Item           @relation(fields: [item_id], references: [id])
+  uom            UnitOfMeasure  @relation(fields: [uom_id], references: [id])
+  
+  menu_items     MenuItem[]
+  modifiers      Modifier[]
+  stock_ledgers  StockLedger[]
+  po_items       POItem[]
+  transfer_items TransferItem[]
+  bom_outputs    BillOfMaterial[] // When this is the manufactured product
+  bom_inputs     BOMItem[]        // When this is an ingredient
+
+  @@map("item_variants")
+}
+
+model Supplier {
+  id             String         @id @default(cuid())
+  branch_id      String
+  name           String
+  avatar         String?
+  tax_number     String?
+  contact_email  String?
+  contact_phone  String?
+  status         EntityStatus   @default(ACTIVE)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  is_deleted     Boolean        @default(false)
+
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  purchase_orders PurchaseOrder[]
+
+  @@map("suppliers")
+}
+
+model PurchaseOrder {
+  id             String         @id @default(cuid())
+  branch_id      String
+  supplier_id    String
+  status         POStatus       @default(DRAFT)
+  total_amount   Float          @default(0)
+  notes          String?
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  created_by     String?
+  approved_by    String?
+
+  branch         Branch         @relation(fields: [branch_id], references: [id])
+  supplier       Supplier       @relation(fields: [supplier_id], references: [id])
+  items          POItem[]
+  receipts       GoodsReceipt[]
+  returns        VendorReturn[]
+
+  @@map("purchase_orders")
+}
+
+enum POStatus {
+  DRAFT
+  SENT
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+model POItem {
+  id             String         @id @default(cuid())
+  po_id          String
+  variant_id     String
+  qty_ordered    Float
+  unit_price     Float
+  total_price    Float
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+
+  po             PurchaseOrder  @relation(fields: [po_id], references: [id])
+  variant        ItemVariant    @relation(fields: [variant_id], references: [id])
+
+  @@map("po_items")
+}
+
+model GoodsReceipt {
+  id             String         @id @default(cuid())
+  branch_id      String
+  po_id          String
+  received_date  DateTime       @default(now())
+  invoice_number String?
+  notes          String?
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  received_by    String?
+
+  po             PurchaseOrder  @relation(fields: [po_id], references: [id])
+
+  @@map("goods_receipts")
+}
+
+model VendorReturn {
+  id             String         @id @default(cuid())
+  branch_id      String
+  po_id          String
+  return_reason  String
+  refund_value   Float
+  status         ReturnStatus   @default(PENDING)
+  
+  created_at     DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  processed_by   String?
+
+  po             PurchaseOrder  @relation(fields: [po_id], references: [id])
+
+  @@map("vendor_returns")
+}
+
+enum ReturnStatus {
   PENDING
   APPROVED
   REJECTED
+  REFUNDED
 }
 
-model BusinessJoinRequest {
-  id                String                    @id @default(cuid())
-  uid               String
+model StockLedger {
+  id               String         @id @default(cuid())
+  branch_id        String
+  variant_id       String
+  transaction_type StockTransType
+  quantity_change  Float
+  running_balance  Float
+  reference_id     String?        // Link to PO, Order, etc.
+  
+  created_at       DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  created_by       String?
+
+  branch           Branch         @relation(fields: [branch_id], references: [id])
+  variant          ItemVariant    @relation(fields: [variant_id], references: [id])
+
+  @@map("stock_ledgers")
+}
+
+enum StockTransType {
+  PURCHASE
+  SALE
+  PRODUCTION_IN
+  PRODUCTION_OUT
+  WASTAGE
+  TRANSFER_IN
+  TRANSFER_OUT
+  RETURN
+  ADJUSTMENT
+}
+
+model StockTransfer {
+  id               String         @id @default(cuid())
+  from_branch_id   String
+  to_branch_id     String
+  status           TransferStatus @default(DISPATCHED)
+  driver_name      String?
+  
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+  dispatched_by    String?
+  received_by      String?
+
+  from_branch      Branch         @relation("TransferOut", fields: [from_branch_id], references: [id])
+  to_branch        Branch         @relation("TransferIn", fields: [to_branch_id], references: [id])
+  items            TransferItem[]
+
+  @@map("stock_transfers")
+}
+
+enum TransferStatus {
+  DRAFT
+  DISPATCHED
+  RECEIVED
+  LOST_IN_TRANSIT
+}
+
+model TransferItem {
+  id               String         @id @default(cuid())
+  transfer_id      String
+  variant_id       String
+  quantity         Float
+  
+  created_at       DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+
+  transfer         StockTransfer  @relation(fields: [transfer_id], references: [id])
+  variant          ItemVariant    @relation(fields: [variant_id], references: [id])
+
+  @@map("transfer_items")
+}
+
+// ==========================================
+// MODULE 4: MANUFACTURING & RECIPE
+// ==========================================
+
+model BillOfMaterial {
+  id                String         @id @default(cuid())
   branch_id         String
-  requested_role_id String?
-  status            BusinessJoinRequestStatus @default(PENDING)
-  reviewed_by_id    String?
-  created_at        DateTime                  @default(now())
-  updated_at        DateTime                  @default(now())
+  output_variant_id String         @unique
+  yield_quantity    Float
+  instructions      String?
+  status            EntityStatus   @default(ACTIVE)
+  
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  created_by        String?
+  is_deleted        Boolean        @default(false)
 
-  user           User   @relation(fields: [uid], references: [id])
-  branch         Branch @relation(fields: [branch_id], references: [id])
-  requested_role Role?  @relation(fields: [requested_role_id], references: [id])
+  branch            Branch         @relation(fields: [branch_id], references: [id])
+  output_variant    ItemVariant    @relation(fields: [output_variant_id], references: [id])
+  ingredients       BOMItem[]
+  batches           ProductionBatch[]
 
-  @@map("business_join_requests")
+  @@map("boms")
+}
+
+model BOMItem {
+  id                String         @id @default(cuid())
+  bom_id            String
+  input_variant_id  String
+  quantity          Float
+  
+  created_at        DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+
+  bom               BillOfMaterial @relation(fields: [bom_id], references: [id])
+  input_variant     ItemVariant    @relation(fields: [input_variant_id], references: [id])
+
+  @@map("bom_items")
+}
+
+model ProductionBatch {
+  id                String         @id @default(cuid())
+  branch_id         String
+  bom_id            String
+  status            BatchStatus    @default(PLANNED)
+  planned_qty       Float
+  produced_qty      Float          @default(0)
+  expiry_date       DateTime?
+  notes             String?
+  
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  started_by        String?
+  completed_by      String?
+
+  branch            Branch         @relation(fields: [branch_id], references: [id])
+  bom               BillOfMaterial @relation(fields: [bom_id], references: [id])
+  qc_audits         QCAudit[]
+
+  @@map("production_batches")
+}
+
+enum BatchStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model QCAudit {
+  id                String         @id @default(cuid())
+  branch_id         String
+  batch_id          String?
+  audit_type        QCType
+  result_value      String         // e.g. "APPROVED" or "4°C"
+  notes             String?
+  
+  created_at        DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  auditor_name      String?
+
+  batch             ProductionBatch? @relation(fields: [batch_id], references: [id])
+
+  @@map("qc_audits")
+}
+
+enum QCType {
+  TEMPERATURE
+  TASTE_TEST
+  HYGIENE
+  PACKAGING_CHECK
+}
+
+model WastageLog {
+  id                String         @id @default(cuid())
+  branch_id         String
+  variant_id        String
+  reason            String
+  quantity          Float
+  
+  created_at        DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  logged_by         String?
+
+  @@map("wastage_logs")
+}
+
+// ==========================================
+// MODULE 5: ORDER / POS / KDS
+// ==========================================
+
+model TableZone {
+  id                String         @id @default(cuid())
+  branch_id         String
+  name              String
+  
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  is_deleted        Boolean        @default(false)
+
+  branch            Branch         @relation(fields: [branch_id], references: [id])
+  tables            Table[]
+
+  @@map("table_zones")
+}
+
+model Table {
+  id                String         @id @default(cuid())
+  branch_id         String
+  zone_id           String
+  table_number      String
+  capacity          Int
+  status            TableStatus    @default(AVAILABLE)
+  
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  is_deleted        Boolean        @default(false)
+
+  zone              TableZone      @relation(fields: [zone_id], references: [id])
+  orders            Order[]
+
+  @@map("tables")
+}
+
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  CLEANING
+  RESERVED
+}
+
+model DeliveryPartner {
+  id                String         @id @default(cuid())
+  branch_id         String
+  name              String
+  avatar            String?
+  commission_pct    Float          @default(0)
+  status            EntityStatus   @default(ACTIVE)
+  
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  is_deleted        Boolean        @default(false)
+
+  orders            Order[]
+
+  @@map("delivery_partners")
+}
+
+model Order {
+  id                String         @id @default(cuid())
+  branch_id         String
+  table_id          String?
+  uid               String?
+  employee_id       String?
+  partner_id        String?
+  order_type        OrderType
+  status            OrderStatus    @default(OPEN)
+  subtotal          Float          @default(0)
+  tax_amount        Float          @default(0)
+  discount_amount   Float          @default(0)
+  total_amount      Float          @default(0)
+  fulfillment_date  DateTime?
+  notes             String?
+  
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+
+  branch            Branch         @relation(fields: [branch_id], references: [id])
+  table             Table?         @relation(fields: [table_id], references: [id])
+  user              User?          @relation(fields: [uid], references: [id])
+  employee          Employee?      @relation(fields: [employee_id], references: [id])
+  partner           DeliveryPartner? @relation(fields: [partner_id], references: [id])
+  
+  items             OrderItem[]
+  kots              KitchenOrderTicket[]
+  advance_payments  AdvancePayment[]
+  loyalty_trans     LoyaltyTrans[]
+  complaints        Complaint[]
+
+  @@map("orders")
 }
 
 enum OrderType {
   DINE_IN
   TAKEAWAY
   DELIVERY
+  AGGREGATOR
+  PRE_ORDER
 }
 
 enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PREPARING
-  READY
-  DISPATCHED
-  DELIVERED
-  CANCELLED
-}
-
-enum PaymentStatus {
-  PENDING
+  OPEN
+  BILLED
   PAID
-  FAILED
+  CANCELLED
   REFUNDED
 }
 
-enum PaymentMethod {
-  CASH
-  CARD
-  UPI
-  ONLINE
-}
-
-enum DeliveryStatus {
-  PENDING
-  ASSIGNED
-  OUT_FOR_DELIVERY
-  DELIVERED
-  FAILED
-}
-
-model ProductCategory {
-  id          String   @id @default(cuid())
-  branch_id   String
-  name        String
-  description String?
-  images      String[] @default([])
-  videos      String[] @default([])
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now())
-
-  branch         Branch               @relation(fields: [branch_id], references: [id])
-  sub_categories ProductSubCategory[]
-  products       Product[]
-  subProducts    SubProduct[]
-
-  @@map("product_categories")
-}
-
-model ProductSubCategory {
-  id          String   @id @default(cuid())
-  category_id String
-  name        String
-  description String?
-  images      String[] @default([])
-  videos      String[] @default([])
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now())
-
-  category    ProductCategory @relation(fields: [category_id], references: [id], onDelete: Cascade)
-  products    Product[]
-  subProducts SubProduct[]
-
-  @@map("product_sub_categories")
-}
-
-model Product {
-  id               String   @id @default(cuid())
-  branch_id        String
-  sku              String?
-  barcode          String?
-  name             String
-  description      String?
-  price            Float
-  stock            Int
-  category_id      String?
-  sub_category_id  String?
-  unit             String   @default("pcs")
-  low_stock_alert  Int      @default(0)
-  images           String[] @default([])
-  videos           String[] @default([])
-  is_veg           Boolean  @default(false)
-  preparation_time Int      @default(0)
-  variants         Json     @default("[]")
-  is_available     Boolean  @default(true)
-  created_at       DateTime @default(now())
-  updated_at       DateTime @default(now())
-
-  branch                 Branch              @relation(fields: [branch_id], references: [id])
-  category               ProductCategory?    @relation(fields: [category_id], references: [id])
-  sub_category           ProductSubCategory? @relation(fields: [sub_category_id], references: [id])
-  items                  OrderItem[]
-  supported_sub_products SubProduct[]        @relation("ProductSubProducts")
-
-  @@map("products")
-}
-
-model SubProduct {
-  id               String   @id @default(cuid())
-  branch_id        String
-  sku              String?
-  barcode          String?
-  name             String
-  description      String?
-  price            Float
-  stock            Int
-  category_id      String?
-  sub_category_id  String?
-  unit             String   @default("pcs")
-  low_stock_alert  Int      @default(0)
-  images           String[] @default([])
-  videos           String[] @default([])
-  is_veg           Boolean  @default(false)
-  preparation_time Int      @default(0)
-  variants         Json     @default("[]")
-  is_available     Boolean  @default(true)
-  created_at       DateTime @default(now())
-  updated_at       DateTime @default(now())
-
-  branch                Branch              @relation(fields: [branch_id], references: [id])
-  category              ProductCategory?    @relation(fields: [category_id], references: [id])
-  sub_category          ProductSubCategory? @relation(fields: [sub_category_id], references: [id])
-  supported_by_products Product[]           @relation("ProductSubProducts")
-
-  @@map("sub_products")
-}
-
-model Order {
-  id           String      @id @default(cuid())
-  branch_id    String
-  employee_id  String?
-  customer_id  String?
-  type         OrderType
-  table_number String?
-  status       OrderStatus
-  total_amount Float
-  notes        String?
-  created_at   DateTime    @default(now())
-  updated_at   DateTime    @default(now())
-
-  branch   Branch      @relation(fields: [branch_id], references: [id])
-  employee Employee?   @relation(fields: [employee_id], references: [id])
-  customer User?       @relation("OrderCustomer", fields: [customer_id], references: [id])
-  items    OrderItem[]
-  bill     Bill?
-  delivery Delivery?
-
-  @@map("orders")
-}
-
 model OrderItem {
-  id         String   @id @default(cuid())
-  order_id   String
-  product_id String
-  quantity   Int
-  price      Float
-  variants   Json
-  notes      String?
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  id                String         @id @default(cuid())
+  branch_id         String
+  order_id          String
+  menu_item_id      String
+  qty               Float
+  unit_price        Float
+  total_price       Float
+  notes             String?
+  
+  created_at        DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
 
-  order   Order   @relation(fields: [order_id], references: [id])
-  product Product @relation(fields: [product_id], references: [id])
+  order             Order          @relation(fields: [order_id], references: [id])
+  menu_item         MenuItem       @relation(fields: [menu_item_id], references: [id])
 
   @@map("order_items")
 }
 
-model Bill {
-  id              String        @id @default(cuid())
-  order_id        String        @unique
-  bill_number     String        @unique
-  sub_total       Float
-  tax             Float
-  discount        Float
-  order_amount    Float
-  delivery_amount Float
-  total_amount    Float
-  payment_status  PaymentStatus
-  payment_method  PaymentMethod
-  created_at      DateTime      @default(now())
-  updated_at      DateTime      @default(now())
+model KitchenOrderTicket {
+  id                String         @id @default(cuid())
+  branch_id         String
+  order_id          String
+  station           KOTStation
+  status            KOTStatus      @default(PREPARING)
+  print_count       Int            @default(0)
+  
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
 
-  order Order @relation(fields: [order_id], references: [id])
+  order             Order          @relation(fields: [order_id], references: [id])
 
-  @@map("bills")
+  @@map("kots")
 }
 
-model Rider {
-  id               String   @id @default(cuid())
-  employee_id      String   @unique
-  vehicle_number   String?
-  vehicle_type     String?
-  is_available     Boolean  @default(true)
-  current_location String?
-  created_at       DateTime @default(now())
-  updated_at       DateTime @default(now())
-
-  employee   Employee   @relation(fields: [employee_id], references: [id])
-  deliveries Delivery[]
-
-  @@map("riders")
+enum KOTStation {
+  HOT_FOOD
+  BAKERY
+  DRINKS
+  SWEETS_COUNTER
+  PACKAGING
 }
 
-model Delivery {
-  id              String         @id @default(cuid())
-  order_id        String         @unique
-  rider_id        String?
-  status          DeliveryStatus
-  tracking_number String?
-  address         String
-  delivery_fee    Float
-  estimated_time  DateTime?
-  actual_time     DateTime?
-  created_at      DateTime       @default(now())
-  updated_at      DateTime       @default(now())
+enum KOTStatus {
+  PREPARING
+  READY
+  SERVED
+  CANCELLED
+}
 
-  order Order  @relation(fields: [order_id], references: [id])
-  rider Rider? @relation(fields: [rider_id], references: [id])
+model AdvancePayment {
+  id                String         @id @default(cuid())
+  branch_id         String
+  order_id          String
+  amount_paid       Float
+  payment_method    PayMethod
+  transaction_ref   String?
+  
+  created_at        DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  processed_by      String?
 
-  @@map("deliveries")
+  order             Order          @relation(fields: [order_id], references: [id])
+
+  @@map("advance_payments")
+}
+
+enum PayMethod {
+  CASH
+  CARD
+  ONLINE
+  WALLET
+  LOYALTY_POINTS
+}
+
+// ==========================================
+// MODULE 6: CRM / COMPLAINTS
+// ==========================================
+
+model LoyaltyTrans {
+  id                String         @id @default(cuid())
+  branch_id         String
+  uid               String
+  order_id          String?
+  points            Int
+  trans_type        LoyaltyTransType
+  
+  created_at        DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  created_by        String?
+
+  user              User           @relation(fields: [uid], references: [id])
+  order             Order?         @relation(fields: [order_id], references: [id])
+
+  @@map("loyalty_trans")
+}
+
+enum LoyaltyTransType {
+  EARNED
+  REDEEMED
+  REFUNDED
+  BONUS
+}
+
+model Coupon {
+  id                String         @id @default(cuid())
+  branch_id         String
+  code              String         @unique
+  discount_pct      Float
+  min_order_val     Float          @default(0)
+  max_discount      Float?
+  valid_until       DateTime?
+  status            EntityStatus   @default(ACTIVE)
+  
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  is_deleted        Boolean        @default(false)
+
+  @@map("coupons")
+}
+
+model Complaint {
+  id                String         @id @default(cuid())
+  branch_id         String
+  uid               String
+  order_id          String
+  subject           String
+  description       String?
+  status            ComplaintStatus @default(OPEN)
+  
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  resolved_by       String?
+  resolution_notes  String?
+
+  user              User           @relation(fields: [uid], references: [id])
+  order             Order          @relation(fields: [order_id], references: [id])
+
+  @@map("complaints")
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  REFUNDED
+}
+
+// ==========================================
+// MODULE 7: FINANCE / ACCOUNTING
+// ==========================================
+
+model Account {
+  id                String         @id @default(cuid())
+  branch_id         String
+  name              String
+  avatar            String?
+  account_type      AccountType
+  status            EntityStatus   @default(ACTIVE)
+  
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  is_deleted        Boolean        @default(false)
+
+  branch            Branch         @relation(fields: [branch_id], references: [id])
+  ledger_entries    LedgerEntry[]
+
+  @@map("accounts")
+}
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+model LedgerEntry {
+  id                String         @id @default(cuid())
+  branch_id         String
+  account_id        String
+  debit             Float          @default(0)
+  credit            Float          @default(0)
+  reference_type    String
+  reference_id      String
+  notes             String?
+  
+  created_at        DateTime       @default(now())
+  updated_at     DateTime       @updatedAt
+  created_by        String?
+
+  account           Account        @relation(fields: [account_id], references: [id])
+
+  @@map("ledger_entries")
+}
+
+model FixedAsset {
+  id                String         @id @default(cuid())
+  branch_id         String
+  name              String
+  purchase_value    Float
+  depreciation_pct  Float
+  status            AssetStatus    @default(ACTIVE)
+  
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+  is_deleted        Boolean        @default(false)
+
+  @@map("fixed_assets")
+}
+
+enum AssetStatus {
+  ACTIVE
+  IN_REPAIR
+  SOLD
+  SCRAPPED
+}
+
+model RoyaltyTrans {
+  id                String         @id @default(cuid())
+  branch_id         String
+  franchise_id      String
+  calculated_amt    Float
+  status            RoyaltyStatus  @default(PENDING)
+  
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+
+  franchise         Franchise      @relation(fields: [franchise_id], references: [id])
+
+  @@map("royalty_trans")
+}
+
+enum RoyaltyStatus {
+  PENDING
+  INVOICED
+  PAID
 }
