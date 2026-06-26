@@ -11,7 +11,7 @@ import 'package:mobile/utils/error.dart';
 import 'package:mobile/features/auth/constants/user.constant.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-import 'package:mobile/core/env.dart';
+import 'package:mobile/core/config.dart';
 
 class UserRepo {
   final ApiClient _apiClient;
@@ -29,8 +29,8 @@ class UserRepo {
   TaskResult<UserModel> loginWithGoogle({required bool rememberLogin}) async {
     return tryCatchAsync(() async {
       final googleSignIn = GoogleSignIn(
-        clientId: Env.googleClientId,
-        serverClientId: Env.googleServerClientId,
+        clientId: AppConfig.googleClientId,
+        serverClientId: AppConfig.googleServerClientId,
       );
       final account = await googleSignIn.signIn();
       

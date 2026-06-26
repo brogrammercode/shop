@@ -7,13 +7,13 @@ datasource db {
 }
 
 model User {
-  id           String        @id @default(cuid())
+  id           String   @id @default(cuid())
   name         String
-  email        String        @unique
-  phone_number String        @default("")
-  avatar_url   String        @default("")
-  created_at   DateTime      @default(now())
-  updated_at   DateTime      @default(now())
+  email        String   @unique
+  phone_number String   @default("")
+  avatar_url   String   @default("")
+  created_at   DateTime @default(now())
+  updated_at   DateTime @default(now())
 
   employee      Employee?
   orders        Order[]               @relation("OrderCustomer")
@@ -27,15 +27,15 @@ model User {
 }
 
 model AdBanner {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   title      String
   image_url  String
   link_url   String?
-  status     String   @default("ACTIVE")
+  status     String    @default("ACTIVE")
   start_date DateTime?
   end_date   DateTime?
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now())
+  created_at DateTime  @default(now())
+  updated_at DateTime  @default(now())
 
   @@map("ad_banners")
 }
@@ -126,14 +126,15 @@ model Branch {
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now())
 
-  departments   Department[]
-  shifts        Shift[]
-  roles         Role[]
-  employees     Employee[]
-  products      Product[]
+  departments        Department[]
+  shifts             Shift[]
+  roles              Role[]
+  employees          Employee[]
+  products           Product[]
   product_categories ProductCategory[]
-  orders        Order[]
-  join_requests BusinessJoinRequest[]
+  orders             Order[]
+  join_requests      BusinessJoinRequest[]
+  subProducts        SubProduct[]
 
   @@map("branches")
 }
@@ -308,9 +309,10 @@ model ProductCategory {
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now())
 
-  branch        Branch               @relation(fields: [branch_id], references: [id])
+  branch         Branch               @relation(fields: [branch_id], references: [id])
   sub_categories ProductSubCategory[]
-  products      Product[]
+  products       Product[]
+  subProducts    SubProduct[]
 
   @@map("product_categories")
 }
@@ -325,8 +327,9 @@ model ProductSubCategory {
   created_at  DateTime @default(now())
   updated_at  DateTime @default(now())
 
-  category ProductCategory @relation(fields: [category_id], references: [id], onDelete: Cascade)
-  products Product[]
+  category    ProductCategory @relation(fields: [category_id], references: [id], onDelete: Cascade)
+  products    Product[]
+  subProducts SubProduct[]
 
   @@map("product_sub_categories")
 }
@@ -353,12 +356,43 @@ model Product {
   created_at       DateTime @default(now())
   updated_at       DateTime @default(now())
 
-  branch       Branch              @relation(fields: [branch_id], references: [id])
-  category     ProductCategory?    @relation(fields: [category_id], references: [id])
-  sub_category ProductSubCategory? @relation(fields: [sub_category_id], references: [id])
-  items        OrderItem[]
+  branch                 Branch              @relation(fields: [branch_id], references: [id])
+  category               ProductCategory?    @relation(fields: [category_id], references: [id])
+  sub_category           ProductSubCategory? @relation(fields: [sub_category_id], references: [id])
+  items                  OrderItem[]
+  supported_sub_products SubProduct[]        @relation("ProductSubProducts")
 
   @@map("products")
+}
+
+model SubProduct {
+  id               String   @id @default(cuid())
+  branch_id        String
+  sku              String?
+  barcode          String?
+  name             String
+  description      String?
+  price            Float
+  stock            Int
+  category_id      String?
+  sub_category_id  String?
+  unit             String   @default("pcs")
+  low_stock_alert  Int      @default(0)
+  images           String[] @default([])
+  videos           String[] @default([])
+  is_veg           Boolean  @default(false)
+  preparation_time Int      @default(0)
+  variants         Json     @default("[]")
+  is_available     Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @default(now())
+
+  branch                Branch              @relation(fields: [branch_id], references: [id])
+  category              ProductCategory?    @relation(fields: [category_id], references: [id])
+  sub_category          ProductSubCategory? @relation(fields: [sub_category_id], references: [id])
+  supported_by_products Product[]           @relation("ProductSubProducts")
+
+  @@map("sub_products")
 }
 
 model Order {

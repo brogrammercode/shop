@@ -9,6 +9,8 @@ class AppInput extends StatelessWidget {
   final TextInputType keyboardType;
   final Widget? prefixIcon;
   final ValueChanged<String>? onChanged;
+  final String? Function(String?)? validator;
+  final int maxLines;
 
   const AppInput({
     super.key,
@@ -18,18 +20,20 @@ class AppInput extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.prefixIcon,
     this.onChanged,
+    this.validator,
+    this.maxLines = 1,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 42.h,
-      child: TextField(
-        controller: controller,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        onChanged: onChanged,
-        style: TextStyle(fontSize: 14.sp),
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      onChanged: onChanged,
+      validator: validator,
+      maxLines: maxLines,
+      style: TextStyle(fontSize: 14.sp),
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
@@ -39,7 +43,7 @@ class AppInput extends StatelessWidget {
           prefixIcon: prefixIcon,
           filled: true,
           fillColor: AppColors.softGrey,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 0),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: maxLines > 1 ? 12.h : 0),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10.r),
             borderSide: BorderSide.none,
@@ -54,7 +58,6 @@ class AppInput extends StatelessWidget {
               color: AppColors.primaryGreen,
               width: 2,
             ),
-          ),
         ),
       ),
     );

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/color.dart';
 import '../../../core/widgets/action_bottom_sheet.dart';
+import '../../../utils/error.dart';
 import '../models/product.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
@@ -15,208 +16,427 @@ class ProductDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.softGrey,
-      body: SafeArea(
-        child: BlocBuilder<ProductCubit, ProductState>(
-          builder: (context, state) {
-            final product = state.products.firstWhere(
-              (p) => p.id == productId,
-              orElse: () => throw Exception('Product not found'),
-            );
+      backgroundColor: AppColors.pureWhite,
+      appBar: AppBar(
+        backgroundColor: AppColors.pureWhite,
+        elevation: 0,
+        centerTitle: true,
+        leading: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          behavior: HitTestBehavior.opaque,
+          child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24.w),
+        ),
+        title: Text(
+          'Details',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        actions: [
+          BlocBuilder<ProductCubit, ProductState>(
+            builder: (context, state) {
+              final product = state.products.firstWhere(
+                (p) => p.id == productId,
+                orElse: () => throw Exception('Product not found'),
+              );
+              return GestureDetector(
+                onTap: () {
+                  ActionBottomSheet.show(
+                    context,
+                    groups: [
+                      BottomSheetActionGroup(
+                        actions: [
+                          BottomSheetAction(
+                            icon: Icons.edit,
+                            label: 'Edit Product',
+                            onTap: () {
+                              Navigator.pushNamed(context, '/create-product', arguments: {
+                                'branchId': product.branch_id,
+                                'product': product,
+                              });
+                            },
+                          ),
+                          BottomSheetAction(
+                            icon: Icons.add_circle_outline,
+                            label: 'Add Sub-Product',
+                            onTap: () {
+                              _showSubProductSelector(context, product);
+                            },
+                          ),
+                        ],
+                      )
+                    ],
+                  );
+                },
+                behavior: HitTestBehavior.opaque,
+                child: Padding(
+                  padding: EdgeInsets.only(right: 16.w),
+                  child: Icon(Icons.more_vert, color: AppColors.textPrimary, size: 24.w),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+      body: BlocBuilder<ProductCubit, ProductState>(
+        builder: (context, state) {
+          final product = state.products.firstWhere(
+            (p) => p.id == productId,
+            orElse: () => throw Exception('Product not found'),
+          );
 
-            return Column(
+          return SafeArea(
+            child: Column(
               children: [
-                _buildAppBar(context, product),
                 Expanded(
                   child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (product.images.isNotEmpty)
-                          SizedBox(
-                            height: 250.h,
-                            child: PageView.builder(
-                              itemCount: product.images.length,
-                              itemBuilder: (context, index) {
-                                return Image.network(
-                                  product.images[index],
-                                  fit: BoxFit.cover,
-                                );
-                              },
-                            ),
-                          )
-                        else
-                          Container(
-                            height: 200.h,
-                            color: AppColors.pureWhite,
-                            child: Icon(Icons.fastfood, color: AppColors.textTertiary, size: 64.w),
-                          ),
-                        Container(
-                          color: AppColors.pureWhite,
-                          padding: EdgeInsets.all(16.w),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      product.name,
-                                      style: TextStyle(
-                                        fontSize: 20.sp,
-                                        fontWeight: FontWeight.w900,
-                                        color: AppColors.textPrimary,
-                                      ),
-                                    ),
-                                  ),
-                                  if (product.is_veg)
-                                    Container(
-                                      padding: EdgeInsets.all(4.w),
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: Colors.green),
-                                        borderRadius: BorderRadius.circular(4.r),
-                                      ),
-                                      child: Icon(Icons.circle, color: Colors.green, size: 12.w),
-                                    ),
-                                ],
-                              ),
-                              SizedBox(height: 8.h),
-                              Text(
-                                '₹${product.price}',
-                                style: TextStyle(
-                                  fontSize: 18.sp,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.primaryGreen,
-                                ),
-                              ),
-                              SizedBox(height: 16.h),
-                              Row(
-                                children: [
-                                  _buildInfoChip('Stock: ${product.stock}'),
-                                  SizedBox(width: 8.w),
-                                  _buildInfoChip(product.is_available ? 'Available' : 'Unavailable', 
-                                      color: product.is_available ? AppColors.primaryGreen : Colors.red),
-                                ],
-                              ),
-                              SizedBox(height: 16.h),
-                              if (product.description.isNotEmpty) ...[
-                                Text(
-                                  'Description',
-                                  style: TextStyle(
-                                    fontSize: 16.sp,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                                SizedBox(height: 8.h),
-                                Text(
-                                  product.description,
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: AppColors.textSecondary,
-                                    height: 1.5,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                      ],
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 24.w),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(height: 24.h),
+                          _buildHeroImage(product),
+                          SizedBox(height: 32.h),
+                          _buildTitleAndDescription(product),
+                          SizedBox(height: 24.h),
+                          _buildMetricsRow(product),
+                          SizedBox(height: 32.h),
+                          _buildIngredientsSection(context, product),
+                          SizedBox(height: 40.h),
+                        ],
+                      ),
                     ),
                   ),
                 ),
+                _buildBottomButton(context, product),
               ],
-            );
-          },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildHeroImage(ProductModel product) {
+    return Center(
+      child: Container(
+        width: 200.w,
+        height: 200.w,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            )
+          ],
+        ),
+        child: ClipOval(
+          child: product.images.isNotEmpty
+              ? Image.network(
+                  product.images.first,
+                  fit: BoxFit.cover,
+                )
+              : Container(
+                  color: const Color(0xFFF0F0F0),
+                  child: Center(
+                    child: Icon(Icons.fastfood, color: AppColors.textTertiary, size: 80.w),
+                  ),
+                ),
         ),
       ),
     );
   }
 
-  Widget _buildInfoChip(String label, {Color color = AppColors.textSecondary}) {
+  Widget _buildTitleAndDescription(ProductModel product) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          product.name,
+          style: TextStyle(
+            fontSize: 24.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+            height: 1.2,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        if (product.description.isNotEmpty) ...[
+          SizedBox(height: 12.h),
+          Text(
+            product.description,
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.normal,
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildMetricsRow(ProductModel product) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildMetricItem(
+          icon: Icons.star,
+          iconColor: const Color(0xFFFFB020),
+          text: '4.5',
+        ),
+        _buildMetricItem(
+          icon: Icons.local_fire_department,
+          iconColor: const Color(0xFFFF5252),
+          text: '${product.stock} Left',
+        ),
+        _buildMetricItem(
+          icon: Icons.monetization_on,
+          iconColor: const Color(0xFF4CAF50),
+          text: '₹${product.price}',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricItem({required IconData icon, required Color iconColor, required String text}) {
+    return Row(
+      children: [
+        Icon(icon, color: iconColor, size: 20.w),
+        SizedBox(width: 8.w),
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildIngredientsSection(BuildContext context, ProductModel product) {
+    if (product.supported_sub_products.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Ingredients',
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: 16.h),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: product.supported_sub_products.map((sp) {
+              return GestureDetector(
+                onTap: () {
+                  ActionBottomSheet.show(
+                    context,
+                    groups: [
+                      BottomSheetActionGroup(
+                        actions: [
+                          BottomSheetAction(
+                            icon: Icons.edit,
+                            label: 'Edit Sub-Product',
+                            onTap: () {
+                              Navigator.pushNamed(context, '/create-product', arguments: {
+                                'branchId': sp.branch_id,
+                                'product': sp,
+                                'isSubProduct': true,
+                              });
+                            },
+                          ),
+                          BottomSheetAction(
+                            icon: Icons.link_off,
+                            label: 'Remove from Product',
+                            onTap: () {
+                              final updatedLinked = product.supported_sub_products
+                                  .map((e) => e.id)
+                                  .where((id) => id != sp.id)
+                                  .toList();
+                              context.read<ProductCubit>().updateProduct(product.id, {'supported_sub_products': updatedLinked});
+                            },
+                          ),
+                        ],
+                      )
+                    ],
+                  );
+                },
+                child: Container(
+                  margin: EdgeInsets.only(right: 12.w),
+                  width: 60.w,
+                  height: 60.w,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF9F9F9),
+                    borderRadius: BorderRadius.circular(16.r),
+                  ),
+                  child: Center(
+                    child: sp.images.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12.r),
+                            child: Image.network(sp.images.first, width: 40.w, height: 40.w, fit: BoxFit.cover),
+                          )
+                        : Icon(Icons.fastfood, color: AppColors.textTertiary, size: 28.w),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBottomButton(BuildContext context, ProductModel product) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      padding: EdgeInsets.fromLTRB(24.w, 16.h, 24.w, MediaQuery.of(context).padding.bottom + 16.h),
       decoration: BoxDecoration(
-        color: AppColors.softGrey,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: color.withOpacity(0.5)),
+        color: AppColors.pureWhite,
       ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, color: color),
+      child: ElevatedButton(
+        onPressed: () {
+          Navigator.pushNamed(context, '/create-product', arguments: {
+            'branchId': product.branch_id,
+            'product': product,
+          });
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF111111),
+          padding: EdgeInsets.symmetric(vertical: 20.h),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          elevation: 0,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Edit Product',
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.pureWhite,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildAppBar(BuildContext context, ProductModel product) {
-    return Container(
-      color: AppColors.pureWhite,
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              padding: EdgeInsets.all(8.w),
-              decoration: const BoxDecoration(
-                color: AppColors.pureWhite,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)),
-                ],
-              ),
-              child: Icon(Icons.chevron_left, color: AppColors.textPrimary, size: 24.w),
-            ),
-          ),
-          SizedBox(width: 16.w),
-          Expanded(
-            child: Text(
-              product.name,
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textPrimary,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              ActionBottomSheet.show(
-                context,
-                title: 'Product Options',
-                subtitle: 'Manage this product',
-                actions: [
-                  BottomSheetAction(
-                    icon: Icons.edit,
-                    label: 'Edit Product',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/create-product', arguments: {
-                        'branchId': product.branch_id,
-                        'product': product,
-                      });
-                    },
-                  ),
-                ],
-              );
-            },
-            child: Container(
-              padding: EdgeInsets.all(8.w),
-              decoration: const BoxDecoration(
-                color: AppColors.pureWhite,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)),
-                ],
-              ),
-              child: Icon(Icons.more_vert, color: AppColors.textPrimary, size: 20.w),
-            ),
-          ),
-        ],
+  void _showSubProductSelector(BuildContext context, ProductModel product) {
+    context.read<ProductCubit>().loadSubProducts(product.branch_id);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.pureWhite,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
       ),
+      builder: (ctx) {
+        return Container(
+          padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 24.h),
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Select Sub-Product',
+                style: TextStyle(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Expanded(
+                child: BlocBuilder<ProductCubit, ProductState>(
+                  builder: (context, state) {
+                    if (state.loadSubProductsInfo.status == OperationStatus.loading) {
+                      return const Center(child: CircularProgressIndicator(color: AppColors.primaryGreen));
+                    }
+                    if (state.subProducts.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'No existing sub-products found.',
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp),
+                        ),
+                      );
+                    }
+                    return ListView.separated(
+                      itemCount: state.subProducts.length,
+                      separatorBuilder: (ctx, idx) => SizedBox(height: 12.h),
+                      itemBuilder: (context, index) {
+                        final sp = state.subProducts[index];
+                        final isAlreadyLinked = product.supported_sub_products.any((element) => element.id == sp.id);
+                        return ListTile(
+                          title: Text(sp.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp)),
+                          subtitle: Text('₹${sp.price}/${sp.unit}', style: TextStyle(color: AppColors.textSecondary, fontSize: 14.sp)),
+                          trailing: isAlreadyLinked
+                              ? const Icon(Icons.check_circle, color: AppColors.primaryGreen)
+                              : ElevatedButton(
+                                  onPressed: () {
+                                    final updatedLinked = product.supported_sub_products.map((e) => e.id).toList()..add(sp.id);
+                                    context.read<ProductCubit>().updateProduct(product.id, {'supported_sub_products': updatedLinked});
+                                    Navigator.pop(ctx);
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primaryGreen,
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
+                                  ),
+                                  child: Text('Add', style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.bold, fontSize: 12.sp)),
+                                ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+              SizedBox(height: 16.h),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushNamed(context, '/create-product', arguments: {
+                    'branchId': product.branch_id,
+                    'isSubProduct': true,
+                    'parentProductId': product.id,
+                    'parentProductLinkedIds': product.supported_sub_products.map((e) => e.id).toList(),
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.textPrimary,
+                  padding: EdgeInsets.symmetric(vertical: 16.h),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                ),
+                child: Text(
+                  'Create New Sub-Product',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.pureWhite,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

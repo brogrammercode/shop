@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/core/routes.dart';
 import 'package:mobile/features/auth/controllers/user.cubit.dart';
@@ -192,9 +193,9 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ],
       ),
-    ),
-  );
-}
+      ),
+    );
+  }
 
   Widget _buildTopCarousel() {
     final adBanners = context.watch<UserCubit>().state.adBanners ?? [];
@@ -674,66 +675,35 @@ class _LoginPageState extends State<LoginPage> {
             state.verifyOtpInfo.status == OperationStatus.loading;
         final isLoading = isSending || isVerifying;
 
-        return SizedBox(
-          width: double.infinity,
-          height: 48.h,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4F5F),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.r),
-              ),
-              elevation: 0,
-            ),
-            onPressed: isLoading
-                ? null
-                : () {
-                    final phone = _phoneController.text.trim();
-                    if (phone.isEmpty) {
-                      Fluttertoast.showToast(
-                        msg: UserConstant.pleaseEnterPhoneNumber,
-                      );
-                      return;
-                    }
-                    if (!_otpSent) {
-                      context.read<UserCubit>().sendOtp('+91$phone');
-                    } else {
-                      final otp = _otpController.text.trim();
-                      if (otp.isEmpty) {
-                        Fluttertoast.showToast(
-                          msg: UserConstant.pleaseEnterOtp,
-                        );
-                        return;
-                      }
-                      context.read<UserCubit>().verifyOtp(
-                        '+91$phone',
-                        otp,
-                        rememberLogin: _rememberLogin,
-                      );
-                    }
-                  },
-            child: isLoading
-                ? SizedBox(
-                    width: 20.w,
-                    height: 20.w,
-                    child: const CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.pureWhite,
-                      ),
-                    ),
-                  )
-                : Text(
-                    _otpSent
-                        ? UserConstant.verifyOtp
-                        : UserConstant.continueText,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.pureWhite,
-                    ),
-                  ),
-          ),
+        return AppButton(
+          text: _otpSent ? UserConstant.verifyOtp : UserConstant.continueText,
+          backgroundColor: const Color(0xFFEF4F5F),
+          isLoading: isLoading,
+          onPressed: () {
+            final phone = _phoneController.text.trim();
+            if (phone.isEmpty) {
+              Fluttertoast.showToast(
+                msg: UserConstant.pleaseEnterPhoneNumber,
+              );
+              return;
+            }
+            if (!_otpSent) {
+              context.read<UserCubit>().sendOtp('+91$phone');
+            } else {
+              final otp = _otpController.text.trim();
+              if (otp.isEmpty) {
+                Fluttertoast.showToast(
+                  msg: UserConstant.pleaseEnterOtp,
+                );
+                return;
+              }
+              context.read<UserCubit>().verifyOtp(
+                '+91$phone',
+                otp,
+                rememberLogin: _rememberLogin,
+              );
+            }
+          },
         );
       },
     );

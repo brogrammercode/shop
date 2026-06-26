@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/core/routes.dart';
 import 'package:mobile/features/auth/controllers/user.cubit.dart';
@@ -71,35 +72,27 @@ class _JoinBranchPageState extends State<JoinBranchPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Want to register your own business?',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.pureWhite,
+              Expanded(
+                child: Text(
+                  'Want to register your own business?',
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.pureWhite,
+                  ),
                 ),
               ),
-              ElevatedButton(
+              SizedBox(width: 8.w),
+              AppButton(
                 onPressed: () {
                   Navigator.pushNamed(context, AppRoutes.createBranch);
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.pureWhite,
-                  foregroundColor: AppColors.primaryGreen,
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  elevation: 0,
-                  minimumSize: Size.zero,
-                ),
-                child: Text(
-                  'Create',
-                  style: TextStyle(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
+                backgroundColor: AppColors.pureWhite,
+                textColor: AppColors.primaryGreen,
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                height: 32.h,
+                isFullWidth: false,
+                text: 'Create',
               ),
             ],
           ),
@@ -215,25 +208,25 @@ class _JoinBranchPageState extends State<JoinBranchPage> {
   void _showGlobalActions(BuildContext context) {
     ActionBottomSheet.show(
       context,
-      title: 'Account Actions',
-      subtitle: 'Manage your account settings and active sessions.',
-      actions: [
-        BottomSheetAction(
-          label: 'Logout',
-          icon: Icons.logout,
-          backgroundColor: const Color(0xFFFFF5F5),
-          labelColor: const Color(0xFFEF4F5F),
-          iconColor: const Color(0xFFEF4F5F),
-          onTap: () {
-            Navigator.pop(context);
-            ConfirmationDialog.show(
-              context,
-              title: 'Confirm Logout',
-              content: 'Are you sure you want to log out of your account?',
-              confirmText: 'Logout',
-              onConfirm: () => context.read<UserCubit>().logout(),
-            );
-          },
+      groups: [
+        BottomSheetActionGroup(
+          actions: [
+            BottomSheetAction(
+              label: 'Logout',
+              icon: Icons.logout,
+              labelColor: const Color(0xFFEF4F5F),
+              iconColor: const Color(0xFFEF4F5F),
+              onTap: () {
+                ConfirmationDialog.show(
+                  context,
+                  title: 'Confirm Logout',
+                  content: 'Are you sure you want to log out of your account?',
+                  confirmText: 'Logout',
+                  onConfirm: () => context.read<UserCubit>().logout(),
+                );
+              },
+            ),
+          ],
         ),
       ],
     );
@@ -458,16 +451,18 @@ class _JoinBranchPageState extends State<JoinBranchPage> {
           },
           builder: (context, state) {
             return ActionBottomSheet(
-              title: 'Branch Actions',
-              subtitle: 'What would you like to do with this branch?',
-              actions: [
-                BottomSheetAction(
-                  label: 'Request to Join',
-                  icon: Icons.chevron_right,
-                  isLoading: state.requestJoinInfo.status == OperationStatus.loading,
-                  onTap: () {
-                    context.read<BusinessCubit>().requestJoin(branch.id);
-                  },
+              groups: [
+                BottomSheetActionGroup(
+                  actions: [
+                    BottomSheetAction(
+                      label: 'Request to Join',
+                      icon: Icons.chevron_right,
+                      isLoading: state.requestJoinInfo.status == OperationStatus.loading,
+                      onTap: () {
+                        context.read<BusinessCubit>().requestJoin(branch.id);
+                      },
+                    ),
+                  ],
                 ),
               ],
             );

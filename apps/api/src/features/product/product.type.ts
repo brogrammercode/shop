@@ -31,7 +31,7 @@ type ProductSubCategory = {
 type ProductSubCategoryInput = Omit<ProductSubCategory, 'id' | 'created_at' | 'updated_at'>;
 type ProductSubCategoryUpdateInput = Partial<Omit<ProductSubCategory, 'id' | 'category_id' | 'created_at' | 'updated_at'>>;
 
-type Product = {
+type SubProduct = {
     readonly id: string;
     readonly branch_id: string;
     readonly sku?: string;
@@ -54,9 +54,40 @@ type Product = {
     readonly updated_at: Date;
 }
 
-type ProductInput = Omit<Product, 'id' | 'created_at' | 'updated_at'>;
+type SubProductInput = Omit<SubProduct, 'id' | 'created_at' | 'updated_at'>;
+type SubProductUpdateInput = Partial<Omit<SubProduct, 'id' | 'branch_id' | 'created_at' | 'updated_at'>>;
 
-type ProductUpdateInput = Partial<Omit<Product, 'id' | 'branch_id' | 'created_at' | 'updated_at'>>;
+type Product = {
+    readonly id: string;
+    readonly branch_id: string;
+    readonly sku?: string;
+    readonly barcode?: string;
+    readonly name: string;
+    readonly description?: string;
+    readonly price: number;
+    readonly stock: number;
+    readonly category_id?: string;
+    readonly sub_category_id?: string;
+    readonly unit: string;
+    readonly low_stock_alert: number;
+    readonly images: readonly string[];
+    readonly videos: readonly string[];
+    readonly is_veg: boolean;
+    readonly preparation_time: number;
+    readonly variants: readonly ProductVariant[];
+    readonly is_available: boolean;
+    readonly supported_sub_products?: readonly SubProduct[];
+    readonly created_at: Date;
+    readonly updated_at: Date;
+}
+
+type ProductInput = Omit<Product, 'id' | 'created_at' | 'updated_at' | 'supported_sub_products'> & {
+    readonly supported_sub_products?: readonly string[]; // array of IDs to link
+};
+
+type ProductUpdateInput = Partial<Omit<Product, 'id' | 'branch_id' | 'created_at' | 'updated_at' | 'supported_sub_products'>> & {
+    readonly supported_sub_products?: readonly string[];
+};
 
 type ProductQuery = {
     readonly branch_id: string;
@@ -77,5 +108,8 @@ export {
     ProductCategoryUpdateInput,
     ProductSubCategory,
     ProductSubCategoryInput,
-    ProductSubCategoryUpdateInput
+    ProductSubCategoryUpdateInput,
+    SubProduct,
+    SubProductInput,
+    SubProductUpdateInput
 };

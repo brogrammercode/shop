@@ -65,6 +65,9 @@ class AppRoutes {
         return CreateProductPage(
           branchId: args['branchId'] ?? '',
           productToEdit: args['product'],
+          isSubProduct: args['isSubProduct'] ?? false,
+          parentProductId: args['parentProductId'],
+          parentProductLinkedIds: args['parentProductLinkedIds'] != null ? List<String>.from(args['parentProductLinkedIds']) : null,
         );
       }
       return CreateProductPage(branchId: args as String? ?? '');

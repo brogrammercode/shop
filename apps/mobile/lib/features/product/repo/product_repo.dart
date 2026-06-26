@@ -120,4 +120,41 @@ class ProductRepo {
       await _apiClient.delete(ProductEndpoints.subCategoryDetail.replaceAll('{id}', id));
     });
   }
+
+  TaskResult<List<SubProductModel>> getSubProducts(String branchId) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.get(
+        ProductEndpoints.subProducts,
+        queryParams: {'branch_id': branchId},
+      );
+      final List data = response.data['data'] ?? [];
+      return data.map((json) => SubProductModel.fromJson(json)).toList();
+    });
+  }
+
+  TaskResult<SubProductModel> createSubProduct(Map<String, dynamic> data) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.post(
+        ProductEndpoints.subProducts,
+        data: data,
+      );
+      return SubProductModel.fromJson(response.data['data']);
+    });
+  }
+
+  TaskResult<SubProductModel> updateSubProduct(String id, Map<String, dynamic> data) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.put(
+        ProductEndpoints.subProductDetail.replaceAll('{id}', id),
+        data: data,
+      );
+      return SubProductModel.fromJson(response.data['data']);
+    });
+  }
+
+  TaskResult<void> deleteSubProduct(String id) async {
+    return tryCatchAsync(() async {
+      await _apiClient.delete(ProductEndpoints.subProductDetail.replaceAll('{id}', id));
+    });
+  }
 }

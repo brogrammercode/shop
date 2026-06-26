@@ -204,4 +204,69 @@ class ProductCubit extends Cubit<ProductState> {
       },
     );
   }
+
+  Future<void> loadSubProducts(String branchId) async {
+    emit(state.copyWith(loadSubProductsInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _productRepo.getSubProducts(branchId);
+    result.fold(
+      (failure) => emit(state.copyWith(
+        loadSubProductsInfo: OperationInfo(status: OperationStatus.error, error: failure),
+      )),
+      (subProducts) => emit(state.copyWith(
+        subProducts: subProducts,
+        loadSubProductsInfo: const OperationInfo(status: OperationStatus.success),
+      )),
+    );
+  }
+
+  Future<void> createSubProduct(Map<String, dynamic> data) async {
+    emit(state.copyWith(saveInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _productRepo.createSubProduct(data);
+    result.fold(
+      (failure) => emit(state.copyWith(
+        saveInfo: OperationInfo(status: OperationStatus.error, error: failure),
+      )),
+      (subProduct) {
+        final newSubProducts = List.of(state.subProducts)..add(subProduct);
+        emit(state.copyWith(
+          subProducts: newSubProducts,
+          saveInfo: const OperationInfo(status: OperationStatus.success),
+        ));
+      },
+    );
+  }
+
+  Future<void> updateSubProduct(String id, Map<String, dynamic> data) async {
+    emit(state.copyWith(saveInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _productRepo.updateSubProduct(id, data);
+    result.fold(
+      (failure) => emit(state.copyWith(
+        saveInfo: OperationInfo(status: OperationStatus.error, error: failure),
+      )),
+      (subProduct) {
+        final newSubProducts = state.subProducts.map((p) => p.id == id ? subProduct : p).toList();
+        emit(state.copyWith(
+          subProducts: newSubProducts,
+          saveInfo: const OperationInfo(status: OperationStatus.success),
+        ));
+      },
+    );
+  }
+
+  Future<void> deleteSubProduct(String id) async {
+    emit(state.copyWith(deleteInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _productRepo.deleteSubProduct(id);
+    result.fold(
+      (failure) => emit(state.copyWith(
+        deleteInfo: OperationInfo(status: OperationStatus.error, error: failure),
+      )),
+      (_) {
+        final newSubProducts = state.subProducts.where((p) => p.id != id).toList();
+        emit(state.copyWith(
+          subProducts: newSubProducts,
+          deleteInfo: const OperationInfo(status: OperationStatus.success),
+        ));
+      },
+    );
+  }
 }

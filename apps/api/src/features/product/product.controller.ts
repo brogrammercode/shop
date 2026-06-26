@@ -123,4 +123,39 @@ export class ProductController {
         const result = await this.productService.deleteSubCategory(user, id);
         return sendSuccess(res, result, PRODUCT_MESSAGES.SUB_CATEGORY_DELETED);
     });
+
+    // ---- SUB-PRODUCTS ----
+    getSubProducts = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const branchId = requireSingleValue(req.query.branch_id ?? req.query.branchId, PRODUCT_FIELDS.BRANCH_ID);
+        const result = await this.productService.getSubProductsByBranch(user, branchId);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.SUB_PRODUCTS_FETCHED);
+    });
+
+    getSubProductById = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const id = requireSingleValue(req.params.id, PRODUCT_FIELDS.ID);
+        const result = await this.productService.getSubProductById(user, id);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.SUB_PRODUCT_FETCHED);
+    });
+
+    createSubProduct = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const result = await this.productService.createSubProduct(user, req.body);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.SUB_PRODUCT_CREATED);
+    });
+
+    updateSubProduct = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const id = requireSingleValue(req.params.id, PRODUCT_FIELDS.ID);
+        const result = await this.productService.updateSubProduct(user, id, req.body);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.SUB_PRODUCT_UPDATED);
+    });
+
+    deleteSubProduct = asyncHandler(async (req: Request, res: Response) => {
+        const user = (req as any).user as User;
+        const id = requireSingleValue(req.params.id, PRODUCT_FIELDS.ID);
+        const result = await this.productService.deleteSubProduct(user, id);
+        return sendSuccess(res, result, PRODUCT_MESSAGES.SUB_PRODUCT_DELETED);
+    });
 }

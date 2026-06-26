@@ -116,32 +116,32 @@ class _ProductsPageState extends State<ProductsPage> {
             onTap: () {
               ActionBottomSheet.show(
                 context,
-                title: 'Product Options',
-                subtitle: 'Manage categories and products',
-                actions: [
-                  BottomSheetAction(
-                    icon: Icons.category,
-                    label: 'Manage Categories',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(
-                        context,
-                        '/categories',
-                        arguments: _branchId,
-                      );
-                    },
-                  ),
-                  BottomSheetAction(
-                    icon: Icons.add_box,
-                    label: 'Add Product',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(
-                        context,
-                        '/create-product',
-                        arguments: _branchId,
-                      );
-                    },
+                groups: [
+                  BottomSheetActionGroup(
+                    actions: [
+                      BottomSheetAction(
+                        icon: Icons.category,
+                        label: 'Manage Categories',
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/categories',
+                            arguments: _branchId,
+                          );
+                        },
+                      ),
+                      BottomSheetAction(
+                        icon: Icons.add_box,
+                        label: 'Add Product',
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/create-product',
+                            arguments: _branchId,
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ],
               );
@@ -191,6 +191,27 @@ class _ProductsPageState extends State<ProductsPage> {
                   _selectedSubCategoryId = null;
                 });
                 context.read<ProductCubit>().loadSubCategories(cat.id);
+              },
+              onLongPress: () {
+                ActionBottomSheet.show(
+                  context,
+                  groups: [
+                    BottomSheetActionGroup(
+                      actions: [
+                        BottomSheetAction(
+                          icon: Icons.edit,
+                          label: 'Edit Category',
+                          onTap: () {
+                            Navigator.pushNamed(context, '/create-category', arguments: {
+                              'branchId': cat.branch_id,
+                              'category': cat,
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                );
               },
               child: Container(
                 margin: EdgeInsets.only(right: 16.w),
@@ -267,6 +288,27 @@ class _ProductsPageState extends State<ProductsPage> {
                 setState(() {
                   _selectedSubCategoryId = sub.id;
                 });
+              },
+              onLongPress: () {
+                ActionBottomSheet.show(
+                  context,
+                  groups: [
+                    BottomSheetActionGroup(
+                      actions: [
+                        BottomSheetAction(
+                          icon: Icons.edit,
+                          label: 'Edit Sub-Category',
+                          onTap: () {
+                            Navigator.pushNamed(context, '/create-sub-category', arguments: {
+                              'categoryId': sub.category_id,
+                              'subCategory': sub,
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                );
               },
               child: Container(
                 margin: EdgeInsets.only(right: 16.w),
@@ -372,6 +414,7 @@ class _ProductsPageState extends State<ProductsPage> {
         itemBuilder: (context, index) {
           final product = filteredProducts[index];
           return GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: () {
               Navigator.pushNamed(
                 context,
@@ -379,9 +422,11 @@ class _ProductsPageState extends State<ProductsPage> {
                 arguments: product.id,
               );
             },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            child: Container(
+              margin: EdgeInsets.only(top: 8.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 Expanded(
                   child: Stack(
                     children: [
@@ -469,7 +514,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  '₹${product.price}',
+                  '₹${product.price}/${product.unit}',
                   style: TextStyle(
                     fontSize: 11.sp,
                     fontWeight: FontWeight.w900,
@@ -486,6 +531,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   ),
                 ),
               ],
+            ),
             ),
           );
         },

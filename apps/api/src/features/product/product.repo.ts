@@ -1,10 +1,13 @@
 import prisma from '../../infra/database/client';
-import { Product, ProductInput, ProductQuery, ProductUpdateInput, ProductCategory, ProductCategoryInput, ProductCategoryUpdateInput, ProductSubCategory, ProductSubCategoryInput, ProductSubCategoryUpdateInput } from './product.type';
+import { Product, ProductInput, ProductQuery, ProductUpdateInput, ProductCategory, ProductCategoryInput, ProductCategoryUpdateInput, ProductSubCategory, ProductSubCategoryInput, ProductSubCategoryUpdateInput, SubProduct, SubProductInput, SubProductUpdateInput } from './product.type';
 
 export class ProductRepo {
     // ---- PRODUCTS ----
     async findById(id: string): Promise<Product | null> {
-        return prisma.product.findUnique({ where: { id } }) as any;
+        return prisma.product.findUnique({ 
+            where: { id },
+            include: { supported_sub_products: true }
+        }) as any;
     }
 
     async findByQuery(query: ProductQuery): Promise<Product[]> {
@@ -22,16 +25,40 @@ export class ProductRepo {
                     ]
                     : undefined
             },
+            include: { supported_sub_products: true },
             orderBy: { name: 'asc' }
         }) as any;
     }
 
     async create(data: ProductInput): Promise<Product> {
-        return prisma.product.create({ data: data as any }) as any;
+        const { supported_sub_products, ...rest } = data;
+        return prisma.product.create({ 
+            data: {
+                ...rest as any,
+                ...(supported_sub_products?.length ? {
+                    supported_sub_products: {
+                        connect: supported_sub_products.map(id => ({ id }))
+                    }
+                } : {})
+            },
+            include: { supported_sub_products: true }
+        }) as any;
     }
 
     async update(id: string, data: ProductUpdateInput): Promise<Product> {
-        return prisma.product.update({ where: { id }, data: data as any }) as any;
+        const { supported_sub_products, ...rest } = data;
+        return prisma.product.update({ 
+            where: { id }, 
+            data: {
+                ...rest as any,
+                ...(supported_sub_products ? {
+                    supported_sub_products: {
+                        set: supported_sub_products.map(subId => ({ id: subId }))
+                    }
+                } : {})
+            },
+            include: { supported_sub_products: true }
+        }) as any;
     }
 
     async delete(id: string): Promise<Product> {
@@ -84,5 +111,29 @@ export class ProductRepo {
 
     async deleteSubCategory(id: string): Promise<ProductSubCategory> {
         return prisma.productSubCategory.delete({ where: { id } }) as any;
+    }
+
+    // ---- SUB-PRODUCTS ----
+    async findSubProductById(id: string): Promise<SubProduct | null> {
+        return prisma.subProduct.findUnique({ where: { id } }) as any;
+    }
+
+    async findSubProductsByBranch(branch_id: string): Promise<SubProduct[]> {
+        return prisma.subProduct.findMany({
+            where: { branch_id },
+            orderBy: { name: 'asc' }
+        }) as any;
+    }
+
+    async createSubProduct(data: SubProductInput): Promise<SubProduct> {
+        return prisma.subProduct.create({ data: data as any }) as any;
+    }
+
+    async updateSubProduct(id: string, data: SubProductUpdateInput): Promise<SubProduct> {
+        return prisma.subProduct.update({ where: { id }, data: data as any }) as any;
+    }
+
+    async deleteSubProduct(id: string): Promise<SubProduct> {
+        return prisma.subProduct.delete({ where: { id } }) as any;
     }
 }

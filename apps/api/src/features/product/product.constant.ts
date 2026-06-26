@@ -24,7 +24,14 @@ export const PRODUCT_MESSAGES = {
     SUB_CATEGORY_UPDATED: 'Sub-category updated successfully',
     SUB_CATEGORY_DELETED: 'Sub-category deleted successfully',
     SUB_CATEGORY_NOT_FOUND: 'Sub-category not found',
-    CATEGORY_ID_REQUIRED: 'category_id is required'
+    CATEGORY_ID_REQUIRED: 'category_id is required',
+    
+    SUB_PRODUCT_FETCHED: 'Sub-product fetched successfully',
+    SUB_PRODUCTS_FETCHED: 'Sub-products fetched successfully',
+    SUB_PRODUCT_CREATED: 'Sub-product created successfully',
+    SUB_PRODUCT_UPDATED: 'Sub-product updated successfully',
+    SUB_PRODUCT_DELETED: 'Sub-product deleted successfully',
+    SUB_PRODUCT_NOT_FOUND: 'Sub-product not found',
 };
 
 export const PRODUCT_ROUTES = {
@@ -33,7 +40,9 @@ export const PRODUCT_ROUTES = {
     CATEGORIES: '/categories',
     CATEGORY_DETAIL: '/categories/:id',
     SUB_CATEGORIES: '/sub-categories',
-    SUB_CATEGORY_DETAIL: '/sub-categories/:id'
+    SUB_CATEGORY_DETAIL: '/sub-categories/:id',
+    SUB_PRODUCTS: '/sub-products',
+    SUB_PRODUCT_DETAIL: '/sub-products/:id'
 };
 
 export const PRODUCT_FIELDS = {

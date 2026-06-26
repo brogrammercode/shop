@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/core/routes.dart';
 import 'package:mobile/features/business/controllers/business.cubit.dart';
@@ -9,6 +10,7 @@ import 'package:mobile/utils/error.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+
 class CreateBranchPage extends StatefulWidget {
   const CreateBranchPage({super.key});
 
@@ -245,36 +247,10 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                           final isLoading =
                               state.initializeBranchInfo.status ==
                               OperationStatus.loading;
-                          return SizedBox(
-                            width: double.infinity,
-                            height: 48.h,
-                            child: ElevatedButton(
-                              onPressed: isLoading ? null : _onCreate,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primaryGreen,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10.r),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: isLoading
-                                  ? SizedBox(
-                                      width: 20.w,
-                                      height: 20.w,
-                                      child: const CircularProgressIndicator(
-                                        color: AppColors.pureWhite,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : Text(
-                                      'Create Branch',
-                                      style: TextStyle(
-                                        fontSize: 15.sp,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.pureWhite,
-                                      ),
-                                    ),
-                            ),
+                          return AppButton(
+                            text: 'Create Branch',
+                            onPressed: isLoading ? () {} : _onCreate,
+                            isLoading: isLoading,
                           );
                         },
                       ),

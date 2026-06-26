@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:user/components/ui/button.dart';
 import 'package:user/core/color.dart';
 import 'package:user/features/home/_data_dummy/food_page.dart';
 
@@ -842,60 +843,52 @@ class _FoodPageState extends State<FoodPage> {
               ),
               SizedBox(height: 8.h),
             ],
-            SizedBox(
-              width: double.infinity,
+            AppButton(
+              onPressed: _confirmAndPop,
+              backgroundColor: AppColors.primaryGreen,
+              text: '', // overridden by child
               height: 50.h,
-              child: ElevatedButton(
-                onPressed: _confirmAndPop,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '₹${_grandTotal.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          color: AppColors.pureWhite,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      Text(
+                        '$_quantity item${_quantity == 1 ? '' : 's'} + add-ons',
+                        style: TextStyle(
+                          color: AppColors.pureWhite.withValues(alpha: 0.75),
+                          fontSize: 10.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  elevation: 0,
-                  padding: EdgeInsets.symmetric(horizontal: 20.w),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '₹${_grandTotal.toStringAsFixed(0)}',
-                          style: TextStyle(
-                            color: AppColors.pureWhite,
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w900,
-                          ),
+                  Row(
+                    children: [
+                      Text(
+                        buttonLabel,
+                        style: TextStyle(
+                          color: AppColors.pureWhite,
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w900,
                         ),
-                        Text(
-                          '$_quantity item${_quantity == 1 ? '' : 's'} + add-ons',
-                          style: TextStyle(
-                            color: AppColors.pureWhite.withValues(alpha: 0.75),
-                            fontSize: 10.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          buttonLabel,
-                          style: TextStyle(
-                            color: AppColors.pureWhite,
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        SizedBox(width: 4.w),
-                        Icon(Icons.arrow_forward, color: AppColors.pureWhite, size: 16.w),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      SizedBox(width: 4.w),
+                      Icon(Icons.arrow_forward, color: AppColors.pureWhite, size: 16.w),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],

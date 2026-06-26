@@ -3,7 +3,7 @@ import { BadRequestError, ForbiddenError, NotFoundError } from '../../utils/erro
 import { User } from '../auth/user.type';
 import { PRODUCT_DEFAULTS, PRODUCT_MESSAGES } from './product.constant';
 import { ProductRepo } from './product.repo';
-import { Product, ProductInput, ProductQuery, ProductUpdateInput, ProductCategory, ProductCategoryInput, ProductCategoryUpdateInput, ProductSubCategory, ProductSubCategoryInput, ProductSubCategoryUpdateInput } from './product.type';
+import { Product, ProductInput, ProductQuery, ProductUpdateInput, ProductCategory, ProductCategoryInput, ProductCategoryUpdateInput, ProductSubCategory, ProductSubCategoryInput, ProductSubCategoryUpdateInput, SubProduct, SubProductInput, SubProductUpdateInput } from './product.type';
 
 export class ProductService {
     private productRepo: ProductRepo;
@@ -159,6 +159,63 @@ export class ProductService {
     async deleteSubCategory(user: User, id: string): Promise<ProductSubCategory> {
         const subCategory = await this.getSubCategoryById(user, id);
         return this.productRepo.deleteSubCategory(id);
+    }
+
+    // ---- SUB-PRODUCTS ----
+    async getSubProductsByBranch(user: User, branch_id: string): Promise<SubProduct[]> {
+        await this.ensureBranchAccess(user.id, branch_id, [
+            PRODUCT_DEFAULTS.PRODUCT_READ_PERMISSION,
+            PRODUCT_DEFAULTS.PRODUCT_WRITE_PERMISSION
+        ]);
+        return this.productRepo.findSubProductsByBranch(branch_id);
+    }
+
+    async getSubProductById(user: User, id: string): Promise<SubProduct> {
+        const subProduct = await this.productRepo.findSubProductById(id);
+        if (!subProduct) {
+            throw new NotFoundError(PRODUCT_MESSAGES.SUB_PRODUCT_NOT_FOUND);
+        }
+        await this.ensureBranchAccess(user.id, subProduct.branch_id, [
+            PRODUCT_DEFAULTS.PRODUCT_READ_PERMISSION,
+            PRODUCT_DEFAULTS.PRODUCT_WRITE_PERMISSION
+        ]);
+        return subProduct;
+    }
+
+    async createSubProduct(user: User, data: SubProductInput): Promise<SubProduct> {
+        if (!data.branch_id) throw new BadRequestError(PRODUCT_MESSAGES.BRANCH_ID_REQUIRED);
+        if (!data.name?.trim()) throw new BadRequestError(PRODUCT_MESSAGES.NAME_REQUIRED);
+
+        await this.ensureBranchAccess(user.id, data.branch_id, [
+            PRODUCT_DEFAULTS.PRODUCT_WRITE_PERMISSION
+        ]);
+
+        return this.productRepo.createSubProduct({
+            ...data,
+            unit: data.unit || PRODUCT_DEFAULTS.UNIT,
+            low_stock_alert: data.low_stock_alert ?? PRODUCT_DEFAULTS.LOW_STOCK_ALERT,
+            images: data.images ?? [],
+            is_veg: data.is_veg ?? false,
+            preparation_time: data.preparation_time ?? PRODUCT_DEFAULTS.PREPARATION_TIME,
+            variants: data.variants ?? [],
+            is_available: data.is_available ?? true
+        });
+    }
+
+    async updateSubProduct(user: User, id: string, data: SubProductUpdateInput): Promise<SubProduct> {
+        const subProduct = await this.getSubProductById(user, id);
+        await this.ensureBranchAccess(user.id, subProduct.branch_id, [
+            PRODUCT_DEFAULTS.PRODUCT_WRITE_PERMISSION
+        ]);
+        return this.productRepo.updateSubProduct(id, data);
+    }
+
+    async deleteSubProduct(user: User, id: string): Promise<SubProduct> {
+        const subProduct = await this.getSubProductById(user, id);
+        await this.ensureBranchAccess(user.id, subProduct.branch_id, [
+            PRODUCT_DEFAULTS.PRODUCT_WRITE_PERMISSION
+        ]);
+        return this.productRepo.deleteSubProduct(id);
     }
 
     private validateProduct(data: ProductInput): void {

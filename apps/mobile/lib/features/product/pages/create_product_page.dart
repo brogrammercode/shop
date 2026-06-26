@@ -6,14 +6,28 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/color.dart';
 import '../../../core/di.dart';
 import '../../../utils/error.dart';
-import '../models/product.dart';
+import '../../../components/ui/button.dart';
+import '../../../components/ui/input.dart';
+
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
+import '../constants/product.constant.dart';
 
 class CreateProductPage extends StatefulWidget {
   final String branchId;
-  final ProductModel? productToEdit;
-  const CreateProductPage({super.key, required this.branchId, this.productToEdit});
+  final dynamic productToEdit;
+  final bool isSubProduct;
+  final String? parentProductId;
+  final List<String>? parentProductLinkedIds;
+
+  const CreateProductPage({
+    super.key, 
+    required this.branchId, 
+    this.productToEdit,
+    this.isSubProduct = false,
+    this.parentProductId,
+    this.parentProductLinkedIds,
+  });
 
   @override
   State<CreateProductPage> createState() => _CreateProductPageState();
@@ -24,6 +38,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
   final _priceController = TextEditingController();
+  final _unitController = TextEditingController(text: 'pc');
   final _stockController = TextEditingController();
   
   String? _selectedCategoryId;
@@ -40,10 +55,11 @@ class _CreateProductPageState extends State<CreateProductPage> {
   void initState() {
     super.initState();
     if (widget.productToEdit != null) {
-      final p = widget.productToEdit!;
+      final p = widget.productToEdit;
       _nameController.text = p.name;
       _descController.text = p.description;
       _priceController.text = p.price.toString();
+      _unitController.text = p.unit;
       _stockController.text = p.stock.toString();
       _selectedCategoryId = p.category_id.isNotEmpty ? p.category_id : null;
       _selectedSubCategoryId = p.sub_category_id.isNotEmpty ? p.sub_category_id : null;
@@ -58,6 +74,7 @@ class _CreateProductPageState extends State<CreateProductPage> {
     _nameController.dispose();
     _descController.dispose();
     _priceController.dispose();
+    _unitController.dispose();
     _stockController.dispose();
     super.dispose();
   }
@@ -84,31 +101,33 @@ class _CreateProductPageState extends State<CreateProductPage> {
 
       if (mounted) {
         final allImages = [..._existingImages, ...uploadedUrls];
-        if (widget.productToEdit != null) {
-          context.read<ProductCubit>().updateProduct(widget.productToEdit!.id, {
-            'name': _nameController.text.trim(),
-            'description': _descController.text.trim(),
-            'price': double.parse(_priceController.text),
-            'stock': int.parse(_stockController.text),
-            'category_id': _selectedCategoryId,
-            'sub_category_id': _selectedSubCategoryId,
-            'is_veg': _isVeg,
-            'is_available': _isAvailable,
-            'images': allImages,
-          });
+        final payload = {
+          'name': _nameController.text.trim(),
+          'description': _descController.text.trim(),
+          'price': double.parse(_priceController.text),
+          'unit': _unitController.text.trim(),
+          'stock': int.parse(_stockController.text),
+          'category_id': _selectedCategoryId,
+          'sub_category_id': _selectedSubCategoryId,
+          'is_veg': _isVeg,
+          'is_available': _isAvailable,
+          'images': allImages,
+        };
+
+        if (widget.isSubProduct) {
+          if (widget.productToEdit != null) {
+            context.read<ProductCubit>().updateSubProduct(widget.productToEdit.id, payload);
+          } else {
+            payload['branch_id'] = widget.branchId;
+            context.read<ProductCubit>().createSubProduct(payload);
+          }
         } else {
-          context.read<ProductCubit>().createProduct({
-            'branch_id': widget.branchId,
-            'name': _nameController.text.trim(),
-            'description': _descController.text.trim(),
-            'price': double.parse(_priceController.text),
-            'stock': int.parse(_stockController.text),
-            'category_id': _selectedCategoryId,
-            'sub_category_id': _selectedSubCategoryId,
-            'is_veg': _isVeg,
-            'is_available': _isAvailable,
-            'images': allImages,
-          });
+          if (widget.productToEdit != null) {
+            context.read<ProductCubit>().updateProduct(widget.productToEdit.id, payload);
+          } else {
+            payload['branch_id'] = widget.branchId;
+            context.read<ProductCubit>().createProduct(payload);
+          }
         }
       }
     }
@@ -136,12 +155,18 @@ class _CreateProductPageState extends State<CreateProductPage> {
       listener: (context, state) {
         if (state.saveInfo.status == OperationStatus.success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Success')),
+            SnackBar(content: Text(ProductConstants.createSuccess)),
           );
+          if (widget.isSubProduct && widget.parentProductId != null && widget.parentProductLinkedIds != null && widget.productToEdit == null) {
+            // Need to link the newly created sub-product
+            final newSubProduct = state.subProducts.last;
+            final updatedLinked = List<String>.from(widget.parentProductLinkedIds!)..add(newSubProduct.id);
+            context.read<ProductCubit>().updateProduct(widget.parentProductId!, {'supported_sub_products': updatedLinked});
+          }
           Navigator.pop(context);
         } else if (state.saveInfo.status == OperationStatus.error) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.saveInfo.error?.message ?? 'Failed')),
+            SnackBar(content: Text(state.saveInfo.error?.message ?? ProductConstants.fetchProductsError)),
           );
         }
       },
@@ -176,6 +201,15 @@ class _CreateProductPageState extends State<CreateProductPage> {
                                 controller: _priceController,
                                 hint: '0.00',
                                 keyboardType: TextInputType.number,
+                                validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                              ),
+                            ),
+                            SizedBox(width: 16.w),
+                            Expanded(
+                              child: _buildInputField(
+                                label: 'Unit',
+                                controller: _unitController,
+                                hint: 'e.g. kg, pc, gm',
                                 validator: (val) => val == null || val.isEmpty ? 'Required' : null,
                               ),
                             ),
@@ -387,22 +421,12 @@ class _CreateProductPageState extends State<CreateProductPage> {
           style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w700, color: AppColors.textSecondary),
         ),
         SizedBox(height: 8.h),
-        TextFormField(
+        AppInput(
           controller: controller,
           maxLines: maxLines,
-          keyboardType: keyboardType,
+          keyboardType: keyboardType ?? TextInputType.text,
           validator: validator,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: AppColors.textTertiary, fontSize: 14.sp),
-            filled: true,
-            fillColor: AppColors.softGrey,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-          ),
+          hintText: hint,
         ),
       ],
     );
@@ -469,19 +493,10 @@ class _CreateProductPageState extends State<CreateProductPage> {
         final isLoading = state.saveInfo.status == OperationStatus.loading || _isUploading;
         return Padding(
           padding: EdgeInsets.all(16.w),
-          child: ElevatedButton(
-            onPressed: isLoading ? null : _saveProduct,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryGreen,
-              minimumSize: Size(double.infinity, 50.h),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-            ),
-            child: isLoading
-                ? SizedBox(height: 24.w, width: 24.w, child: const CircularProgressIndicator(color: AppColors.pureWhite, strokeWidth: 2))
-                : Text(
-                    widget.productToEdit != null ? 'Update Product' : 'Save Product',
-                    style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.pureWhite),
-                  ),
+          child: AppButton(
+            text: widget.productToEdit != null ? 'Update Product' : 'Save Product',
+            onPressed: isLoading ? () {} : _saveProduct,
+            isLoading: isLoading,
           ),
         );
       },

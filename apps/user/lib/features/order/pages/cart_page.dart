@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:user/components/ui/button.dart';
 import 'package:user/core/color.dart';
 import 'package:user/features/order/_data_dummy/cart_page.dart';
 import 'package:user/features/home/_data_dummy/food_page.dart';
@@ -839,38 +840,18 @@ class _CartPageState extends State<CartPage> {
               ],
             ),
           ),
-          SizedBox(
-            width: 90.w,
+          AppButton(
+            onPressed: () {
+              setState(() {
+                goldApplied = !goldApplied;
+              });
+            },
+            backgroundColor: goldApplied ? const Color(0xFFE8F5E9) : AppColors.pureWhite,
+            text: goldApplied ? 'APPLIED' : 'APPLY',
+            textColor: AppColors.primaryGreen,
             height: 36.h,
-            child: ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  goldApplied = !goldApplied;
-                });
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: goldApplied ? const Color(0xFFE8F5E9) : AppColors.pureWhite,
-                elevation: 0,
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
-                  side: BorderSide(
-                    color: AppColors.primaryGreen,
-                    width: 1.w,
-                  ),
-                ),
-              ),
-              child: Text(
-                goldApplied ? 'APPLIED' : 'APPLY',
-                style: TextStyle(
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.primaryGreen,
-                ),
-              ),
-            ),
+            isFullWidth: false,
+            padding: EdgeInsets.zero,
           ),
         ],
       ),
@@ -977,17 +958,14 @@ class _CartPageState extends State<CartPage> {
               height: 48.h,
               child: Padding(
                 padding: EdgeInsets.only(left: 16.w),
-                child: ElevatedButton(
+                child: AppButton(
                   onPressed: () {
                     _showAddressBottomSheet();
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryGreen,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.r),
-                    ),
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  ),
+                  backgroundColor: AppColors.primaryGreen,
+                  height: 48.h,
+                  text: '', // overridden by child
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -999,7 +977,7 @@ class _CartPageState extends State<CartPage> {
                             '₹${grandTotal.toStringAsFixed(2)}',
                             style: TextStyle(
                               color: AppColors.pureWhite,
-                              fontSize: 14.sp,
+                              fontSize: 15.sp,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
@@ -1024,7 +1002,11 @@ class _CartPageState extends State<CartPage> {
                             ),
                           ),
                           SizedBox(width: 4.w),
-                          Icon(Icons.arrow_right, color: AppColors.pureWhite, size: 18.w),
+                          Icon(
+                            Icons.arrow_right,
+                            color: AppColors.pureWhite,
+                            size: 18.w,
+                          ),
                         ],
                       ),
                     ],

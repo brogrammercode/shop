@@ -27,4 +27,10 @@ router.get(PRODUCT_ROUTES.SUB_CATEGORY_DETAIL, protect, controller.getSubCategor
 router.put(PRODUCT_ROUTES.SUB_CATEGORY_DETAIL, protect, controller.updateSubCategory);
 router.delete(PRODUCT_ROUTES.SUB_CATEGORY_DETAIL, protect, controller.deleteSubCategory);
 
+router.get(PRODUCT_ROUTES.SUB_PRODUCTS, protect, controller.getSubProducts);
+router.post(PRODUCT_ROUTES.SUB_PRODUCTS, protect, controller.createSubProduct);
+router.get(PRODUCT_ROUTES.SUB_PRODUCT_DETAIL, protect, controller.getSubProductById);
+router.put(PRODUCT_ROUTES.SUB_PRODUCT_DETAIL, protect, controller.updateSubProduct);
+router.delete(PRODUCT_ROUTES.SUB_PRODUCT_DETAIL, protect, controller.deleteSubProduct);
+
 export default router;

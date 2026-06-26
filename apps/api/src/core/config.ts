@@ -27,6 +27,10 @@ const envSchema = z.object({
     TWILIO_ACCOUNT_SID: z.string().default('mock_sid'),
     TWILIO_AUTH_TOKEN: z.string().default('mock_token'),
     TWILIO_PHONE_NUMBER: z.string().default('+1234567890'),
+
+    CLOUDINARY_CLOUD_NAME: z.string().min(1),
+    CLOUDINARY_API_KEY: z.string().min(1),
+    CLOUDINARY_API_SECRET: z.string().min(1),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

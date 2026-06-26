@@ -7,4 +7,7 @@ class ProductEndpoints {
   
   static const String subCategories = '/product/sub-categories';
   static const String subCategoryDetail = '/product/sub-categories/{id}';
+
+  static const String subProducts = '/product/sub-products';
+  static const String subProductDetail = '/product/sub-products/{id}';
 }

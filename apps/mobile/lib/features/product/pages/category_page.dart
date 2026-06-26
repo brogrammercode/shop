@@ -78,16 +78,17 @@ class _CategoryPageState extends State<CategoryPage> {
               final branchId = ModalRoute.of(context)?.settings.arguments as String? ?? '';
               ActionBottomSheet.show(
                 context,
-                title: 'Category Options',
-                subtitle: 'Manage your categories for this branch',
-                actions: [
-                  BottomSheetAction(
-                    icon: Icons.add_circle_outline,
-                    label: 'Add Category',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/create-category', arguments: branchId);
-                    },
+                groups: [
+                  BottomSheetActionGroup(
+                    actions: [
+                      BottomSheetAction(
+                        icon: Icons.add_circle_outline,
+                        label: 'Add Category',
+                        onTap: () {
+                          Navigator.pushNamed(context, '/create-category', arguments: branchId);
+                        },
+                      ),
+                    ],
                   ),
                 ],
               );

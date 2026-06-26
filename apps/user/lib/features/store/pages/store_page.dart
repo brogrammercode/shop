@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:user/components/ui/button.dart';
 import 'package:user/core/color.dart';
 import 'package:user/features/store/_data_dummy/store_page.dart';
 
@@ -626,17 +627,15 @@ class _StorePageState extends State<StorePage> {
                           ),
                         ],
                       ),
-                      child: ElevatedButton(
+                      child: AppButton(
                         onPressed: () =>
                             _showCustomisationBottomSheet(context, dish),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFE8F5E9),
-                          elevation: 0,
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
-                        ),
+                        backgroundColor: const Color(0xFFE8F5E9),
+                        textColor: AppColors.primaryGreen,
+                        text: 'ADD',
+                        padding: EdgeInsets.zero,
+                        isFullWidth: false,
+                        height: 36.h,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -1170,27 +1169,16 @@ class _CustomisationModalState extends State<CustomisationModal> {
                     Expanded(
                       child: SizedBox(
                         height: 48.h,
-                        child: ElevatedButton(
+                        child: AppButton(
                           onPressed: () {
                             Navigator.pop(context, {
                               'quantity': quantityCount,
                               'price': totalPrice,
                             });
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryGreen,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.r),
-                            ),
-                          ),
-                          child: Text(
-                            'Add item ₹${totalPrice.toInt()}',
-                            style: TextStyle(
-                              color: AppColors.pureWhite,
-                              fontSize: 14.sp,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
+                          backgroundColor: AppColors.primaryGreen,
+                          text: 'Add item ₹${totalPrice.toInt()}',
+                          height: 48.h,
                         ),
                       ),
                     ),

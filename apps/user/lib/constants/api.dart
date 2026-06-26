@@ -1,13 +1,13 @@
 
 
-import 'package:user/core/env.dart';
+import 'package:user/core/config.dart';
 
 class ApiConstants {
   static const int connectTimeout = 10000;
   static const int receiveTimeout = 10000;
   static const int notFoundStatusCode = 404;
 
-  static final String baseUrl = Env.apiBaseUrl;
+  static final String baseUrl = AppConfig.apiBaseUrl;
 
   static const String contentTypeJson = 'application/json';
   static const String headerAuthorization = 'Authorization';

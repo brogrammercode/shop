@@ -6,9 +6,12 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/color.dart';
 import '../../../core/di.dart';
 import '../../../utils/error.dart';
+import '../../../components/ui/button.dart';
+import '../../../components/ui/input.dart';
 import '../models/product_sub_category.dart';
 import '../cubit/product_cubit.dart';
 import '../cubit/product_state.dart';
+import '../constants/product.constant.dart';
 
 class CreateSubCategoryPage extends StatefulWidget {
   final String categoryId;
@@ -111,13 +114,15 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
       listenWhen: (previous, current) => previous.saveInfo != current.saveInfo,
       listener: (context, state) {
         if (state.saveInfo.status == OperationStatus.success) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Success')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(ProductConstants.createSuccess)),
+          );
           Navigator.pop(context);
         } else if (state.saveInfo.status == OperationStatus.error) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.saveInfo.error?.message ?? 'Failed')),
+            SnackBar(
+                content: Text(
+                    state.saveInfo.error?.message ?? ProductConstants.fetchSubCategoriesError)),
           );
         }
       },
@@ -352,27 +357,11 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
           ),
         ),
         SizedBox(height: 8.h),
-        TextFormField(
+        AppInput(
           controller: controller,
           maxLines: maxLines,
           validator: validator,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(
-              color: AppColors.textTertiary,
-              fontSize: 14.sp,
-            ),
-            filled: true,
-            fillColor: AppColors.softGrey,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: EdgeInsets.symmetric(
-              horizontal: 16.w,
-              vertical: 14.h,
-            ),
-          ),
+          hintText: hint,
         ),
       ],
     );
@@ -385,32 +374,12 @@ class _CreateSubCategoryPageState extends State<CreateSubCategoryPage> {
             state.saveInfo.status == OperationStatus.loading || _isUploading;
         return Padding(
           padding: EdgeInsets.all(16.w),
-          child: ElevatedButton(
-            onPressed: isLoading ? null : _saveSubCategory,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryGreen,
-              minimumSize: Size(double.infinity, 50.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-            ),
-            child: isLoading
-                ? SizedBox(
-                    height: 24.w,
-                    width: 24.w,
-                    child: const CircularProgressIndicator(
-                      color: AppColors.pureWhite,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Text(
-                    widget.subCategoryToEdit != null ? 'Update Sub-Category' : 'Save Sub-Category',
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.pureWhite,
-                    ),
-                  ),
+          child: AppButton(
+            text: widget.subCategoryToEdit != null
+                ? 'Update Sub Category'
+                : 'Save Sub Category',
+            onPressed: isLoading ? () {} : _saveSubCategory,
+            isLoading: isLoading,
           ),
         );
       },
