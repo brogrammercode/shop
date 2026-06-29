@@ -7,7 +7,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/core/color.dart';
-import 'package:mobile/core/routes.dart';
 
 class DummySlide {
   final String title;
@@ -23,8 +22,18 @@ class DummySlide {
 }
 
 const dummyLoginSlides = [
-  DummySlide('Welcome', 'https://via.placeholder.com/400', false, 'Zomato'),
-  DummySlide('Deals', 'https://via.placeholder.com/400', true, ''),
+  DummySlide(
+    'Welcome',
+    'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8Zm9vZHxlbnwwfHwwfHx8MA%3D%3D',
+    false,
+    'Ladyluck',
+  ),
+  DummySlide(
+    'Deals',
+    'https://images.unsplash.com/photo-1511690656952-34342bb7c2f2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fGZvb2R8ZW58MHx8MHx8fDA%3D',
+    true,
+    '',
+  ),
 ];
 
 class UserConstant {
@@ -367,11 +376,9 @@ class _AuthPageState extends State<AuthPage> {
       builder: (context) {
         final isLoading = false;
         return GestureDetector(
-          onTap: isLoading
-              ? null
-              : () {
-                  // login
-                },
+          onTap: () {
+            // login
+          },
           child: Container(
             padding: EdgeInsets.all(12.w),
             decoration: BoxDecoration(
@@ -585,8 +592,8 @@ class _AuthPageState extends State<AuthPage> {
                   ? () {
                       final phone = _phoneController.text.trim();
                       setState(() {
-                _otpSent = true;
-              });
+                        _otpSent = true;
+                      });
                     }
                   : null,
               child: Text(
@@ -706,7 +713,7 @@ class _AuthPageState extends State<AuthPage> {
                 Fluttertoast.showToast(msg: UserConstant.pleaseEnterOtp);
                 return;
               }
-              Navigator.pushReplacementNamed(context, '/join-branch');
+              Navigator.pushNamed(context, '/crossroad');
             }
           },
         );
@@ -722,11 +729,9 @@ class _AuthPageState extends State<AuthPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             GestureDetector(
-              onTap: isLoading
-                  ? null
-                  : () {
-                      Navigator.pushReplacementNamed(context, '/join-branch');
-                    },
+              onTap: () {
+                Navigator.pushNamed(context, '/crossroad');
+              },
               child: Container(
                 width: 44.w,
                 height: 44.w,

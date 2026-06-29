@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp(
-          title: 'F&B ERP App',
+          title: "Ladyluck'em",
           debugShowCheckedModeBanner: false,
           theme: AppTheme.lightTheme,
           initialRoute: AppRoutes.login,
