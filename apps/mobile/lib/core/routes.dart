@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/features/core_hr/pages/splash.page.dart';
 import 'package:mobile/features/core_hr/pages/auth.page.dart';
 import 'package:mobile/features/core_hr/pages/home.layout.page.dart';
 import 'package:mobile/features/core_hr/pages/crossroad.page.dart';
@@ -79,6 +80,7 @@ import 'package:mobile/features/finance/royalty.list.page.dart';
 import 'package:mobile/features/finance/royalty.detail.page.dart';
 
 class AppRoutes {
+  static const String splash = '/splash';
   static const String login = '/login';
   static const String home = '/home';
   static const String crossRoad = '/crossroad';
@@ -165,6 +167,7 @@ class AppRoutes {
   static const String userLogList = '/user-log-list';
 
   static Map<String, WidgetBuilder> get routes => {
+    splash: (context) => const SplashPage(),
     login: (context) => const AuthPage(),
     home: (context) => const HomeLayoutPage(),
     crossRoad: (context) => const CrossRoadPage(),

@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/bottom_action.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/features/core_hr/constants/hr.constant.dart';
@@ -62,6 +63,14 @@ class _EmployeeFormPageState extends State<EmployeeFormPage> {
             ),
             centerTitle: true,
           ),
+      floatingActionButton:         AppBottomAction(
+        child: AppButton(
+        text: 'Save',
+        isLoading: isLoading,
+        onPressed: _onSave,
+        ),
+        ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
           body: SafeArea(
             child: Column(
               children: [
@@ -95,19 +104,6 @@ class _EmployeeFormPageState extends State<EmployeeFormPage> {
                         AppInput(hintText: 'Role', controller: _roleController),
                       ],
                     ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(color: AppColors.borderGrey, width: 1.h),
-                    ),
-                  ),
-                  child: AppButton(
-                    text: 'Save',
-                    isLoading: isLoading,
-                    onPressed: _onSave,
                   ),
                 ),
               ],

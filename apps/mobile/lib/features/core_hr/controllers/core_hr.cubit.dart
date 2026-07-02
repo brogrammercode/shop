@@ -222,6 +222,42 @@ class CoreHrCubit extends Cubit<CoreHrState> {
     );
   }
 
+  Future<void> verifySessionInBackground() async {
+    final result = await _repo.getMe();
+    result.fold(
+      (failure) {
+        // Will be handled globally by ApiClient
+      },
+      (data) async {
+        final profile = {
+          'user': data['user']?.toJson(),
+          'employee': data['employee']?.toJson(),
+        };
+        await _cache.saveSavedProfile(profile);
+
+        // Update business context if employee exists
+        if (data['employee'] != null && data['employee'].branch_id != null) {
+          final branch = data['branch'];
+          if (branch != null) {
+            await _cache.saveBusinessContext({
+              'branch_id': branch.id,
+              'branch_name': branch.name,
+              'role_id': data['employee'].role, // Actually employee model has role string or id? Wait, EmployeeModel has role string
+              'employee_id': data['employee'].id,
+            });
+          }
+        }
+
+        emit(
+          state.copyWith(
+            currentUser: data['user'],
+            currentEmployee: data['employee'],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> createBranch(String name, String code, bool isHq) async {
     emit(
       state.copyWith(

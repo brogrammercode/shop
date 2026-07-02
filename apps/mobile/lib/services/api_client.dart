@@ -2,7 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:mobile/constants/api.dart';
 import 'package:mobile/constants/text.dart';
 import 'package:mobile/services/local_storage.dart';
+import 'package:mobile/services/json_cache.dart';
 import 'package:mobile/utils/error.dart';
+import 'package:mobile/core/globals.dart';
+import 'package:mobile/core/routes.dart';
 
 class ApiClient {
   late final Dio _dio;
@@ -35,8 +38,54 @@ class ApiClient {
           }
           handler.next(options);
         },
+        onError: (DioException error, ErrorInterceptorHandler handler) async {
+          if (error.response?.statusCode == 401) {
+            if (error.requestOptions.path.contains('/auth/refresh')) {
+              await _forceLogout();
+              return handler.next(error);
+            }
+            
+            final refreshToken = await _localStorage.getRefreshToken();
+            if (refreshToken != null) {
+              try {
+                final refreshDio = Dio(BaseOptions(baseUrl: ApiConstants.BASE_URL));
+                final response = await refreshDio.post('/auth/refresh', data: {
+                  'refreshToken': refreshToken,
+                });
+                
+                final newToken = response.data['data']['accessToken'];
+                await _localStorage.saveToken(newToken);
+                
+                final opts = error.requestOptions;
+                opts.headers[ApiConstants.HEADER_AUTHORIZATION] = '${ApiConstants.BEARER_PREFIX} $newToken';
+                final cloneReq = await _dio.request(opts.path,
+                    options: Options(method: opts.method, headers: opts.headers),
+                    data: opts.data,
+                    queryParameters: opts.queryParameters);
+                
+                return handler.resolve(cloneReq);
+              } catch (e) {
+                await _forceLogout();
+                return handler.next(error);
+              }
+            } else {
+              await _forceLogout();
+              return handler.next(error);
+            }
+          }
+          return handler.next(error);
+        },
       ),
     );
+  }
+
+  Future<void> _forceLogout() async {
+    await _localStorage.clearSession();
+    final jsonCache = JsonCache();
+    await jsonCache.clearAll();
+    if (navigatorKey.currentState != null) {
+      navigatorKey.currentState!.pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+    }
   }
 
   Future<Response> get(String path, {Map<String, dynamic>? queryParams}) async {

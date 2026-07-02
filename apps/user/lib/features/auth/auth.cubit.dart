@@ -156,4 +156,17 @@ class AuthCubit extends Cubit<AuthState> {
       },
     );
   }
+
+  Future<void> verifySessionInBackground() async {
+    final result = await _authRepo.getMe();
+    result.fold(
+      (failure) {
+        // Will be handled globally by ApiClient
+      },
+      (user) {
+        _cache.saveSavedProfile({'user': user.toJson()});
+        emit(state.copyWith(user: user));
+      },
+    );
+  }
 }

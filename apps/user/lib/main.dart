@@ -6,6 +6,7 @@ import 'package:user/core/di.dart';
 import 'package:user/core/routes.dart';
 import 'package:user/core/theme.dart';
 import 'package:user/features/auth/auth.cubit.dart';
+import 'package:user/core/globals.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,8 +34,9 @@ class MyApp extends StatelessWidget {
           child: MaterialApp(
             title: 'User Shop App',
             debugShowCheckedModeBanner: false,
+            navigatorKey: navigatorKey,
             theme: AppTheme.lightTheme,
-            initialRoute: AppRoutes.session,
+            initialRoute: AppRoutes.splash,
             routes: AppRoutes.routes,
           ),
         );

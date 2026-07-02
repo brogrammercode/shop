@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/bottom_action.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/features/inventory/constants/procurement.constant.dart';
 
@@ -19,6 +20,16 @@ class PurchaseOrderDetailPage extends StatelessWidget {
         title: Text(ProcurementConstant.PO_DETAIL_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
+      floatingActionButton:         AppBottomAction(
+        child: Row(
+        children: [
+        Expanded(child: AppButton(text: ProcurementConstant.REJECT_PO, backgroundColor: AppColors.softGrey, textColor: const Color(0xFFEF4F5F), onPressed: () {})),
+        SizedBox(width: 12.w),
+        Expanded(child: AppButton(text: ProcurementConstant.APPROVE_PO, onPressed: () {})),
+        ],
+        ),
+        ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: SafeArea(
         child: Column(
           children: [
@@ -74,17 +85,6 @@ class PurchaseOrderDetailPage extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
-              child: Row(
-                children: [
-                  Expanded(child: AppButton(text: ProcurementConstant.REJECT_PO, backgroundColor: AppColors.softGrey, textColor: const Color(0xFFEF4F5F), onPressed: () {})),
-                  SizedBox(width: 12.w),
-                  Expanded(child: AppButton(text: ProcurementConstant.APPROVE_PO, onPressed: () {})),
-                ],
               ),
             ),
           ],

@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/bottom_action.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/features/catalog/constants/catalog.constant.dart';
@@ -20,6 +21,13 @@ class CreateItemPage extends StatelessWidget {
         title: Text(CatalogConstant.CREATE_ITEM_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
+      floatingActionButton:         AppBottomAction(
+        child: AppButton(
+        text: CatalogConstant.SAVE_ITEM,
+        onPressed: () => Navigator.pop(context),
+        ),
+        ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: SafeArea(
         child: Column(
           children: [
@@ -48,14 +56,6 @@ class CreateItemPage extends StatelessWidget {
                     AppInput(hintText: CatalogConstant.SHELF_LIFE, keyboardType: TextInputType.number),
                   ],
                 ),
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
-              child: AppButton(
-                text: CatalogConstant.SAVE_ITEM,
-                onPressed: () => Navigator.pop(context),
               ),
             ),
           ],

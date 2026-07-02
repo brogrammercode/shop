@@ -43,9 +43,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthCubit>().loginWithSavedProfile();
-    });
   }
 
   void _startResendTimer() {
@@ -115,12 +112,10 @@ class _LoginPageState extends State<LoginPage> {
           BlocListener<AuthCubit, AuthState>(
             listenWhen: (previous, current) =>
                 previous.loginInfo.status != current.loginInfo.status ||
-                previous.googleSignInInfo.status != current.googleSignInInfo.status ||
-                previous.loginWithSavedProfileInfo.status != current.loginWithSavedProfileInfo.status,
+                previous.googleSignInInfo.status != current.googleSignInInfo.status,
             listener: (context, state) {
               if (state.loginInfo.status == OperationStatus.success ||
-                  state.googleSignInInfo.status == OperationStatus.success ||
-                  state.loginWithSavedProfileInfo.status == OperationStatus.success) {
+                  state.googleSignInInfo.status == OperationStatus.success) {
                 Navigator.pushReplacementNamed(context, AppRoutes.home);
               }
             },
@@ -219,6 +214,8 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Image.asset('assets/logo.png', width: 80.w, height: 80.w),
+                SizedBox(height: 16.h),
                 Text(
                   UserConstant.WELCOME_TITLE,
                   style: TextStyle(

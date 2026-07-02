@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/bottom_action.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
@@ -18,6 +19,13 @@ class AdvancePaymentFormPage extends StatelessWidget {
         title: Text(PosConstant.ADVANCE_PAYMENT_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
+      floatingActionButton:         AppBottomAction(
+        child: AppButton(
+        text: PosConstant.RECORD_PAYMENT,
+        onPressed: () => Navigator.pop(context),
+        ),
+        ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: SafeArea(
         child: Column(
           children: [
@@ -33,14 +41,6 @@ class AdvancePaymentFormPage extends StatelessWidget {
                     AppInput(hintText: PosConstant.PAYMENT_METHOD),
                   ],
                 ),
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
-              child: AppButton(
-                text: PosConstant.RECORD_PAYMENT,
-                onPressed: () => Navigator.pop(context),
               ),
             ),
           ],

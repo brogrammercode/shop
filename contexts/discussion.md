@@ -1,30 +1,38 @@
-# Auth Flow Deep Analysis: Old vs. Current Implementation
+I want to have that, when we open the app, it will first check for some things:
 
-After deeply analyzing the old authentication architecture provided in `contexts/old_pages/auth.md` and comparing it against our current `core_hr` authentication flow, here is a detailed breakdown of the features, business logic, and security measures we are currently missing in the new implementation:
+- If the user is logged in or not via token, if expired silently refreshes it, also updates json file for user
+- If the user is an employee or not, read json file
+- if not get the user to crossroad page
+- if yes, get the user to home page, and create/update the business context in json file
 
-## 1. OTP State Management & Resilience
-- **Old Flow (Database-Backed)**: OTPs were saved persistently in the database (`userOtp` table) with strict `valid_till` expirations. This supported a built-in 30-second rate limiter (preventing OTP spam) and handled distributed environments correctly. It also allowed a mock OTP (`123456`) bypass for dev environments.
-- **Current Flow (In-Memory)**: OTPs are temporarily cached in an in-memory `Map` inside the `CoreHrService` (`this.otps`). If the Node API restarts while a user is authenticating, the OTP is lost. In a multi-instance/serverless environment, OTP verification will fail randomly depending on which instance handles the request. We are also missing the 30-second rate limiter.
+---
 
-## 2. Session Management & Token Refresh
-- **Old Flow**: Full session tracking. Logging in generated both an `accessToken` and a `refreshToken`. The system supported robust features like:
-  - Tracking all active sessions per user.
-  - Ability to forcefully terminate specific sessions (`terminateSession`).
-  - Refreshing access tokens seamlessly without forcing the user to log in again (`refreshAccessToken`).
-- **Current Flow**: We issue a single JWT upon login. There is no `refreshToken`, no session database tracking, and no way to remotely revoke a user's access before the JWT naturally expires. The frontend also lacks the `getSessions` and `terminateSession` features.
+## Analysis & Implementation Plan
 
-## 3. Persistent User Caching & Auto-Login
-- **Old Flow**: The frontend used `JsonCache` to securely store not only the token but the user's `UserModel` and `BusinessContext` offline. When the app booted, `loginWithSavedProfile()` seamlessly rehydrated this state to allow instant offline startup before refreshing the token.
-- **Current Flow**: While we store the token, we do not fully cache the `UserModel` and Employee contexts for instant offline UI rendering. The app must fetch `getCurrentUser` on boot, creating a loading delay.
+### What is Already Implemented
+1. **Silent Token Refresh:** The `ApiClient` already has a Dio interceptor that automatically catches `401 Unauthorized` responses and silently requests a new access token using the stored refresh token.
+2. **Local Storage & Caching:** We have `LocalStorage` managing the secure tokens, and `JsonCache` storing the saved user profile, employee info, and business context.
+3. **Pages Existing:** The `AuthPage` (login), `CrossRoadPage` (no business context), and `HomeLayoutPage` (dashboard) all exist and are registered in `core/routes.dart`.
+4. **Basic Rehydration:** We added `loginWithSavedProfile()` in `AuthPage.initState` which attempts to read the cached profile and instantly navigates to `Home` if it finds it.
 
-## 4. Automatic User Logging (Activity Trails)
-- **Old Flow**: Maintained an explicit `UserLog` table. Important actions (like logging in, terminating sessions, etc.) generated an activity trail that the user could view (`getActivities`).
-- **Current Flow**: We have no explicit triggers storing `UserLog` data when a user authenticates or performs major profile actions.
+### What is NOT Implemented
+- **Everything from the original plan is now successfully implemented.**
 
-## 5. Ad Banners Integration
-- **Old Flow**: Integrated directly with authentication, fetching targeted or system-wide ad banners (`getAdBanners`) that were automatically filtered by `valid_from`, `valid_to`, and `status = ACTIVE` dates on the backend.
-- **Current Flow**: We lack the API endpoint and the frontend BLoC state variables to fetch, filter, and store promotional banners for users.
+### Action Plan (Optimistic UI - Offline First) - IMPLEMENTED
 
-## 6. User Profiles & Addresses
-- **Old Flow**: Included dedicated endpoints for `UserAddress` management (create, read, update, delete).
-- **Current Flow**: Address management endpoints do not currently exist inside `core_hr` or `auth` routes.
+1. **[IMPLEMENTED] Create a `SplashPage` (Instant Routing)**
+   - Created `features/core_hr/pages/splash.page.dart` (mobile) and `features/auth/splash_page.dart` (user).
+   - Updated `main.dart` to use `SplashPage` as the `initialRoute`.
+   - The `SplashPage` instantly reads the `JsonCache`.
+   - **Routing Rules**: 
+     - No cache -> `AppRoutes.login` / `AppRoutes.session`
+     - Cache exists but no business context -> `AppRoutes.crossRoad`
+     - Cache exists and has business context -> `AppRoutes.home`
+
+2. **[IMPLEMENTED] Enhance `AuthCubit` Background Validation (`verifySessionInBackground`)**
+   - After routing, fire `/auth/me` silently in the background.
+   - **Success:** Update the `JsonCache` with fresh user/employee/business context data.
+   - **Failure:** The `ApiClient` interceptor catches the `401`, silently asks for a new access token via `/auth/refresh`. If that fails, it wipes the `JsonCache`, clears tokens, and forcefully redirects to `AppRoutes.login` via the global `navigatorKey`.
+
+3. **[IMPLEMENTED] Clean up `AuthPage`**
+   - Removed the `loginWithSavedProfile()` logic from `AuthPage.initState`/`LoginPage.initState`, as the `SplashPage` and global interceptor now fully handle session management and routing.

@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/components/ui/input.dart';
+import 'package:mobile/components/ui/toggle.dart';
+import 'package:mobile/components/ui/bottom_action.dart';
 import 'package:mobile/features/core_hr/constants/branch.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';
@@ -17,13 +19,11 @@ class CreateBranchPage extends StatefulWidget {
 }
 
 class _CreateBranchPageState extends State<CreateBranchPage> {
-  // Branch Controllers
   final _nameController = TextEditingController();
   final _codeController = TextEditingController();
   final _franchiseController = TextEditingController();
   bool _isHq = false;
 
-  // Address Controllers
   final _areaController = TextEditingController();
   final _localityController = TextEditingController();
   final _cityController = TextEditingController();
@@ -31,7 +31,6 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
   final _countryController = TextEditingController();
   final _pinCodeController = TextEditingController();
 
-  // Bank Controllers
   final _bankNameController = TextEditingController();
   final _accountNameController = TextEditingController();
   final _accountNumberController = TextEditingController();
@@ -81,34 +80,31 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
         final isLoading = state.branchInfo.status == OperationStatus.loading;
         return Scaffold(
           backgroundColor: AppColors.pureWhite,
-          appBar: AppBar(
-            backgroundColor: AppColors.pureWhite,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            iconTheme: const IconThemeData(color: AppColors.textPrimary),
+          floatingActionButton: AppBottomAction(
+            child: AppButton(
+              text: BranchConstant.SUBMIT_CREATE_BRANCH,
+              isLoading: isLoading,
+              onPressed: _onCreate,
+            ),
           ),
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerFloat,
           body: SafeArea(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _buildAppBar(context),
+                _buildPageTitle(),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.symmetric(
-                      horizontal: 16.w,
+                      horizontal: 24.w,
                       vertical: 8.h,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          BranchConstant.CREATE_BRANCH_HEADER,
-                          style: TextStyle(
-                            fontSize: 28.sp,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        SizedBox(height: 24.h),
-
+                        SizedBox(height: 8.h),
                         _buildSectionHeader(BranchConstant.BASIC_INFO_SECTION),
                         SizedBox(height: 12.h),
                         AppInput(
@@ -126,11 +122,11 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                           controller: _franchiseController,
                         ),
                         SizedBox(height: 12.h),
-                        _buildToggleRow(BranchConstant.IS_HQ_LABEL, _isHq, (val) {
-                          setState(() {
-                            _isHq = val;
-                          });
-                        }),
+                        AppToggle(
+                          label: BranchConstant.IS_HQ_LABEL,
+                          value: _isHq,
+                          onChanged: (val) => setState(() => _isHq = val),
+                        ),
 
                         SizedBox(height: 32.h),
                         _buildSectionHeader(BranchConstant.ADDRESS_SECTION),
@@ -176,6 +172,7 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                               child: AppInput(
                                 hintText: BranchConstant.PIN_CODE_LABEL,
                                 controller: _pinCodeController,
+                                keyboardType: TextInputType.number,
                               ),
                             ),
                           ],
@@ -223,26 +220,9 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                           controller: _bankBranchController,
                         ),
 
-                        SizedBox(height: 48.h),
+                        SizedBox(height: 32.h),
                       ],
                     ),
-                  ),
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 16.w,
-                    vertical: 16.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.pureWhite,
-                    border: Border(
-                      top: BorderSide(color: AppColors.borderGrey, width: 1.h),
-                    ),
-                  ),
-                  child: AppButton(
-                    text: BranchConstant.SUBMIT_CREATE_BRANCH,
-                    isLoading: isLoading,
-                    onPressed: _onCreate,
                   ),
                 ),
               ],
@@ -250,6 +230,40 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return Container(
+      color: AppColors.pureWhite,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      alignment: Alignment.centerLeft,
+      child: GestureDetector(
+        onTap: () => Navigator.pop(context),
+        child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24.w),
+      ),
+    );
+  }
+
+  Widget _buildPageTitle() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            BranchConstant.CREATE_BRANCH_HEADER,
+            style: TextStyle(
+              fontSize: 22.sp,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+              letterSpacing: -0.5,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          Container(height: 1.h, color: AppColors.borderGrey),
+        ],
+      ),
     );
   }
 
@@ -261,43 +275,6 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
         fontWeight: FontWeight.w800,
         color: AppColors.textTertiary,
         letterSpacing: 0.8,
-      ),
-    );
-  }
-
-  Widget _buildToggleRow(
-    String title,
-    bool value,
-    ValueChanged<bool> onChanged,
-  ) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: AppColors.softGrey,
-        borderRadius: BorderRadius.circular(10.r),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          SizedBox(
-            height: 24.h,
-            child: Switch(
-              value: value,
-              onChanged: onChanged,
-              activeColor: AppColors.pureWhite,
-              activeTrackColor: AppColors.primaryGreen,
-              inactiveTrackColor: AppColors.borderGrey,
-            ),
-          ),
-        ],
       ),
     );
   }

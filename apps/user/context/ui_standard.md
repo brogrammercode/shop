@@ -236,11 +236,70 @@ Padding(
 
 ## 4. Common Reusable Widgets
 
-### 4.1 Search Bar Container
+### 4.1 Standard Form Input (`AppInput`)
+
+The `AppInput` widget in `components/ui/input.dart` is the **only** input component used for all text fields throughout the app. **Do not use raw `TextFormField` or `TextField` directly on any page or form.**
+
+**Visual spec:**
+- Height: `42.h` (single-line), auto-height for `maxLines > 1`
+- Background: `AppColors.pureWhite`
+- Border: `Border.all(color: Color(0xFFCCCCCC))`, width `1`
+- Border radius: `10.r`
+- Focused border: `AppColors.primaryGreen`, width `1.5`, animated transition `150ms`
+- Horizontal padding: `12.w`
+- Text: `14.sp`, `FontWeight.w700`, `AppColors.textPrimary`
+- Hint text: `14.sp`, `FontWeight.w500`, `AppColors.textTertiary`
+- Inner `TextField` uses `InputBorder.none`, `isDense: true`
+
+**Usage:**
 ```dart
-Container(
-  height: 42.h, // At max 42.h height for all textfields in mobile app
-  padding: EdgeInsets.symmetric(horizontal: 16.w),
+import 'package:mobile/components/ui/input.dart';
+
+// Simple
+AppInput(hintText: 'Branch Name', controller: _nameController)
+
+// With prefix icon
+AppInput(
+  hintText: 'Search...',
+  prefixIcon: Icon(Icons.search, color: AppColors.textTertiary, size: 18.w),
+  controller: _searchController,
+)
+
+// Multi-line
+AppInput(hintText: 'Notes', controller: _notesController, maxLines: 4)
+
+// Read-only (e.g. date picker trigger)
+AppInput(
+  hintText: 'Select Date',
+  controller: _dateController,
+  readOnly: true,
+  onTap: () => _pickDate(context),
+  suffixIcon: Icon(Icons.calendar_today, color: AppColors.textTertiary, size: 16.w),
+)
+```
+
+**Available parameters:**
+| Parameter | Type | Default | Purpose |
+|-----------|------|---------|---------|
+| `hintText` | `String` | required | Placeholder text |
+| `controller` | `TextEditingController?` | null | Field controller |
+| `obscureText` | `bool` | false | Password masking |
+| `keyboardType` | `TextInputType` | text | Keyboard variant |
+| `prefixIcon` | `Widget?` | null | Leading icon inside field |
+| `suffixIcon` | `Widget?` | null | Trailing icon inside field |
+| `onChanged` | `ValueChanged<String>?` | null | Text change callback |
+| `validator` | `String? Function(String?)?` | null | Validation function |
+| `maxLines` | `int` | 1 | Textarea rows |
+| `inputFormatters` | `List<TextInputFormatter>?` | null | Input constraints |
+| `enabled` | `bool` | true | Enabled/disabled state |
+| `readOnly` | `bool` | false | Read-only (triggers `onTap`) |
+| `onTap` | `VoidCallback?` | null | Tap callback (use with readOnly) |
+| `focusNode` | `FocusNode?` | null | External focus control |
+
+### 4.1a Search Bar Container
+The search bar on the Home/Search pages is a **specialized** pattern (not `AppInput`) — it has an embedded `TextField` directly inside a `Container`:
+```dart
+Container(\n  height: 42.h,\n  padding: EdgeInsets.symmetric(horizontal: 16.w),
   decoration: BoxDecoration(
     color: AppColors.pureWhite,
     borderRadius: BorderRadius.circular(12.r),
@@ -271,7 +330,87 @@ Container(
 )
 ```
 
-### 4.2 Filter Chip
+### 4.2 Toggle Row (`AppToggle`)
+
+The `AppToggle` widget in `components/ui/toggle.dart` is the **only** component used for boolean toggle fields across all forms. It **matches the `AppInput` visual spec exactly** — same height, border, background, and radius.
+
+**Visual spec:**
+- Height: `42.h`
+- Background: `AppColors.pureWhite`
+- Border: `Border.all(color: Color(0xFFCCCCCC))`, width `1`
+- Border radius: `10.r`
+- Horizontal padding: `12.w`
+- Label text: `14.sp`, `FontWeight.w500`, `AppColors.textTertiary` (inactive) / `AppColors.textPrimary` (active)
+- Switch: scaled `0.8`, `activeTrackColor: AppColors.primaryGreen`, white thumb
+
+**Usage:**
+```dart
+import 'package:mobile/components/ui/toggle.dart';
+
+AppToggle(
+  label: BranchConstant.IS_HQ_LABEL,
+  value: _isHq,
+  onChanged: (val) => setState(() => _isHq = val),
+)
+```
+
+### 4.3 Center-Docked Floating Bottom Action (`AppBottomAction`)
+
+Every page that has a primary CTA button at the bottom must use `AppBottomAction`. This replaces the old pattern of a `Container` with a `borderGrey` top border.
+
+**Import:** `package:mobile/components/ui/bottom_action.dart`
+
+**Visual spec:**
+- `24.w` horizontal padding (centers and narrows the button slightly from screen edges)
+- `24.h` bottom padding (lifts it off the edge)
+- Upward diffuse shadow: `black 8% opacity`, `blurRadius: 16`, `offset: (0, -4)`
+- Button is clipped to `16.r` rounded corners via `ClipRRect`
+- No background fill — floats over the scroll content
+
+**Usage:**
+```dart
+import 'package:mobile/components/ui/bottom_action.dart';
+
+// Inside the Column that contains Expanded(scroll) + bottom:
+AppBottomAction(
+  child: AppButton(
+    text: 'Save',
+    isLoading: isLoading,
+    onPressed: _onSave,
+  ),
+),
+```
+
+**Page structure with AppBottomAction:**
+```dart
+Scaffold(
+  body: SafeArea(
+    child: Column(
+      children: [
+        _buildAppBar(context),
+        _buildPageTitle(),
+        Expanded(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
+            child: Column(children: [ /* form fields */ ]),
+          ),
+        ),
+        AppBottomAction(
+          child: AppButton(text: 'Submit', onPressed: _onSubmit),
+        ),
+      ],
+    ),
+  ),
+)
+```
+
+> [!IMPORTANT]
+> Never use a `Container` with `Border(top: BorderSide(...))` as a bottom button bar. Always use `AppBottomAction`.
+
+---
+
+### 4.4 Filter Chip
+
 Used on Home, Search Result, and Store pages. Identical implementation:
 ```dart
 Container(

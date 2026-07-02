@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/bottom_action.dart';
+import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/features/finance/constants/finance.constant.dart';
 
 class LedgerFormPage extends StatefulWidget {
@@ -28,6 +30,13 @@ class _LedgerFormPageState extends State<LedgerFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pureWhite,
+      floatingActionButton: AppBottomAction(
+        child: AppButton(
+          text: FinanceConstant.BTN_SAVE,
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
@@ -86,7 +95,6 @@ class _LedgerFormPageState extends State<LedgerFormPage> {
               ),
             ),
           ),
-          _buildSaveBar(context),
         ],
       ),
     );
@@ -169,22 +177,6 @@ class _LedgerFormPageState extends State<LedgerFormPage> {
 
   Widget _buildSectionLabel(String text) {
     return Text(text, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary, letterSpacing: 0.8));
-  }
-
-  Widget _buildSaveBar(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(color: AppColors.pureWhite, border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
-      child: SizedBox(
-        width: double.infinity,
-        height: 48.h,
-        child: ElevatedButton(
-          onPressed: () => Navigator.pop(context),
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)), elevation: 0),
-          child: Text(FinanceConstant.BTN_SAVE, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
-        ),
-      ),
-    );
   }
 
   Widget _buildAppBar(BuildContext context) {

@@ -615,28 +615,49 @@ Current global components:
 
 - `AppButton`
 - `AppInput`
+- `AppToggle`
+- `AppBottomAction`
 
 `AppButton` standards:
 
-- Required `text` and `onPressed`.
-- Defaults to `AppColors.primaryIndigo` background and white text.
+- Required `text` and `onPressed`.\n- Defaults to `AppColors.primaryGreen` background and white text.
 - Supports optional `icon`.
 - Supports full-width or content-width layout.
 - Uses fixed `56.h` height.
 - Uses `16.r` border radius.
 - Uses centered text with ellipsis protection.
-- Factory constructors are acceptable for named variants such as `AppButton.social`.
+
+`AppBottomAction` standards:
+
+- Located at `components/ui/bottom_action.dart`. Import: `package:mobile/components/ui/bottom_action.dart`.
+- **Never** use a `Container` with a `Border(top: ...)` as a bottom button bar. Always use `AppBottomAction`.
+- Wraps any `Widget` as its `child` (typically `AppButton`).
+- Provides `24.w` horizontal + `24.h` bottom padding, upward shadow, and `16.r` clipped corners.
+- Must be the last child in the page's root `Column`, after the `Expanded(SingleChildScrollView(...))`.
 
 `AppInput` standards:
 
+- Located at `components/ui/input.dart`. Import path: `package:mobile/components/ui/input.dart`.
+- **Never** use raw `TextFormField` or `TextField` directly on any page or form. Always use `AppInput`.
 - Required `hintText`.
-- Optional `TextEditingController`.
-- Optional `obscureText`.
-- Optional `keyboardType`.
-- Optional `prefixIcon`.
-- Uses `AppColors.softGrey` background.
-- Uses `16.r` border radius.
-- Uses focused border in `AppColors.primaryIndigo`.
+- Optional: `controller`, `obscureText`, `keyboardType`, `prefixIcon`, `suffixIcon`, `onChanged`, `validator`, `maxLines`, `inputFormatters`, `enabled`, `readOnly`, `onTap`, `focusNode`.
+- **Visual spec**: white (`AppColors.pureWhite`) background, `Border.all(color: Color(0xFFCCCCCC))` default border, `10.r` radius, `42.h` minimum height for single-line.
+- **Focused state**: border transitions to `AppColors.primaryGreen`, width `1.5`, with `150ms` animated duration.
+- **Text**: `14.sp`, `FontWeight.w700`, `AppColors.textPrimary`.
+- **Hint**: `14.sp`, `FontWeight.w500`, `AppColors.textTertiary`.
+- **Disabled state**: background becomes `AppColors.softGrey`.
+- For multi-line inputs set `maxLines > 1`; height auto-expands.
+- For read-only pickers (date, dropdown), set `readOnly: true` and `onTap` for the trigger. Add a `suffixIcon` to signal the tap affordance.
+- Do not add extra wrappers or decoration around `AppInput` — the widget itself owns its border and background.
+
+`AppToggle` standards:
+
+- Located at `components/ui/toggle.dart`. Import path: `package:mobile/components/ui/toggle.dart`.
+- **Never** use a raw `Switch` or a hand-rolled toggle row directly on any page or form. Always use `AppToggle`.
+- Required: `label` (`String`), `value` (`bool`), `onChanged` (`ValueChanged<bool>`).
+- **Visual spec**: exactly matches `AppInput` — `pureWhite` background, `Color(0xFFCCCCCC)` border, `10.r` radius, `42.h` height, `12.w` horizontal padding.
+- Switch is `Transform.scale(scale: 0.8)` with `activeTrackColor: AppColors.primaryGreen`, white thumb both active and inactive.
+- Label color switches from `textTertiary` (off) to `textPrimary` (on) to reinforce state.
 
 Component standards:
 

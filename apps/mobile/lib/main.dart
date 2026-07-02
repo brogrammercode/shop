@@ -6,6 +6,7 @@ import 'package:mobile/core/routes.dart';
 import 'package:mobile/core/theme.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/core/globals.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,8 +38,9 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: "Ladyluck'em",
             debugShowCheckedModeBanner: false,
+            navigatorKey: navigatorKey,
             theme: AppTheme.lightTheme,
-            initialRoute: AppRoutes.login,
+            initialRoute: AppRoutes.splash,
             routes: AppRoutes.routes,
           );
         },

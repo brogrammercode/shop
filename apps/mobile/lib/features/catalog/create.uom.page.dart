@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/bottom_action.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/features/catalog/constants/catalog.constant.dart';
@@ -20,6 +21,13 @@ class CreateUomPage extends StatelessWidget {
         title: Text(CatalogConstant.CREATE_UOM_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
+      floatingActionButton:         AppBottomAction(
+        child: AppButton(
+        text: CatalogConstant.SAVE_UOM,
+        onPressed: () => Navigator.pop(context),
+        ),
+        ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: SafeArea(
         child: Column(
           children: [
@@ -34,14 +42,6 @@ class CreateUomPage extends StatelessWidget {
                     AppInput(hintText: CatalogConstant.UOM_DESC),
                   ],
                 ),
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
-              child: AppButton(
-                text: CatalogConstant.SAVE_UOM,
-                onPressed: () => Navigator.pop(context),
               ),
             ),
           ],

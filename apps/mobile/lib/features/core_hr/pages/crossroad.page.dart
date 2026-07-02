@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
-import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/features/core_hr/constants/branch.constant.dart';
 
 class CrossRoadPage extends StatelessWidget {
@@ -11,34 +10,30 @@ class CrossRoadPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pureWhite,
-      appBar: AppBar(
-        backgroundColor: AppColors.pureWhite,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-      ),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(height: 40.h),
               Text(
                 BranchConstant.WELCOME_ABOARD,
                 style: TextStyle(
-                  fontSize: 28.sp,
-                  fontWeight: FontWeight.w900,
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
+                  letterSpacing: -0.5,
                 ),
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: 8.h),
               Text(
                 BranchConstant.WELCOME_SUBTITLE,
                 style: TextStyle(
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w400,
                   color: AppColors.textSecondary,
-                  height: 1.4,
+                  height: 1.5,
                 ),
               ),
               SizedBox(height: 48.h),
@@ -47,30 +42,38 @@ class CrossRoadPage extends StatelessWidget {
                 icon: Icons.storefront_outlined,
                 title: BranchConstant.JOIN_BRANCH_TITLE,
                 subtitle: BranchConstant.JOIN_BRANCH_SUBTITLE,
-                color: const Color(0xFFEF4F5F),
                 onTap: () {
                   Navigator.pushNamed(context, '/join-branch-form');
                 },
               ),
-              SizedBox(height: 24.h),
+              SizedBox(height: 16.h),
               _buildOptionCard(
                 context: context,
                 icon: Icons.add_business_outlined,
                 title: BranchConstant.CREATE_BRANCH_TITLE,
                 subtitle: BranchConstant.CREATE_BRANCH_SUBTITLE,
-                color: AppColors.primaryGreen,
                 onTap: () {
                   Navigator.pushNamed(context, '/create-branch');
                 },
               ),
               const Spacer(),
-              AppButton(
-                text: BranchConstant.SKIP_FOR_NOW,
-                backgroundColor: AppColors.softGrey,
-                textColor: AppColors.textPrimary,
-                onPressed: () {
-                  Navigator.pushNamed(context, '/home');
-                },
+              Center(
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/home');
+                  },
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                  ),
+                  child: Text(
+                    BranchConstant.SKIP_FOR_NOW,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -84,27 +87,30 @@ class CrossRoadPage extends StatelessWidget {
     required IconData icon,
     required String title,
     required String subtitle,
-    required Color color,
     required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.05),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
-          borderRadius: BorderRadius.circular(16.r),
+          color: AppColors.pureWhite,
+          border: Border.all(color: AppColors.borderGrey, width: 1.w),
+          borderRadius: BorderRadius.circular(12.r),
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadowColor,
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            Container(
-              padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 28.w),
+            Icon(
+              icon,
+              color: AppColors.textPrimary,
+              size: 22.w,
             ),
             SizedBox(width: 16.w),
             Expanded(
@@ -114,8 +120,8 @@ class CrossRoadPage extends StatelessWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 16.sp,
-                      fontWeight: FontWeight.w800,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
                     ),
                   ),
@@ -123,15 +129,20 @@ class CrossRoadPage extends StatelessWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w400,
                       color: AppColors.textSecondary,
+                      height: 1.3,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right, color: AppColors.textTertiary, size: 24.w),
+            Icon(
+              Icons.chevron_right,
+              color: AppColors.textTertiary,
+              size: 18.w,
+            ),
           ],
         ),
       ),

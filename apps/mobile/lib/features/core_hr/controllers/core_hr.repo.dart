@@ -165,6 +165,9 @@ class CoreHrRepo {
         'employee': data['employee'] != null
             ? EmployeeModel.fromJson(data['employee'])
             : null,
+        'branch': (data['employee'] != null && data['employee']['branch'] != null)
+            ? BranchModel.fromJson(data['employee']['branch'])
+            : null,
       };
     });
   }

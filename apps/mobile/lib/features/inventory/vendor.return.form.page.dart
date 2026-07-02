@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/bottom_action.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/features/inventory/constants/procurement.constant.dart';
@@ -20,6 +21,14 @@ class VendorReturnFormPage extends StatelessWidget {
         title: Text(ProcurementConstant.RETURN_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
+      floatingActionButton:         AppBottomAction(
+        child: AppButton(
+        text: ProcurementConstant.PROCESS_RETURN,
+        backgroundColor: const Color(0xFFEF4F5F),
+        onPressed: () => Navigator.pop(context),
+        ),
+        ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: SafeArea(
         child: Column(
           children: [
@@ -38,15 +47,6 @@ class VendorReturnFormPage extends StatelessWidget {
                     _buildReturnItem('Tomatoes (Grade A)'),
                   ],
                 ),
-              ),
-            ),
-            Container(
-              padding: EdgeInsets.all(16.w),
-              decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
-              child: AppButton(
-                text: ProcurementConstant.PROCESS_RETURN,
-                backgroundColor: const Color(0xFFEF4F5F),
-                onPressed: () => Navigator.pop(context),
               ),
             ),
           ],

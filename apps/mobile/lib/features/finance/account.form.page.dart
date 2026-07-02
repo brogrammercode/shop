@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/bottom_action.dart';
 import 'package:mobile/features/finance/constants/finance.constant.dart';
 
 class AccountFormPage extends StatefulWidget {
@@ -31,6 +32,22 @@ class _AccountFormPageState extends State<AccountFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pureWhite,
+      floatingActionButton:         AppBottomAction(
+        child: SizedBox(
+        width: double.infinity,
+        height: 48.h,
+        child: ElevatedButton(
+        onPressed: () => Navigator.pop(context),
+        style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primaryGreen,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+        elevation: 0,
+        ),
+        child: Text(FinanceConstant.BTN_SAVE, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
+        ),
+        ),
+        ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: Column(
         children: [
           SizedBox(height: MediaQuery.of(context).padding.top),
@@ -75,23 +92,6 @@ class _AccountFormPageState extends State<AccountFormPage> {
                   SizedBox(height: 12.h),
                   _buildTextField(TextEditingController(text: 'SBIN0001234'), 'IFSC Code'),
                 ],
-              ),
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(color: AppColors.pureWhite, border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
-            child: SizedBox(
-              width: double.infinity,
-              height: 48.h,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryGreen,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
-                  elevation: 0,
-                ),
-                child: Text(FinanceConstant.BTN_SAVE, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
               ),
             ),
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:user/features/auth/splash_page.dart';
 import 'package:user/features/home/home_page.dart';
 import 'package:user/features/home/search_page.dart';
 import 'package:user/features/home/search_result.dart';
@@ -11,6 +12,7 @@ import 'package:user/features/auth/session_page.dart';
 import 'package:user/features/home/food_page.dart';
 
 class AppRoutes {
+  static const String splash = '/splash';
   static const String home = '/';
   static const String search = '/search';
   static const String searchResult = '/search-result';
@@ -23,6 +25,7 @@ class AppRoutes {
   static const String food = '/food';
 
   static Map<String, WidgetBuilder> get routes => {
+    splash: (context) => const SplashPage(),
     home: (context) => const HomePage(),
     search: (context) => const SearchPage(),
     searchResult: (context) => const SearchResultPage(),
