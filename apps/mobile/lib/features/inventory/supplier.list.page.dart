@@ -3,9 +3,25 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/features/inventory/constants/procurement.constant.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/features/inventory/inventory.cubit.dart';
+import 'package:mobile/features/inventory/inventory.state.dart';
+import 'package:mobile/features/inventory/supplier.model.dart';
+import 'package:mobile/utils/error.dart';
 
-class SupplierListPage extends StatelessWidget {
+class SupplierListPage extends StatefulWidget {
   const SupplierListPage({super.key});
+
+  @override
+  State<SupplierListPage> createState() => _SupplierListPageState();
+}
+
+class _SupplierListPageState extends State<SupplierListPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<InventoryCubit>().listSuppliers();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +49,7 @@ class SupplierListPage extends StatelessWidget {
                 SizedBox(width: 16.w),
                 Expanded(
                   child: AppInput(
-                    hintText: ProcurementConstant.searchSupplier,
+                    hintText: ProcurementConstant.SEARCH_SUPPLIER,
                     prefixIcon: Icon(Icons.search, color: AppColors.textTertiary),
                   ),
                 ),
@@ -41,11 +57,22 @@ class SupplierListPage extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              padding: EdgeInsets.all(16.w),
-              itemCount: 3,
-              separatorBuilder: (c, i) => SizedBox(height: 12.h),
-              itemBuilder: (context, index) => _buildSupplierCard(context, index),
+            child: BlocBuilder<InventoryCubit, InventoryState>(
+              builder: (context, state) {
+                if (state.loadSuppliersInfo.status == OperationStatus.loading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final suppliers = state.suppliers;
+                if (suppliers.isEmpty) {
+                  return Center(child: Text('No suppliers found', style: TextStyle(color: AppColors.textSecondary)));
+                }
+                return ListView.separated(
+                  padding: EdgeInsets.all(16.w),
+                  itemCount: suppliers.length,
+                  separatorBuilder: (c, i) => SizedBox(height: 12.h),
+                  itemBuilder: (context, index) => _buildSupplierCard(context, suppliers[index]),
+                );
+              },
             ),
           ),
         ],
@@ -54,14 +81,12 @@ class SupplierListPage extends StatelessWidget {
         onPressed: () => Navigator.pushNamed(context, '/create-supplier'),
         backgroundColor: AppColors.primaryGreen,
         icon: const Icon(Icons.add, color: AppColors.pureWhite),
-        label: Text(ProcurementConstant.addSupplier, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
+        label: Text(ProcurementConstant.ADD_SUPPLIER, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
       ),
     );
   }
 
-  Widget _buildSupplierCard(BuildContext context, int index) {
-    final names = ['Fresh Farms Ltd.', 'Dairy Best Co.', 'Metro Wholesale'];
-    final phones = ['+91 9876543210', '+91 8765432109', '+91 7654321098'];
+  Widget _buildSupplierCard(BuildContext context, SupplierModel supplier) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, '/supplier-detail'),
       child: Container(
@@ -84,16 +109,16 @@ class SupplierListPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(names[index], style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                  Text(supplier.name, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
                   SizedBox(height: 4.h),
-                  Text(phones[index], style: TextStyle(fontSize: 13.sp, color: AppColors.textSecondary)),
+                  Text(supplier.contact_phone, style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary)),
                 ],
               ),
             ),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
               decoration: BoxDecoration(color: const Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(6.r)),
-              child: Text(ProcurementConstant.active, style: TextStyle(fontSize: 9.sp, fontWeight: FontWeight.w800, color: AppColors.primaryGreen)),
+              child: Text(ProcurementConstant.ACTIVE, style: TextStyle(fontSize: 9.sp, fontWeight: FontWeight.w800, color: AppColors.primaryGreen)),
             ),
           ],
         ),

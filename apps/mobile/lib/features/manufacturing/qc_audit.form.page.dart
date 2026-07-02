@@ -15,7 +15,7 @@ class QcAuditFormPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.pureWhite,
         elevation: 0,
-        title: Text(ProductionConstant.qcFormTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(ProductionConstant.QC_FORM_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -26,9 +26,9 @@ class QcAuditFormPage extends StatelessWidget {
                 padding: EdgeInsets.all(16.w),
                 child: Column(
                   children: [
-                    AppInput(hintText: ProductionConstant.parametersChecked),
+                    AppInput(hintText: ProductionConstant.PARAMETERS_CHECKED),
                     SizedBox(height: 16.h),
-                    AppInput(hintText: ProductionConstant.score, keyboardType: TextInputType.number),
+                    AppInput(hintText: ProductionConstant.SCORE, keyboardType: TextInputType.number),
                   ],
                 ),
               ),
@@ -37,7 +37,7 @@ class QcAuditFormPage extends StatelessWidget {
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
               child: AppButton(
-                text: ProductionConstant.submitQc,
+                text: ProductionConstant.SUBMIT_QC,
                 onPressed: () => Navigator.pop(context),
               ),
             ),

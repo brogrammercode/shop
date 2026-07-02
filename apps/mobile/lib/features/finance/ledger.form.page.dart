@@ -38,29 +38,29 @@ class _LedgerFormPageState extends State<LedgerFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionLabel(FinanceConstant.labelAccount),
+                  _buildSectionLabel(FinanceConstant.LABEL_ACCOUNT),
                   SizedBox(height: 8.h),
                   _buildDropdownMock('Cash in Hand'),
                   SizedBox(height: 20.h),
-                  _buildSectionLabel(FinanceConstant.sectionDebitCredit),
+                  _buildSectionLabel(FinanceConstant.SECTION_DEBIT_CREDIT),
                   SizedBox(height: 8.h),
                   Row(
                     children: [
-                      Expanded(child: _buildAmtField(_debitCtrl, FinanceConstant.labelDebit, const Color(0xFFEF4444))),
+                      Expanded(child: _buildAmtField(_debitCtrl, FinanceConstant.LABEL_DEBIT, const Color(0xFFEF4444))),
                       SizedBox(width: 12.w),
-                      Expanded(child: _buildAmtField(_creditCtrl, FinanceConstant.labelCredit, AppColors.primaryGreen)),
+                      Expanded(child: _buildAmtField(_creditCtrl, FinanceConstant.LABEL_CREDIT, AppColors.primaryGreen)),
                     ],
                   ),
                   SizedBox(height: 20.h),
-                  _buildSectionLabel(FinanceConstant.labelReferenceType),
+                  _buildSectionLabel(FinanceConstant.LABEL_REFERENCE_TYPE),
                   SizedBox(height: 8.h),
                   _buildDropdownMock('Sale'),
                   SizedBox(height: 12.h),
-                  _buildSectionLabel(FinanceConstant.labelReferenceId),
+                  _buildSectionLabel(FinanceConstant.LABEL_REFERENCE_ID),
                   SizedBox(height: 8.h),
                   _buildTextField(_refCtrl, 'e.g. Sale #1042'),
                   SizedBox(height: 20.h),
-                  _buildSectionLabel(FinanceConstant.labelNotes),
+                  _buildSectionLabel(FinanceConstant.LABEL_NOTES),
                   SizedBox(height: 8.h),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
@@ -181,7 +181,7 @@ class _LedgerFormPageState extends State<LedgerFormPage> {
         child: ElevatedButton(
           onPressed: () => Navigator.pop(context),
           style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)), elevation: 0),
-          child: Text(FinanceConstant.btnSave, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
+          child: Text(FinanceConstant.BTN_SAVE, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
         ),
       ),
     );
@@ -195,7 +195,7 @@ class _LedgerFormPageState extends State<LedgerFormPage> {
         children: [
           GestureDetector(onTap: () => Navigator.pop(context), child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24.w)),
           SizedBox(width: 12.w),
-          Expanded(child: Text(FinanceConstant.ledgerEntryFormTitle, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
+          Expanded(child: Text(FinanceConstant.LEDGER_ENTRY_FORM_TITLE, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
         ],
       ),
     );

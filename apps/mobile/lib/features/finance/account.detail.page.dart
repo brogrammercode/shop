@@ -27,10 +27,10 @@ class AccountDetailPage extends StatelessWidget {
                 children: [
                   _buildHeroCard(),
                   SizedBox(height: 16.h),
-                  _buildSectionHeader(FinanceConstant.sectionBankDetails),
+                  _buildSectionHeader(FinanceConstant.SECTION_BANK_DETAILS),
                   _buildBankDetailsCard(),
                   SizedBox(height: 16.h),
-                  _buildSectionHeader(FinanceConstant.sectionRecentEntries),
+                  _buildSectionHeader(FinanceConstant.SECTION_RECENT_ENTRIES),
                   _buildRecentEntries(context),
                   SizedBox(height: 32.h),
                   Padding(
@@ -45,7 +45,7 @@ class AccountDetailPage extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
                           elevation: 0,
                         ),
-                        child: Text(FinanceConstant.btnDeactivate, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
+                        child: Text(FinanceConstant.BTN_DEACTIVATE, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
                       ),
                     ),
                   ),
@@ -75,13 +75,13 @@ class AccountDetailPage extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(color: const Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(8.r)),
-                child: Text(FinanceConstant.typeAsset, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w800, color: AppColors.primaryGreen)),
+                child: Text(FinanceConstant.TYPE_ASSET, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w800, color: AppColors.primaryGreen)),
               ),
               SizedBox(width: 8.w),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(color: const Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(8.r)),
-                child: Text(FinanceConstant.statusActive, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w800, color: AppColors.primaryGreen)),
+                child: Text(FinanceConstant.STATUS_ACTIVE, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w800, color: AppColors.primaryGreen)),
               ),
             ],
           ),
@@ -225,7 +225,7 @@ class AccountDetailPage extends StatelessWidget {
             ),
           ),
           SizedBox(width: 12.w),
-          Expanded(child: Text(FinanceConstant.accountDetailTitle, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
+          Expanded(child: Text(FinanceConstant.ACCOUNT_DETAIL_TITLE, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
           GestureDetector(
             onTap: () => Navigator.pushNamed(context, '/finance-account-form'),
             child: Container(

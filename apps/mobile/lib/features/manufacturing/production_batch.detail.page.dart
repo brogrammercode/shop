@@ -14,7 +14,7 @@ class ProductionBatchDetailPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.pureWhite,
         elevation: 0,
-        title: Text(ProductionConstant.batchDetailTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(ProductionConstant.BATCH_DETAIL_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: Padding(
@@ -29,14 +29,14 @@ class ProductionBatchDetailPage extends StatelessWidget {
             Text('ACTIONS', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary)),
             SizedBox(height: 12.h),
             AppButton(
-              text: ProductionConstant.consumeMaterials,
+              text: ProductionConstant.CONSUME_MATERIALS,
               backgroundColor: AppColors.softGrey,
               textColor: AppColors.textPrimary,
               onPressed: () {},
             ),
             SizedBox(height: 16.h),
             AppButton(
-              text: ProductionConstant.finishBatch,
+              text: ProductionConstant.FINISH_BATCH,
               backgroundColor: AppColors.primaryGreen,
               onPressed: () => Navigator.pop(context),
             ),

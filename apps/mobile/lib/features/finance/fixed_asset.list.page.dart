@@ -59,11 +59,11 @@ class FixedAssetListPage extends StatelessWidget {
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                           decoration: BoxDecoration(
-                            color: asset['status'] == FinanceConstant.statusActive ? const Color(0xFFE8F5E9) : AppColors.softGrey,
+                            color: asset['status'] == FinanceConstant.STATUS_ACTIVE ? const Color(0xFFE8F5E9) : AppColors.softGrey,
                             borderRadius: BorderRadius.circular(8.r),
                           ),
                           child: Text(asset['status'] as String,
-                              style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w800, color: asset['status'] == FinanceConstant.statusActive ? AppColors.primaryGreen : AppColors.textSecondary)),
+                              style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w800, color: asset['status'] == FinanceConstant.STATUS_ACTIVE ? AppColors.primaryGreen : AppColors.textSecondary)),
                         ),
                       ],
                     ),
@@ -78,7 +78,7 @@ class FixedAssetListPage extends StatelessWidget {
         onPressed: () => Navigator.pushNamed(context, '/finance-asset-form'),
         backgroundColor: AppColors.primaryGreen,
         icon: const Icon(Icons.add, color: AppColors.pureWhite),
-        label: Text(FinanceConstant.btnAddAsset, style: TextStyle(color: AppColors.pureWhite, fontSize: 14.sp, fontWeight: FontWeight.w800)),
+        label: Text(FinanceConstant.BTN_ADD_ASSET, style: TextStyle(color: AppColors.pureWhite, fontSize: 14.sp, fontWeight: FontWeight.w800)),
       ),
     );
   }
@@ -91,7 +91,7 @@ class FixedAssetListPage extends StatelessWidget {
         children: [
           GestureDetector(onTap: () => Navigator.pop(context), child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24.w)),
           SizedBox(width: 12.w),
-          Expanded(child: Text(FinanceConstant.assetListTitle, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
+          Expanded(child: Text(FinanceConstant.ASSET_LIST_TITLE, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
         ],
       ),
     );

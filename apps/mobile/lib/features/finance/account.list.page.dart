@@ -75,7 +75,7 @@ class AccountListPage extends StatelessWidget {
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                           decoration: BoxDecoration(
-                            color: acc['status'] == FinanceConstant.statusActive
+                            color: acc['status'] == FinanceConstant.STATUS_ACTIVE
                                 ? const Color(0xFFE8F5E9)
                                 : AppColors.softGrey,
                             borderRadius: BorderRadius.circular(8.r),
@@ -85,7 +85,7 @@ class AccountListPage extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 11.sp,
                               fontWeight: FontWeight.w800,
-                              color: acc['status'] == FinanceConstant.statusActive
+                              color: acc['status'] == FinanceConstant.STATUS_ACTIVE
                                   ? AppColors.primaryGreen
                                   : AppColors.textSecondary,
                             ),
@@ -104,7 +104,7 @@ class AccountListPage extends StatelessWidget {
         onPressed: () => Navigator.pushNamed(context, '/finance-account-form'),
         backgroundColor: AppColors.primaryGreen,
         icon: const Icon(Icons.add, color: AppColors.pureWhite),
-        label: Text(FinanceConstant.btnAddAccount, style: TextStyle(color: AppColors.pureWhite, fontSize: 14.sp, fontWeight: FontWeight.w800)),
+        label: Text(FinanceConstant.BTN_ADD_ACCOUNT, style: TextStyle(color: AppColors.pureWhite, fontSize: 14.sp, fontWeight: FontWeight.w800)),
       ),
     );
   }
@@ -120,7 +120,7 @@ class AccountListPage extends StatelessWidget {
             child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24.w),
           ),
           SizedBox(width: 12.w),
-          Expanded(child: Text(FinanceConstant.accountListTitle, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
+          Expanded(child: Text(FinanceConstant.ACCOUNT_LIST_TITLE, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
         ],
       ),
     );

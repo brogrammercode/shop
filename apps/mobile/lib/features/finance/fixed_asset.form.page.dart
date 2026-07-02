@@ -36,15 +36,15 @@ class _FixedAssetFormPageState extends State<FixedAssetFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildLabel(FinanceConstant.labelAssetName),
+                  _buildLabel(FinanceConstant.LABEL_ASSET_NAME),
                   SizedBox(height: 8.h),
                   _buildTextField(_nameCtrl, 'e.g. Tandoor Oven'),
                   SizedBox(height: 20.h),
-                  _buildLabel(FinanceConstant.labelPurchaseValue),
+                  _buildLabel(FinanceConstant.LABEL_PURCHASE_VALUE),
                   SizedBox(height: 8.h),
                   _buildTextField(_valueCtrl, '45000', inputType: TextInputType.number),
                   SizedBox(height: 20.h),
-                  _buildLabel(FinanceConstant.labelDepreciationPct),
+                  _buildLabel(FinanceConstant.LABEL_DEPRECIATION_PCT),
                   SizedBox(height: 8.h),
                   _buildTextField(_depCtrl, '10', inputType: TextInputType.number),
                 ],
@@ -60,7 +60,7 @@ class _FixedAssetFormPageState extends State<FixedAssetFormPage> {
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)), elevation: 0),
-                child: Text(FinanceConstant.btnSave, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
+                child: Text(FinanceConstant.BTN_SAVE, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
               ),
             ),
           ),
@@ -93,7 +93,7 @@ class _FixedAssetFormPageState extends State<FixedAssetFormPage> {
         children: [
           GestureDetector(onTap: () => Navigator.pop(context), child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24.w)),
           SizedBox(width: 12.w),
-          Expanded(child: Text(FinanceConstant.assetFormTitleCreate, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
+          Expanded(child: Text(FinanceConstant.ASSET_FORM_TITLE_CREATE, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
         ],
       ),
     );

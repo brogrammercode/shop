@@ -1,54 +1,54 @@
 class ProcurementConstant {
   // Supplier
-  static const String supplierListTitle = 'Suppliers';
-  static const String addSupplier = 'Add Supplier';
-  static const String searchSupplier = 'Search Suppliers...';
-  static const String noSupplierFound = 'No suppliers found.';
-  static const String supplierDetailTitle = 'Supplier Details';
-  static const String createSupplierTitle = 'Create Supplier';
-  static const String basicInfoSection = 'BASIC INFORMATION';
-  static const String addressSection = 'ADDRESS DETAILS';
-  static const String bankSection = 'BANK DETAILS';
-  static const String supplierName = 'Supplier Name';
-  static const String taxNumber = 'Tax / GST Number';
-  static const String email = 'Email Address';
-  static const String phone = 'Phone Number';
-  static const String saveSupplier = 'Save Supplier';
-  static const String recentPos = 'RECENT PURCHASE ORDERS';
+  static const String SUPPLIER_LIST_TITLE = 'Suppliers';
+  static const String ADD_SUPPLIER = 'Add Supplier';
+  static const String SEARCH_SUPPLIER = 'Search Suppliers...';
+  static const String NO_SUPPLIER_FOUND = 'No suppliers found.';
+  static const String SUPPLIER_DETAIL_TITLE = 'Supplier Details';
+  static const String CREATE_SUPPLIER_TITLE = 'Create Supplier';
+  static const String BASIC_INFO_SECTION = 'BASIC INFORMATION';
+  static const String ADDRESS_SECTION = 'ADDRESS DETAILS';
+  static const String BANK_SECTION = 'BANK DETAILS';
+  static const String SUPPLIER_NAME = 'Supplier Name';
+  static const String TAX_NUMBER = 'Tax / GST Number';
+  static const String EMAIL = 'Email Address';
+  static const String PHONE = 'Phone Number';
+  static const String SAVE_SUPPLIER = 'Save Supplier';
+  static const String RECENT_POS = 'RECENT PURCHASE ORDERS';
 
   // Purchase Order
-  static const String poListTitle = 'Purchase Orders';
-  static const String createPo = 'Create PO';
-  static const String searchPo = 'Search PO...';
-  static const String poDetailTitle = 'Purchase Order Details';
-  static const String createPoTitle = 'Raise Purchase Order';
-  static const String selectSupplier = 'Select Supplier';
-  static const String itemsSection = 'ORDER ITEMS';
-  static const String addItem = 'Add Item';
-  static const String notes = 'Notes / Terms';
-  static const String reviewSection = 'REVIEW & SUBMIT';
-  static const String grandTotal = 'Grand Total';
-  static const String submitPo = 'Submit Purchase Order';
-  static const String approvePo = 'Approve PO';
-  static const String rejectPo = 'Reject PO';
-  static const String receiveGoods = 'Receive Goods (GRN)';
+  static const String PO_LIST_TITLE = 'Purchase Orders';
+  static const String CREATE_PO = 'Create PO';
+  static const String SEARCH_PO = 'Search PO...';
+  static const String PO_DETAIL_TITLE = 'Purchase Order Details';
+  static const String CREATE_PO_TITLE = 'Raise Purchase Order';
+  static const String SELECT_SUPPLIER = 'Select Supplier';
+  static const String ITEMS_SECTION = 'ORDER ITEMS';
+  static const String ADD_ITEM = 'Add Item';
+  static const String NOTES = 'Notes / Terms';
+  static const String REVIEW_SECTION = 'REVIEW & SUBMIT';
+  static const String GRAND_TOTAL = 'Grand Total';
+  static const String SUBMIT_PO = 'Submit Purchase Order';
+  static const String APPROVE_PO = 'Approve PO';
+  static const String REJECT_PO = 'Reject PO';
+  static const String RECEIVE_GOODS = 'Receive Goods (GRN)';
   
   // Goods Receipt
-  static const String grnTitle = 'Goods Receipt Note';
-  static const String invoiceNumber = 'Invoice / Challan Number';
-  static const String qtyOrdered = 'Qty Ordered';
-  static const String qtyReceived = 'Qty Received';
-  static const String confirmReceipt = 'Confirm Receipt';
+  static const String GRN_TITLE = 'Goods Receipt Note';
+  static const String INVOICE_NUMBER = 'Invoice / Challan Number';
+  static const String QTY_ORDERED = 'Qty Ordered';
+  static const String QTY_RECEIVED = 'Qty Received';
+  static const String CONFIRM_RECEIPT = 'Confirm Receipt';
   
   // Returns
-  static const String returnTitle = 'Vendor Return';
-  static const String returnReason = 'Reason for Return';
-  static const String processReturn = 'Process Return';
+  static const String RETURN_TITLE = 'Vendor Return';
+  static const String RETURN_REASON = 'Reason for Return';
+  static const String PROCESS_RETURN = 'Process Return';
   
   // Common
-  static const String active = 'ACTIVE';
-  static const String inactive = 'INACTIVE';
-  static const String pending = 'PENDING';
-  static const String approved = 'APPROVED';
-  static const String completed = 'COMPLETED';
+  static const String ACTIVE = 'ACTIVE';
+  static const String INACTIVE = 'INACTIVE';
+  static const String PENDING = 'PENDING';
+  static const String APPROVED = 'APPROVED';
+  static const String COMPLETED = 'COMPLETED';
 }

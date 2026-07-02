@@ -128,7 +128,7 @@ class FinanceDashboardPage extends StatelessWidget {
         children: [
           GestureDetector(onTap: () => Navigator.pop(context), child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24.w)),
           SizedBox(width: 12.w),
-          Expanded(child: Text(FinanceConstant.moduleTitle, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
+          Expanded(child: Text(FinanceConstant.MODULE_TITLE, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
         ],
       ),
     );

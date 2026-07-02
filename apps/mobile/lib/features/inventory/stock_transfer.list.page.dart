@@ -15,7 +15,7 @@ class StockTransferListPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(ProductionConstant.transferListTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(ProductionConstant.TRANSFER_LIST_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: ListView.separated(
@@ -51,7 +51,7 @@ class StockTransferListPage extends StatelessWidget {
         onPressed: () => Navigator.pushNamed(context, '/create-stock-transfer'),
         backgroundColor: AppColors.primaryGreen,
         icon: const Icon(Icons.add, color: AppColors.pureWhite),
-        label: Text(ProductionConstant.newTransfer, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
+        label: Text(ProductionConstant.NEW_TRANSFER, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
       ),
     );
   }

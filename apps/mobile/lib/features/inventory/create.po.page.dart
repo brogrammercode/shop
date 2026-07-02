@@ -17,7 +17,7 @@ class CreatePoPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(ProcurementConstant.createPoTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(ProcurementConstant.CREATE_PO_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -29,7 +29,7 @@ class CreatePoPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionHeader(ProcurementConstant.selectSupplier),
+                    _buildSectionHeader(ProcurementConstant.SELECT_SUPPLIER),
                     SizedBox(height: 12.h),
                     Container(
                       padding: EdgeInsets.all(16.w),
@@ -43,21 +43,21 @@ class CreatePoPage extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 32.h),
-                    _buildSectionHeader(ProcurementConstant.itemsSection),
+                    _buildSectionHeader(ProcurementConstant.ITEMS_SECTION),
                     SizedBox(height: 12.h),
                     _buildLineItem('Tomatoes (Grade A)', '50 kg', '₹40.00', '₹2,000.00'),
                     _buildLineItem('Onions', '100 kg', '₹25.00', '₹2,500.00'),
                     SizedBox(height: 12.h),
-                    AppButton(text: ProcurementConstant.addItem, backgroundColor: AppColors.softGrey, textColor: AppColors.textPrimary, onPressed: () {}),
+                    AppButton(text: ProcurementConstant.ADD_ITEM, backgroundColor: AppColors.softGrey, textColor: AppColors.textPrimary, onPressed: () {}),
                     SizedBox(height: 32.h),
-                    _buildSectionHeader(ProcurementConstant.reviewSection),
+                    _buildSectionHeader(ProcurementConstant.REVIEW_SECTION),
                     SizedBox(height: 12.h),
-                    AppInput(hintText: ProcurementConstant.notes, maxLines: 3),
+                    AppInput(hintText: ProcurementConstant.NOTES, maxLines: 3),
                     SizedBox(height: 24.h),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(ProcurementConstant.grandTotal, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                        Text(ProcurementConstant.GRAND_TOTAL, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
                         Text('₹4,500.00', style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w900, color: AppColors.primaryGreen)),
                       ],
                     ),
@@ -69,7 +69,7 @@ class CreatePoPage extends StatelessWidget {
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
               child: AppButton(
-                text: ProcurementConstant.submitPo,
+                text: ProcurementConstant.SUBMIT_PO,
                 onPressed: () => Navigator.pop(context),
               ),
             ),

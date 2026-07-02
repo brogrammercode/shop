@@ -15,7 +15,7 @@ class TableZoneListPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(PosConstant.tableZoneTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(PosConstant.TABLE_ZONE_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: ListView.separated(
@@ -35,7 +35,7 @@ class TableZoneListPage extends StatelessWidget {
         onPressed: () {},
         backgroundColor: AppColors.primaryGreen,
         icon: const Icon(Icons.add, color: AppColors.pureWhite),
-        label: Text(PosConstant.createZone, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
+        label: Text(PosConstant.CREATE_ZONE, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
       ),
     );
   }

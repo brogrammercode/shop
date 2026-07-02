@@ -15,7 +15,7 @@ class VariantDetailPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(CatalogConstant.variantDetailTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(CatalogConstant.VARIANT_DETAIL_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(

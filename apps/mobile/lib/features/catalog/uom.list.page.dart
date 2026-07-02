@@ -15,7 +15,7 @@ class UomListPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(CatalogConstant.uomListTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(CatalogConstant.UOM_LIST_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: ListView.separated(
@@ -42,7 +42,7 @@ class UomListPage extends StatelessWidget {
         onPressed: () => Navigator.pushNamed(context, '/create-uom'),
         backgroundColor: AppColors.primaryGreen,
         icon: const Icon(Icons.add, color: AppColors.pureWhite),
-        label: Text(CatalogConstant.addUom, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
+        label: Text(CatalogConstant.ADD_UOM, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
       ),
     );
   }

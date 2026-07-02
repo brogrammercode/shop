@@ -16,7 +16,7 @@ class PurchaseOrderDetailPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(ProcurementConstant.poDetailTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(ProcurementConstant.PO_DETAIL_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -35,7 +35,7 @@ class PurchaseOrderDetailPage extends StatelessWidget {
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                           decoration: BoxDecoration(color: const Color(0xFFF59E0B).withOpacity(0.1), borderRadius: BorderRadius.circular(8.r)),
-                          child: Text(ProcurementConstant.pending, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w900, color: const Color(0xFFF59E0B))),
+                          child: Text(ProcurementConstant.PENDING, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w900, color: const Color(0xFFF59E0B))),
                         ),
                       ],
                     ),
@@ -60,7 +60,7 @@ class PurchaseOrderDetailPage extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 32.h),
-                    Text(ProcurementConstant.itemsSection, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary, letterSpacing: 0.8)),
+                    Text(ProcurementConstant.ITEMS_SECTION, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary, letterSpacing: 0.8)),
                     SizedBox(height: 12.h),
                     _buildLineItem('Tomatoes (Grade A)', '50 kg', '₹40.00', '₹2,000.00'),
                     _buildLineItem('Onions', '100 kg', '₹25.00', '₹2,500.00'),
@@ -68,7 +68,7 @@ class PurchaseOrderDetailPage extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(ProcurementConstant.grandTotal, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+                        Text(ProcurementConstant.GRAND_TOTAL, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
                         Text('₹4,500.00', style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w900, color: AppColors.primaryGreen)),
                       ],
                     ),
@@ -81,9 +81,9 @@ class PurchaseOrderDetailPage extends StatelessWidget {
               decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
               child: Row(
                 children: [
-                  Expanded(child: AppButton(text: ProcurementConstant.rejectPo, backgroundColor: AppColors.softGrey, textColor: const Color(0xFFEF4F5F), onPressed: () {})),
+                  Expanded(child: AppButton(text: ProcurementConstant.REJECT_PO, backgroundColor: AppColors.softGrey, textColor: const Color(0xFFEF4F5F), onPressed: () {})),
                   SizedBox(width: 12.w),
-                  Expanded(child: AppButton(text: ProcurementConstant.approvePo, onPressed: () {})),
+                  Expanded(child: AppButton(text: ProcurementConstant.APPROVE_PO, onPressed: () {})),
                 ],
               ),
             ),

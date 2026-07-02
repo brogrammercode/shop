@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:user/core/di.dart';
 import 'package:user/core/routes.dart';
 import 'package:user/core/theme.dart';
-import 'package:user/features/auth/controllers/user.cubit.dart';
+import 'package:user/features/auth/auth.cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,8 +26,8 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return MultiBlocProvider(
           providers: [
-            BlocProvider<UserCubit>(
-              create: (context) => AppDependencies.userCubit,
+            BlocProvider<AuthCubit>(
+              create: (context) => AppDependencies.authCubit,
             ),
           ],
           child: MaterialApp(
@@ -42,3 +42,4 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+

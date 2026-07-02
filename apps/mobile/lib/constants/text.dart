@@ -1,15 +1,15 @@
 class AppText {
-  static const String connectionTimedOut = 'Connection timed out. Please try again.';
-  static const String noInternetConnection = 'No internet connection.';
-  static const String somethingWentWrong = 'Something went wrong. Please try again.';
-  static const String unknownError = 'An unknown error occurred.';
+  static const String CONNECTION_TIMED_OUT = 'Connection timed out. Please try again.';
+  static const String NO_INTERNET_CONNECTION = 'No internet connection.';
+  static const String SOMETHING_WENT_WRONG = 'Something went wrong. Please try again.';
+  static const String UNKNOWN_ERROR = 'An unknown error occurred.';
 }
 
 class AuthText {
-  static const String authenticationFailed = 'Authentication failed. Please log in again.';
-  static const String sessionExpired = 'Your session has expired. Please log in again.';
-  static const String otpSent = 'OTP sent successfully.';
-  static const String otpVerified = 'OTP verified successfully.';
-  static const String invalidOtp = 'Invalid OTP. Please try again.';
-  static const String loggedOut = 'Logged out successfully.';
+  static const String AUTHENTICATION_FAILED = 'Authentication failed. Please log in again.';
+  static const String SESSION_EXPIRED = 'Your session has expired. Please log in again.';
+  static const String OTP_SENT = 'OTP sent successfully.';
+  static const String OTP_VERIFIED = 'OTP verified successfully.';
+  static const String INVALID_OTP = 'Invalid OTP. Please try again.';
+  static const String LOGGED_OUT = 'Logged out successfully.';
 }

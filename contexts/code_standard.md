@@ -20,7 +20,7 @@ Follow these steps in order when implementing a new feature:
 3.  **Repository**: Implement `[feature].repo.ts` using Prisma for all database operations.
 4.  **Service (Business Logic)**: Implement `[feature].service.ts` to handle logic and interact with Repositories.
 5.  **Security/Utilities**: Implement `src/infra/security/` utilities if specific hashing or token logic is needed.
-6.  **Constants**: Populate `[feature].constant.ts` with all messages, error strings, and configuration values. Absolutely nothing (such as endpoints, payload keys, regexes, separators, or default labels) will be hardcoded in logical files; everything must be moved to constants.
+6.  **Constants**: Populate `[feature].constant.ts` with all messages, error strings, and configuration values. Absolutely nothing (such as endpoints, payload keys, regexes, separators, or default labels) will be hardcoded in logical files; everything must be moved to constants. **Every variable name inside the constants file must be written in CAPITAL_SNAKE_CASE (e.g., `NOT_FOUND_ERROR = "..."`).**
 7.  **Controller**: Implement `[feature].controller.ts` using the `asyncHandler` utility.
 8.  **Middleware**: Implement `[feature].middleware.ts` for authentication or validation if required.
 9.  **Route**: Create `[feature].route.ts` to map endpoints to controller methods.
@@ -255,7 +255,7 @@ Standards:
 - Feature-specific constants live in `features/[feature]/constants/` on mobile, split into `[feature].constant.dart` (for user-facing copy, statuses, default role names, and workflow labels), `[feature].endpoints.dart` (for endpoint paths), and `[feature].params.dart` (for payload/query parameter keys). For the API, they live in `[feature].constant.ts`.
   - **Auth Feature Constant Splitting**: Specifically, for the authentication/user feature on mobile (`apps/user`), you must use `user.constant.dart`, `user.endpoints.dart`, and `user.params.dart` inside the `features/auth/constants/` directory instead of `auth.dart` or `auth.constant.dart`.
 - Constants must stay module-scoped. Do not put business constants in auth constants, auth constants in global constants, or endpoint paths in page files.
-- Prefer Dart-style lowerCamelCase constant names for new code unless matching an existing all-caps backend enum collection.
+- **Every variable inside a constants file must use CAPITAL_SNAKE_CASE (e.g., `static const String LOG_IN_OR_SIGN_UP = "..."`).**
 - Backend enum values can stay uppercase when the server contract requires uppercase strings.
 - **Strict No-Hardcoding Rule**: Absolutely no strings (e.g. error messages, validation texts, toast messages, status labels) should be hardcoded in UI Pages, Cubits, or Repositories. All human-readable strings must be maintained in the `constants` files.
 

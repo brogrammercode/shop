@@ -17,7 +17,7 @@ class CreateItemPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(CatalogConstant.createItemTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(CatalogConstant.CREATE_ITEM_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -29,7 +29,7 @@ class CreateItemPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AppInput(hintText: CatalogConstant.itemName),
+                    AppInput(hintText: CatalogConstant.ITEM_NAME),
                     SizedBox(height: 16.h),
                     Container(
                       padding: EdgeInsets.all(16.w),
@@ -43,9 +43,9 @@ class CreateItemPage extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 16.h),
-                    AppInput(hintText: CatalogConstant.itemType),
+                    AppInput(hintText: CatalogConstant.ITEM_TYPE),
                     SizedBox(height: 16.h),
-                    AppInput(hintText: CatalogConstant.shelfLife, keyboardType: TextInputType.number),
+                    AppInput(hintText: CatalogConstant.SHELF_LIFE, keyboardType: TextInputType.number),
                   ],
                 ),
               ),
@@ -54,7 +54,7 @@ class CreateItemPage extends StatelessWidget {
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
               child: AppButton(
-                text: CatalogConstant.saveItem,
+                text: CatalogConstant.SAVE_ITEM,
                 onPressed: () => Navigator.pop(context),
               ),
             ),

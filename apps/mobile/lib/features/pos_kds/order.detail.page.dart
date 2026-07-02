@@ -15,7 +15,7 @@ class OrderDetailPage extends StatelessWidget {
         backgroundColor: AppColors.pureWhite,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(PosConstant.orderDetailTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(PosConstant.ORDER_DETAIL_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: Padding(
@@ -46,7 +46,7 @@ class OrderDetailPage extends StatelessWidget {
               ],
             ),
             Spacer(),
-            AppButton(text: PosConstant.printBill, onPressed: () {}),
+            AppButton(text: PosConstant.PRINT_BILL, onPressed: () {}),
           ],
         ),
       ),

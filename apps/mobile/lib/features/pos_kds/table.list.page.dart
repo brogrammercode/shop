@@ -2,9 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/features/pos_kds/pos_kds.cubit.dart';
+import 'package:mobile/features/pos_kds/pos_kds.state.dart';
+import 'package:mobile/utils/error.dart';
 
-class TableListPage extends StatelessWidget {
+class TableListPage extends StatefulWidget {
   const TableListPage({super.key});
+
+  @override
+  State<TableListPage> createState() => _TableListPageState();
+}
+
+class _TableListPageState extends State<TableListPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<PosKdsCubit>().listTables();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +29,7 @@ class TableListPage extends StatelessWidget {
         backgroundColor: AppColors.pureWhite,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(PosConstant.tableListTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(PosConstant.TABLE_LIST_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: Column(
@@ -31,7 +46,16 @@ class TableListPage extends StatelessWidget {
             ),
           ),
           Expanded(
-            child: GridView.builder(
+            child: BlocBuilder<PosKdsCubit, PosKdsState>(
+              builder: (context, state) {
+                if (state.loadTablesInfo.status == OperationStatus.loading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final tables = state.tables;
+                if (tables.isEmpty) {
+                  return Center(child: Text('No tables found', style: TextStyle(color: AppColors.textSecondary)));
+                }
+                return GridView.builder(
               padding: EdgeInsets.all(24.w),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -39,10 +63,10 @@ class TableListPage extends StatelessWidget {
                 mainAxisSpacing: 32.h,
                 childAspectRatio: 1.0,
               ),
-              itemCount: 6,
+              itemCount: tables.length,
               itemBuilder: (context, index) {
-                // Dummy logic: Table 2 has Chair 2 occupied
-                final isOccupied = index == 1;
+                final table = tables[index];
+                final isOccupied = table.status == 'OCCUPIED';
                 return GestureDetector(
                   onTap: () => Navigator.pushNamed(context, '/pos-terminal'),
                   child: Stack(
@@ -61,26 +85,28 @@ class TableListPage extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text('${index + 1}', style: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.w900, color: isOccupied ? Colors.redAccent : AppColors.textPrimary)),
+                              Text(table.table_number, style: TextStyle(fontSize: 28.sp, fontWeight: FontWeight.w900, color: isOccupied ? Colors.redAccent : AppColors.textPrimary)),
                               if (isOccupied)
                                 Text('Active', style: TextStyle(fontSize: 12.sp, color: Colors.redAccent, fontWeight: FontWeight.w800)),
                             ],
                           ),
                         ),
                       ),
-                      // Chair Indicators (Top, Right, Bottom, Left)
-                      _buildChair(Alignment.topCenter, false, -10.h),    // Chair 1
-                      _buildChair(Alignment.centerRight, isOccupied, -10.w), // Chair 2 (Occupied on Table 2)
-                      _buildChair(Alignment.bottomCenter, false, -10.h), // Chair 3
-                      _buildChair(Alignment.centerLeft, false, -10.w),   // Chair 4
+                      // Chair Indicators (Top, Right, Bottom, Left) depending on capacity
+                      if (table.capacity >= 1) _buildChair(Alignment.topCenter, false, -10.h),
+                      if (table.capacity >= 2) _buildChair(Alignment.bottomCenter, false, -10.h),
+                      if (table.capacity >= 3) _buildChair(Alignment.centerRight, isOccupied, -10.w),
+                      if (table.capacity >= 4) _buildChair(Alignment.centerLeft, false, -10.w),
                     ],
                   ),
                 );
               },
-            ),
-          ),
-        ],
+            );
+          },
+        ),
       ),
+    ],
+  ),
     );
   }
 

@@ -33,7 +33,7 @@ class ItemListPage extends StatelessWidget {
                 SizedBox(width: 16.w),
                 Expanded(
                   child: AppInput(
-                    hintText: CatalogConstant.searchItem,
+                    hintText: CatalogConstant.SEARCH_ITEM,
                     prefixIcon: Icon(Icons.search, color: AppColors.textTertiary),
                   ),
                 ),
@@ -66,7 +66,7 @@ class ItemListPage extends StatelessWidget {
         onPressed: () => Navigator.pushNamed(context, '/create-item'),
         backgroundColor: AppColors.primaryGreen,
         icon: const Icon(Icons.add, color: AppColors.pureWhite),
-        label: Text(CatalogConstant.addItem, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
+        label: Text(CatalogConstant.ADD_ITEM, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
       ),
     );
   }

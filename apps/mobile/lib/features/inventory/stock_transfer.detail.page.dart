@@ -16,7 +16,7 @@ class StockTransferDetailPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(ProductionConstant.transferDetailTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(ProductionConstant.TRANSFER_DETAIL_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: Padding(
@@ -39,7 +39,7 @@ class StockTransferDetailPage extends StatelessWidget {
               ),
             ),
             AppButton(
-              text: ProductionConstant.markReceived,
+              text: ProductionConstant.MARK_RECEIVED,
               onPressed: () => Navigator.pop(context),
             ),
           ],

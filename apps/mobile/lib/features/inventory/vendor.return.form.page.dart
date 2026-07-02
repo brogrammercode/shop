@@ -17,7 +17,7 @@ class VendorReturnFormPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(ProcurementConstant.returnTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(ProcurementConstant.RETURN_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -31,7 +31,7 @@ class VendorReturnFormPage extends StatelessWidget {
                   children: [
                     Text('Fresh Farms Ltd.', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
                     SizedBox(height: 24.h),
-                    AppInput(hintText: ProcurementConstant.returnReason, maxLines: 3),
+                    AppInput(hintText: ProcurementConstant.RETURN_REASON, maxLines: 3),
                     SizedBox(height: 32.h),
                     Text('ITEMS TO RETURN', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary, letterSpacing: 0.8)),
                     SizedBox(height: 12.h),
@@ -44,7 +44,7 @@ class VendorReturnFormPage extends StatelessWidget {
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
               child: AppButton(
-                text: ProcurementConstant.processReturn,
+                text: ProcurementConstant.PROCESS_RETURN,
                 backgroundColor: const Color(0xFFEF4F5F),
                 onPressed: () => Navigator.pop(context),
               ),

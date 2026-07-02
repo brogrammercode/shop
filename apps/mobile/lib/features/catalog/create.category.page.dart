@@ -17,7 +17,7 @@ class CreateCategoryPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(CatalogConstant.createCategoryTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(CatalogConstant.CREATE_CATEGORY_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -29,9 +29,9 @@ class CreateCategoryPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AppInput(hintText: CatalogConstant.categoryName),
+                    AppInput(hintText: CatalogConstant.CATEGORY_NAME),
                     SizedBox(height: 16.h),
-                    AppInput(hintText: CatalogConstant.categoryDesc, maxLines: 4),
+                    AppInput(hintText: CatalogConstant.CATEGORY_DESC, maxLines: 4),
                   ],
                 ),
               ),
@@ -40,7 +40,7 @@ class CreateCategoryPage extends StatelessWidget {
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
               child: AppButton(
-                text: CatalogConstant.saveCategory,
+                text: CatalogConstant.SAVE_CATEGORY,
                 onPressed: () => Navigator.pop(context),
               ),
             ),

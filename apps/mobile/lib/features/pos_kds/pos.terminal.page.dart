@@ -3,6 +3,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/features/pos_kds/pos_kds.cubit.dart';
+import 'package:mobile/features/pos_kds/pos_kds.state.dart';
+import 'package:mobile/utils/error.dart';
 
 class PosTerminalPage extends StatefulWidget {
   const PosTerminalPage({super.key});
@@ -45,7 +49,7 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
                   borderRadius: BorderRadius.circular(2.r),
                 ),
               ),
-              Text(PosConstant.cartTab, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900)),
+              Text(PosConstant.CART_TAB, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900)),
               SizedBox(height: 16.h),
               
               // Order Context
@@ -101,19 +105,27 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
                       children: [
                         Expanded(
                           child: AppButton(
-                            text: PosConstant.sendToKitchen,
+                            text: PosConstant.SEND_TO_KITCHEN,
                             backgroundColor: Colors.orange,
                             onPressed: () => Navigator.pop(context),
                           ),
                         ),
                         SizedBox(width: 12.w),
                         Expanded(
-                          child: AppButton(
-                            text: 'Pay',
-                            backgroundColor: AppColors.primaryGreen,
-                            onPressed: () {
-                              Navigator.pop(context);
-                              Navigator.pushNamed(context, '/order-detail');
+                          child: BlocBuilder<PosKdsCubit, PosKdsState>(
+                            builder: (context, state) {
+                              return AppButton(
+                                text: 'Pay',
+                                backgroundColor: AppColors.primaryGreen,
+                                isLoading: state.saveOrdersInfo.status == OperationStatus.loading,
+                                onPressed: () {
+                                  context.read<PosKdsCubit>().createOrder({
+                                    'order_type': 'DINE_IN',
+                                    'total_amount': _cartTotal,
+                                    'items': [],
+                                  });
+                                },
+                              );
                             },
                           ),
                         ),
@@ -153,15 +165,26 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
       {'name': 'Lassi', 'price': 4.0},
     ];
 
-    return Scaffold(
-      backgroundColor: AppColors.softGrey,
-      appBar: AppBar(
+    return BlocListener<PosKdsCubit, PosKdsState>(
+      listenWhen: (previous, current) => previous.saveOrdersInfo.status != current.saveOrdersInfo.status,
+      listener: (context, state) {
+        if (state.saveOrdersInfo.status == OperationStatus.success) {
+          if (Navigator.canPop(context)) Navigator.pop(context); // Close bottom sheet
+          setState(() {
+            _cartItems = 0;
+            _cartTotal = 0.0;
+          });
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.softGrey,
+        appBar: AppBar(
         backgroundColor: AppColors.pureWhite,
         elevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
         title: Column(
           children: [
-            Text(PosConstant.posTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+            Text(PosConstant.POS_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
             Text('Table 2 - Chair 2', style: TextStyle(fontSize: 12.sp, color: AppColors.primaryGreen, fontWeight: FontWeight.w800)),
           ],
         ),
@@ -244,6 +267,7 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
               ),
             ),
         ],
+      ),
       ),
     );
   }

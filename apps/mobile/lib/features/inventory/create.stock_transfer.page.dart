@@ -17,7 +17,7 @@ class CreateStockTransferPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(ProductionConstant.createTransferTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(ProductionConstant.CREATE_TRANSFER_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -28,11 +28,11 @@ class CreateStockTransferPage extends StatelessWidget {
                 padding: EdgeInsets.all(16.w),
                 child: Column(
                   children: [
-                    AppInput(hintText: ProductionConstant.fromLocation),
+                    AppInput(hintText: ProductionConstant.FROM_LOCATION),
                     SizedBox(height: 16.h),
-                    AppInput(hintText: ProductionConstant.toLocation),
+                    AppInput(hintText: ProductionConstant.TO_LOCATION),
                     SizedBox(height: 16.h),
-                    AppInput(hintText: ProductionConstant.driverName),
+                    AppInput(hintText: ProductionConstant.DRIVER_NAME),
                   ],
                 ),
               ),
@@ -41,7 +41,7 @@ class CreateStockTransferPage extends StatelessWidget {
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
               child: AppButton(
-                text: ProductionConstant.dispatchItems,
+                text: ProductionConstant.DISPATCH_ITEMS,
                 onPressed: () => Navigator.pop(context),
               ),
             ),

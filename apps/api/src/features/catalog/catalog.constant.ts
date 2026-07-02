@@ -1,0 +1,126 @@
+export const _CATALOG_CONSTANTS = {
+  _R_O_U_T_E_S: {
+    FULL_MENU: '/menu',
+    MENU_CATEGORIES: '/menu-categories',
+    MENU_CATEGORY_BY_ID: '/menu-categories/:id',
+    MENU_ITEMS: '/menu-items',
+    MENU_ITEM_BY_ID: '/menu-items/:id',
+    MODIFIER_GROUPS: '/modifier-groups',
+    MODIFIER_GROUP_MODIFIERS: '/modifier-groups/:id/modifiers',
+    MODIFIER_BY_ID: '/modifiers/:id',
+    COMBO_MEALS: '/combo-meals',
+    COMBO_MEAL_BY_ID: '/combo-meals/:id',
+    COMBO_MEAL_ITEMS: '/combo-meals/:id/items',
+    COMBO_MEAL_ITEM_BY_ID: '/combo-meals/:id/items/:itemId',
+  },
+  _E_R_R_O_R_S: {
+    MENU_CATEGORY_NOT_FOUND: 'Menu category not found',
+    MENU_ITEM_NOT_FOUND: 'Menu item not found',
+    MODIFIER_GROUP_NOT_FOUND: 'Modifier group not found',
+    MODIFIER_NOT_FOUND: 'Modifier not found',
+    COMBO_MEAL_NOT_FOUND: 'Combo meal not found',
+    COMBO_ITEM_NOT_FOUND: 'Combo item not found',
+    INVALID_STATUS: 'Invalid status',
+  },
+  _M_E_S_S_A_G_E_S: {
+    MENU_CATEGORY_CREATED: 'Menu category created successfully',
+    MENU_CATEGORY_FETCHED: 'Menu categories fetched successfully',
+    MENU_CATEGORY_FOUND: 'Menu category fetched successfully',
+    MENU_CATEGORY_UPDATED: 'Menu category updated successfully',
+    MENU_CATEGORY_DELETED: 'Menu category deleted successfully',
+
+    MENU_ITEM_CREATED: 'Menu item created successfully',
+    MENU_ITEM_FETCHED: 'Menu items fetched successfully',
+    MENU_ITEM_FOUND: 'Menu item fetched successfully',
+    MENU_ITEM_UPDATED: 'Menu item updated successfully',
+    MENU_ITEM_DELETED: 'Menu item deleted successfully',
+
+    MODIFIER_GROUP_CREATED: 'Modifier group created successfully',
+    MODIFIER_GROUP_FETCHED: 'Modifier groups fetched successfully',
+    MODIFIER_GROUP_FOUND: 'Modifier group fetched successfully',
+    MODIFIER_GROUP_UPDATED: 'Modifier group updated successfully',
+    MODIFIER_GROUP_DELETED: 'Modifier group deleted successfully',
+
+    MODIFIER_CREATED: 'Modifier created successfully',
+    MODIFIER_FETCHED: 'Modifiers fetched successfully',
+    MODIFIER_FOUND: 'Modifier fetched successfully',
+    MODIFIER_UPDATED: 'Modifier updated successfully',
+    MODIFIER_DELETED: 'Modifier deleted successfully',
+
+    COMBO_MEAL_CREATED: 'Combo meal created successfully',
+    COMBO_MEAL_FETCHED: 'Combo meals fetched successfully',
+    COMBO_MEAL_FOUND: 'Combo meal fetched successfully',
+    COMBO_MEAL_UPDATED: 'Combo meal updated successfully',
+    COMBO_MEAL_DELETED: 'Combo meal deleted successfully',
+
+    COMBO_ITEM_CREATED: 'Combo item created successfully',
+    COMBO_ITEM_FETCHED: 'Combo items fetched successfully',
+    COMBO_ITEM_FOUND: 'Combo item fetched successfully',
+    COMBO_ITEM_UPDATED: 'Combo item updated successfully',
+    COMBO_ITEM_DELETED: 'Combo item deleted successfully',
+  }
+};
+
+export const _CATALOG_MESSAGES = {
+  MENU_CATEGORY_CREATED: 'Menu category created successfully',
+  MENU_CATEGORY_FETCHED: 'Menu categories fetched successfully',
+  MENU_CATEGORY_FOUND: 'Menu category fetched successfully',
+  MENU_CATEGORY_UPDATED: 'Menu category updated successfully',
+  MENU_CATEGORY_DELETED: 'Menu category deleted successfully',
+  MENU_CATEGORY_NOT_FOUND: 'Menu category not found',
+
+  MENU_ITEM_CREATED: 'Menu item created successfully',
+  MENU_ITEM_FETCHED: 'Menu items fetched successfully',
+  MENU_ITEM_FOUND: 'Menu item fetched successfully',
+  MENU_ITEM_UPDATED: 'Menu item updated successfully',
+  MENU_ITEM_DELETED: 'Menu item deleted successfully',
+  MENU_ITEM_NOT_FOUND: 'Menu item not found',
+
+  MODIFIER_GROUP_CREATED: 'Modifier group created successfully',
+  MODIFIER_GROUP_FETCHED: 'Modifier groups fetched successfully',
+  MODIFIER_GROUP_NOT_FOUND: 'Modifier group not found',
+
+  MODIFIER_CREATED: 'Modifier created successfully',
+  MODIFIER_FETCHED: 'Modifiers fetched successfully',
+  MODIFIER_UPDATED: 'Modifier updated successfully',
+  MODIFIER_DELETED: 'Modifier deleted successfully',
+  MODIFIER_NOT_FOUND: 'Modifier not found',
+
+  COMBO_MEAL_CREATED: 'Combo meal created successfully',
+  COMBO_MEAL_FETCHED: 'Combo meals fetched successfully',
+  COMBO_MEAL_FOUND: 'Combo meal fetched successfully',
+  COMBO_MEAL_UPDATED: 'Combo meal updated successfully',
+  COMBO_MEAL_DELETED: 'Combo meal deleted successfully',
+  COMBO_MEAL_NOT_FOUND: 'Combo meal not found',
+
+  COMBO_ITEM_ADDED: 'Combo item added successfully',
+  COMBO_ITEM_REMOVED: 'Combo item removed successfully',
+  COMBO_ITEM_NOT_FOUND: 'Combo item not found',
+
+  FULL_MENU_FETCHED: 'Full menu fetched successfully',
+
+  VARIANT_NOT_FOUND: 'Item variant not found',
+  BRANCH_ID_REQUIRED: 'branch_id is required',
+} as const;
+
+export const _CATALOG_FIELDS = {
+  BRANCH_ID: 'branch_id',
+  CATEGORY_ID: 'category_id',
+  VARIANT_ID: 'variant_id',
+  GROUP_ID: 'group_id',
+  COMBO_ID: 'combo_id',
+  MENU_ITEM_ID: 'menu_item_id',
+  _N_A_M_E: 'name',
+  _D_E_S_C_R_I_P_T_I_O_N: 'description',
+  DISPLAY_ORDER: 'display_order',
+  _S_T_A_T_U_S: 'status',
+  DISPLAY_NAME: 'display_name',
+  SELLING_PRICE: 'selling_price',
+  IMAGE_URL: 'image_url',
+  MIN_SELECT: 'min_select',
+  MAX_SELECT: 'max_select',
+  EXTRA_PRICE: 'extra_price',
+  FIXED_PRICE: 'fixed_price',
+  QTY_INCLUDED: 'qty_included',
+  CREATED_BY: 'created_by',
+} as const;

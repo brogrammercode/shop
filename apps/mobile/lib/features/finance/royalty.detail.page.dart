@@ -35,7 +35,7 @@ class RoyaltyDetailPage extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () {},
                         style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryGreen, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)), elevation: 0),
-                        child: Text(FinanceConstant.btnMarkPaid, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
+                        child: Text(FinanceConstant.BTN_MARK_PAID, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
                       ),
                     ),
                   ),
@@ -60,7 +60,7 @@ class RoyaltyDetailPage extends StatelessWidget {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
             decoration: BoxDecoration(color: const Color(0xFFFEF3C7), borderRadius: BorderRadius.circular(8.r)),
-            child: Text(FinanceConstant.statusPending, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w800, color: const Color(0xFFF59E0B))),
+            child: Text(FinanceConstant.STATUS_PENDING, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w800, color: const Color(0xFFF59E0B))),
           ),
           SizedBox(height: 12.h),
           Text('Franchise – North Delhi', style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
@@ -94,7 +94,7 @@ class RoyaltyDetailPage extends StatelessWidget {
         children: [
           _buildRow('Branch', 'Main Branch'),
           _buildRow('Franchise', 'FRN-ND-001'),
-          _buildRow('Status', FinanceConstant.statusPending),
+          _buildRow('Status', FinanceConstant.STATUS_PENDING),
           _buildRow('Created At', '01 Jun 2025'),
           _buildRow('Updated At', '28 Jun 2025'),
         ],
@@ -130,7 +130,7 @@ class RoyaltyDetailPage extends StatelessWidget {
             ),
           ),
           SizedBox(width: 12.w),
-          Expanded(child: Text(FinanceConstant.royaltyDetailTitle, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
+          Expanded(child: Text(FinanceConstant.ROYALTY_DETAIL_TITLE, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
         ],
       ),
     );

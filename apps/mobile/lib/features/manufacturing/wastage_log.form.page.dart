@@ -15,7 +15,7 @@ class WastageLogFormPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.pureWhite,
         elevation: 0,
-        title: Text(ProductionConstant.wastageFormTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(ProductionConstant.WASTAGE_FORM_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -26,9 +26,9 @@ class WastageLogFormPage extends StatelessWidget {
                 padding: EdgeInsets.all(16.w),
                 child: Column(
                   children: [
-                    AppInput(hintText: ProductionConstant.wasteReason),
+                    AppInput(hintText: ProductionConstant.WASTE_REASON),
                     SizedBox(height: 16.h),
-                    AppInput(hintText: ProductionConstant.quantityWasted, keyboardType: TextInputType.number),
+                    AppInput(hintText: ProductionConstant.QUANTITY_WASTED, keyboardType: TextInputType.number),
                   ],
                 ),
               ),
@@ -37,7 +37,7 @@ class WastageLogFormPage extends StatelessWidget {
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
               child: AppButton(
-                text: ProductionConstant.logWastage,
+                text: ProductionConstant.LOG_WASTAGE,
                 onPressed: () => Navigator.pop(context),
               ),
             ),

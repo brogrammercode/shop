@@ -1,6 +1,6 @@
 // Auto-generated Model file for DeliveryPartner
 
-import '../core_hr/address.model.dart';
+import '../core_hr/models/address.model.dart';
 import '../finance/bank_detail.model.dart';
 
 class DeliveryPartnerModel {
@@ -41,8 +41,12 @@ class DeliveryPartnerModel {
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
       is_deleted: json['is_deleted'] ?? false,
-      addresses: (json['addresses'] as List<dynamic>? ?? []).map((x) => AddressModel.fromJson(x as Map<String, dynamic>)).toList(),
-      bank_details: (json['bank_details'] as List<dynamic>? ?? []).map((x) => BankDetailModel.fromJson(x as Map<String, dynamic>)).toList(),
+      addresses: (json['addresses'] as List<dynamic>? ?? [])
+          .map((x) => AddressModel.fromJson(x as Map<String, dynamic>))
+          .toList(),
+      bank_details: (json['bank_details'] as List<dynamic>? ?? [])
+          .map((x) => BankDetailModel.fromJson(x as Map<String, dynamic>))
+          .toList(),
     );
   }
 

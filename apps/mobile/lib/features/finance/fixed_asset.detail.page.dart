@@ -47,7 +47,7 @@ class FixedAssetDetailPage extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(color: const Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(8.r)),
-                child: Text(FinanceConstant.statusActive, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w800, color: AppColors.primaryGreen)),
+                child: Text(FinanceConstant.STATUS_ACTIVE, style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w800, color: AppColors.primaryGreen)),
               ),
             ],
           ),
@@ -97,8 +97,8 @@ class FixedAssetDetailPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildRow(FinanceConstant.labelDepreciationPct, '10% per year'),
-          _buildRow('Status', FinanceConstant.statusActive),
+          _buildRow(FinanceConstant.LABEL_DEPRECIATION_PCT, '10% per year'),
+          _buildRow('Status', FinanceConstant.STATUS_ACTIVE),
           _buildRow('Branch', 'Main Branch'),
           _buildRow('Created At', '01 Jan 2024'),
           _buildRow('Updated At', '28 Jun 2025'),
@@ -142,7 +142,7 @@ class FixedAssetDetailPage extends StatelessWidget {
             ),
           ),
           SizedBox(width: 12.w),
-          Expanded(child: Text(FinanceConstant.assetDetailTitle, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
+          Expanded(child: Text(FinanceConstant.ASSET_DETAIL_TITLE, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
           GestureDetector(
             onTap: () => Navigator.pushNamed(context, '/finance-asset-form'),
             child: Container(

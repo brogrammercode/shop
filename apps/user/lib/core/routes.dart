@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:user/features/home/pages/home_page.dart';
-import 'package:user/features/home/pages/search_page.dart';
-import 'package:user/features/home/pages/search_result.dart';
-import 'package:user/features/store/pages/store_page.dart';
-import 'package:user/features/order/pages/cart_page.dart';
-import 'package:user/features/order/pages/payment_page.dart';
-import 'package:user/features/setting/pages/setting_page.dart';
-import 'package:user/features/auth/pages/login_page.dart';
-import 'package:user/features/auth/pages/session_page.dart';
-import 'package:user/features/home/pages/food_page.dart';
+import 'package:user/features/home/home_page.dart';
+import 'package:user/features/home/search_page.dart';
+import 'package:user/features/home/search_result.dart';
+import 'package:user/features/store/store_page.dart';
+import 'package:user/features/order/cart_page.dart';
+import 'package:user/features/order/payment_page.dart';
+import 'package:user/features/setting/setting_page.dart';
+import 'package:user/features/auth/login_page.dart';
+import 'package:user/features/auth/session_page.dart';
+import 'package:user/features/home/food_page.dart';
 
 class AppRoutes {
   static const String home = '/';
@@ -35,3 +35,4 @@ class AppRoutes {
     food: (context) => const FoodPage(),
   };
 }
+

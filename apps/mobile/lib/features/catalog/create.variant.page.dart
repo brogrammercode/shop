@@ -18,7 +18,7 @@ class CreateVariantPage extends StatelessWidget {
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
         title: Text(
-          CatalogConstant.createVariantTitle,
+          CatalogConstant.CREATE_VARIANT_TITLE,
           style: TextStyle(
             fontSize: 16.sp,
             fontWeight: FontWeight.w900,
@@ -48,11 +48,11 @@ class CreateVariantPage extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: AppInput(hintText: CatalogConstant.sku),
+                          child: AppInput(hintText: CatalogConstant.SKU),
                         ),
                         SizedBox(width: 12.w),
                         Expanded(
-                          child: AppInput(hintText: CatalogConstant.barcode),
+                          child: AppInput(hintText: CatalogConstant.BARCODE),
                         ),
                       ],
                     ),
@@ -85,14 +85,14 @@ class CreateVariantPage extends StatelessWidget {
                       children: [
                         Expanded(
                           child: AppInput(
-                            hintText: CatalogConstant.baseCost,
+                            hintText: CatalogConstant.BASE_COST,
                             keyboardType: TextInputType.number,
                           ),
                         ),
                         SizedBox(width: 12.w),
                         Expanded(
                           child: AppInput(
-                            hintText: CatalogConstant.minStock,
+                            hintText: CatalogConstant.MIN_STOCK,
                             keyboardType: TextInputType.number,
                           ),
                         ),
@@ -110,7 +110,7 @@ class CreateVariantPage extends StatelessWidget {
                 ),
               ),
               child: AppButton(
-                text: CatalogConstant.saveVariant,
+                text: CatalogConstant.SAVE_VARIANT,
                 onPressed: () => Navigator.pop(context),
               ),
             ),

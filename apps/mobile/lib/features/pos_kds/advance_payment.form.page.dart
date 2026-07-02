@@ -15,7 +15,7 @@ class AdvancePaymentFormPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.pureWhite,
         elevation: 0,
-        title: Text(PosConstant.advancePaymentTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(PosConstant.ADVANCE_PAYMENT_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -28,9 +28,9 @@ class AdvancePaymentFormPage extends StatelessWidget {
                   children: [
                     AppInput(hintText: 'Order ID'),
                     SizedBox(height: 16.h),
-                    AppInput(hintText: PosConstant.amount, keyboardType: TextInputType.number),
+                    AppInput(hintText: PosConstant.AMOUNT, keyboardType: TextInputType.number),
                     SizedBox(height: 16.h),
-                    AppInput(hintText: PosConstant.paymentMethod),
+                    AppInput(hintText: PosConstant.PAYMENT_METHOD),
                   ],
                 ),
               ),
@@ -39,7 +39,7 @@ class AdvancePaymentFormPage extends StatelessWidget {
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
               child: AppButton(
-                text: PosConstant.recordPayment,
+                text: PosConstant.RECORD_PAYMENT,
                 onPressed: () => Navigator.pop(context),
               ),
             ),

@@ -1,5 +1,5 @@
 import config from '../../core/config';
-import { MESSAGING_CONFIG, MESSAGING_MESSAGES } from './messaging.constant';
+import { _M_E_S_S_A_G_I_N_G__C_O_N_F_I_G, _M_E_S_S_A_G_I_N_G__M_E_S_S_A_G_E_S } from './messaging.constant';
 
 export class SmsService {
     private accountSid: string;
@@ -13,7 +13,7 @@ export class SmsService {
     }
 
     async sendSms(to: string, body: string): Promise<void> {
-        const url = `${MESSAGING_CONFIG.TWILIO_URL_TEMPLATE}/${this.accountSid}/${MESSAGING_CONFIG.TWILIO_MESSAGES_ENDPOINT}`;
+        const url = `${_M_E_S_S_A_G_I_N_G__C_O_N_F_I_G.TWILIO_URL_TEMPLATE}/${this.accountSid}/${_M_E_S_S_A_G_I_N_G__C_O_N_F_I_G.TWILIO_MESSAGES_ENDPOINT}`;
         const auth = Buffer.from(`${this.accountSid}:${this.authToken}`).toString('base64');
 
         const params = new URLSearchParams();
@@ -32,7 +32,7 @@ export class SmsService {
 
         if (!response.ok) {
             const errorData = await response.json() as any;
-            throw new Error(`${MESSAGING_MESSAGES.TWILIO_FAILED}: ${errorData.message || response.statusText}`);
+            throw new Error(`${_M_E_S_S_A_G_I_N_G__M_E_S_S_A_G_E_S.TWILIO_FAILED}: ${errorData.message || response.statusText}`);
         }
     }
 }

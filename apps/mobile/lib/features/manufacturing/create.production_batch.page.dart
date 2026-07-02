@@ -15,7 +15,7 @@ class CreateProductionBatchPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.pureWhite,
         elevation: 0,
-        title: Text(ProductionConstant.createBatchTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(ProductionConstant.CREATE_BATCH_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -26,11 +26,11 @@ class CreateProductionBatchPage extends StatelessWidget {
                 padding: EdgeInsets.all(16.w),
                 child: Column(
                   children: [
-                    AppInput(hintText: ProductionConstant.selectRecipe),
+                    AppInput(hintText: ProductionConstant.SELECT_RECIPE),
                     SizedBox(height: 16.h),
-                    AppInput(hintText: ProductionConstant.plannedQty, keyboardType: TextInputType.number),
+                    AppInput(hintText: ProductionConstant.PLANNED_QTY, keyboardType: TextInputType.number),
                     SizedBox(height: 16.h),
-                    AppInput(hintText: ProductionConstant.startedBy),
+                    AppInput(hintText: ProductionConstant.STARTED_BY),
                   ],
                 ),
               ),
@@ -39,7 +39,7 @@ class CreateProductionBatchPage extends StatelessWidget {
               padding: EdgeInsets.all(16.w),
               decoration: BoxDecoration(border: Border(top: BorderSide(color: AppColors.borderGrey, width: 1.h))),
               child: AppButton(
-                text: ProductionConstant.newBatch,
+                text: ProductionConstant.NEW_BATCH,
                 onPressed: () => Navigator.pop(context),
               ),
             ),

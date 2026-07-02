@@ -1,73 +1,73 @@
 class FinanceConstant {
-  static const String moduleTitle = 'Finance';
+  static const String MODULE_TITLE = 'Finance';
 
   // Accounts
-  static const String accountListTitle = 'Chart of Accounts';
-  static const String accountDetailTitle = 'Account Detail';
-  static const String accountFormTitleCreate = 'New Account';
-  static const String accountFormTitleEdit = 'Edit Account';
-  static const String labelAccountName = 'Account Name';
-  static const String labelAccountType = 'Account Type';
-  static const String labelAccountStatus = 'Status';
-  static const String hintAccountName = 'e.g. Cash, Sales Revenue';
+  static const String ACCOUNT_LIST_TITLE = 'Chart of Accounts';
+  static const String ACCOUNT_DETAIL_TITLE = 'Account Detail';
+  static const String ACCOUNT_FORM_TITLE_CREATE = 'New Account';
+  static const String ACCOUNT_FORM_TITLE_EDIT = 'Edit Account';
+  static const String LABEL_ACCOUNT_NAME = 'Account Name';
+  static const String LABEL_ACCOUNT_TYPE = 'Account Type';
+  static const String LABEL_ACCOUNT_STATUS = 'Status';
+  static const String HINT_ACCOUNT_NAME = 'e.g. Cash, Sales Revenue';
 
   // Account types
-  static const String typeAsset = 'Asset';
-  static const String typeLiability = 'Liability';
-  static const String typeRevenue = 'Revenue';
-  static const String typeExpense = 'Expense';
-  static const String typeEquity = 'Equity';
+  static const String TYPE_ASSET = 'Asset';
+  static const String TYPE_LIABILITY = 'Liability';
+  static const String TYPE_REVENUE = 'Revenue';
+  static const String TYPE_EXPENSE = 'Expense';
+  static const String TYPE_EQUITY = 'Equity';
 
   // Ledger
-  static const String ledgerTitle = 'Ledger';
-  static const String ledgerEntryListTitle = 'Ledger Entries';
-  static const String ledgerEntryFormTitle = 'New Journal Entry';
-  static const String labelDebit = 'Debit';
-  static const String labelCredit = 'Credit';
-  static const String labelNotes = 'Notes';
-  static const String labelReferenceType = 'Reference Type';
-  static const String labelReferenceId = 'Reference ID';
-  static const String labelAccount = 'Account';
-  static const String labelCreatedBy = 'Created By';
-  static const String sectionDebitCredit = 'DEBIT / CREDIT';
+  static const String LEDGER_TITLE = 'Ledger';
+  static const String LEDGER_ENTRY_LIST_TITLE = 'Ledger Entries';
+  static const String LEDGER_ENTRY_FORM_TITLE = 'New Journal Entry';
+  static const String LABEL_DEBIT = 'Debit';
+  static const String LABEL_CREDIT = 'Credit';
+  static const String LABEL_NOTES = 'Notes';
+  static const String LABEL_REFERENCE_TYPE = 'Reference Type';
+  static const String LABEL_REFERENCE_ID = 'Reference ID';
+  static const String LABEL_ACCOUNT = 'Account';
+  static const String LABEL_CREATED_BY = 'Created By';
+  static const String SECTION_DEBIT_CREDIT = 'DEBIT / CREDIT';
 
   // Fixed Assets
-  static const String assetListTitle = 'Fixed Assets';
-  static const String assetDetailTitle = 'Asset Detail';
-  static const String assetFormTitleCreate = 'Add Fixed Asset';
-  static const String labelAssetName = 'Asset Name';
-  static const String labelPurchaseValue = 'Purchase Value';
-  static const String labelDepreciationPct = 'Depreciation % (annual)';
+  static const String ASSET_LIST_TITLE = 'Fixed Assets';
+  static const String ASSET_DETAIL_TITLE = 'Asset Detail';
+  static const String ASSET_FORM_TITLE_CREATE = 'Add Fixed Asset';
+  static const String LABEL_ASSET_NAME = 'Asset Name';
+  static const String LABEL_PURCHASE_VALUE = 'Purchase Value';
+  static const String LABEL_DEPRECIATION_PCT = 'Depreciation % (annual)';
 
   // Royalty
-  static const String royaltyListTitle = 'Royalty Transactions';
-  static const String royaltyDetailTitle = 'Royalty Detail';
-  static const String labelFranchiseId = 'Franchise';
-  static const String labelCalculatedAmt = 'Calculated Amount';
-  static const String labelRoyaltyStatus = 'Status';
+  static const String ROYALTY_LIST_TITLE = 'Royalty Transactions';
+  static const String ROYALTY_DETAIL_TITLE = 'Royalty Detail';
+  static const String LABEL_FRANCHISE_ID = 'Franchise';
+  static const String LABEL_CALCULATED_AMT = 'Calculated Amount';
+  static const String LABEL_ROYALTY_STATUS = 'Status';
 
   // Status labels
-  static const String statusActive = 'Active';
-  static const String statusInactive = 'Inactive';
-  static const String statusPaid = 'Paid';
-  static const String statusPending = 'Pending';
-  static const String statusOverdue = 'Overdue';
+  static const String STATUS_ACTIVE = 'Active';
+  static const String STATUS_INACTIVE = 'Inactive';
+  static const String STATUS_PAID = 'Paid';
+  static const String STATUS_PENDING = 'Pending';
+  static const String STATUS_OVERDUE = 'Overdue';
 
   // Actions
-  static const String btnSave = 'Save';
-  static const String btnAddAccount = 'Add Account';
-  static const String btnAddEntry = 'New Entry';
-  static const String btnAddAsset = 'Add Asset';
-  static const String btnMarkPaid = 'Mark as Paid';
-  static const String btnDeactivate = 'Deactivate Account';
+  static const String BTN_SAVE = 'Save';
+  static const String BTN_ADD_ACCOUNT = 'Add Account';
+  static const String BTN_ADD_ENTRY = 'New Entry';
+  static const String BTN_ADD_ASSET = 'Add Asset';
+  static const String BTN_MARK_PAID = 'Mark as Paid';
+  static const String BTN_DEACTIVATE = 'Deactivate Account';
 
   // Section headers (ALL-CAPS)
-  static const String sectionBankDetails = 'BANK DETAILS';
-  static const String sectionRecentEntries = 'RECENT ENTRIES';
-  static const String sectionMetadata = 'METADATA';
+  static const String SECTION_BANK_DETAILS = 'BANK DETAILS';
+  static const String SECTION_RECENT_ENTRIES = 'RECENT ENTRIES';
+  static const String SECTION_METADATA = 'METADATA';
 
   // Dummy data labels
-  static const String dummyBranchId = 'branch-001';
-  static const String dummyAccountId = 'acc-001';
-  static const String dummyCreatedBy = 'Admin User';
+  static const String DUMMY_BRANCH_ID = 'branch-001';
+  static const String DUMMY_ACCOUNT_ID = 'acc-001';
+  static const String DUMMY_CREATED_BY = 'Admin User';
 }

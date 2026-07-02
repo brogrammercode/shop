@@ -11,14 +11,14 @@ class AccountFormPage extends StatefulWidget {
 
 class _AccountFormPageState extends State<AccountFormPage> {
   final _nameCtrl = TextEditingController(text: '');
-  String _selectedType = FinanceConstant.typeAsset;
+  String _selectedType = FinanceConstant.TYPE_ASSET;
 
   static const _accountTypes = [
-    FinanceConstant.typeAsset,
-    FinanceConstant.typeLiability,
-    FinanceConstant.typeRevenue,
-    FinanceConstant.typeExpense,
-    FinanceConstant.typeEquity,
+    FinanceConstant.TYPE_ASSET,
+    FinanceConstant.TYPE_LIABILITY,
+    FinanceConstant.TYPE_REVENUE,
+    FinanceConstant.TYPE_EXPENSE,
+    FinanceConstant.TYPE_EQUITY,
   ];
 
   @override
@@ -41,11 +41,11 @@ class _AccountFormPageState extends State<AccountFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildLabel(FinanceConstant.labelAccountName),
+                  _buildLabel(FinanceConstant.LABEL_ACCOUNT_NAME),
                   SizedBox(height: 8.h),
-                  _buildTextField(_nameCtrl, FinanceConstant.hintAccountName),
+                  _buildTextField(_nameCtrl, FinanceConstant.HINT_ACCOUNT_NAME),
                   SizedBox(height: 20.h),
-                  _buildLabel(FinanceConstant.labelAccountType),
+                  _buildLabel(FinanceConstant.LABEL_ACCOUNT_TYPE),
                   SizedBox(height: 8.h),
                   Wrap(
                     spacing: 8.w,
@@ -67,7 +67,7 @@ class _AccountFormPageState extends State<AccountFormPage> {
                     }).toList(),
                   ),
                   SizedBox(height: 20.h),
-                  _buildLabel(FinanceConstant.sectionBankDetails),
+                  _buildLabel(FinanceConstant.SECTION_BANK_DETAILS),
                   SizedBox(height: 8.h),
                   _buildTextField(TextEditingController(text: 'State Bank of India'), 'Bank Name'),
                   SizedBox(height: 12.h),
@@ -91,7 +91,7 @@ class _AccountFormPageState extends State<AccountFormPage> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
                   elevation: 0,
                 ),
-                child: Text(FinanceConstant.btnSave, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
+                child: Text(FinanceConstant.BTN_SAVE, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.pureWhite)),
               ),
             ),
           ),
@@ -138,7 +138,7 @@ class _AccountFormPageState extends State<AccountFormPage> {
             child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24.w),
           ),
           SizedBox(width: 12.w),
-          Expanded(child: Text(FinanceConstant.accountFormTitleCreate, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
+          Expanded(child: Text(FinanceConstant.ACCOUNT_FORM_TITLE_CREATE, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary))),
         ],
       ),
     );

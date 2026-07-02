@@ -12,14 +12,14 @@ class ApiClient {
     : _localStorage = localStorage ?? LocalStorage() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
+        baseUrl: ApiConstants.BASE_URL,
         connectTimeout: const Duration(
-          milliseconds: ApiConstants.connectTimeout,
+          milliseconds: ApiConstants.CONNECT_TIMEOUT,
         ),
         receiveTimeout: const Duration(
-          milliseconds: ApiConstants.receiveTimeout,
+          milliseconds: ApiConstants.RECEIVE_TIMEOUT,
         ),
-        contentType: ApiConstants.contentTypeJson,
+        contentType: ApiConstants.CONTENT_TYPE_JSON,
       ),
     );
     _dio.interceptors.add(
@@ -30,8 +30,8 @@ class ApiClient {
         onRequest: (options, handler) async {
           final token = await _localStorage.getToken();
           if (token != null) {
-            options.headers[ApiConstants.headerAuthorization] =
-                '${ApiConstants.bearerPrefix} $token';
+            options.headers[ApiConstants.HEADER_AUTHORIZATION] =
+                '${ApiConstants.BEARER_PREFIX} $token';
           }
           handler.next(options);
         },
@@ -108,32 +108,32 @@ class ApiClient {
     if (e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.receiveTimeout ||
         e.type == DioExceptionType.sendTimeout) {
-      return const NetworkException(AppText.connectionTimedOut);
+      return const NetworkException(AppText.CONNECTION_TIMED_OUT);
     }
 
     final statusCode = e.response?.statusCode;
 
     if (statusCode == 401 || statusCode == 403) {
       final message =
-          _readErrorMessage(e.response?.data) ?? AuthText.authenticationFailed;
+          _readErrorMessage(e.response?.data) ?? AuthText.AUTHENTICATION_FAILED;
       return AuthException(message);
     }
 
     final message =
-        _readErrorMessage(e.response?.data) ?? AppText.somethingWentWrong;
+        _readErrorMessage(e.response?.data) ?? AppText.SOMETHING_WENT_WRONG;
     return ServerException(message);
   }
 
   String? _readErrorMessage(dynamic data) {
     if (data is Map<String, dynamic>) {
       final message =
-          data[ApiConstants.messageField] ?? data[ApiConstants.errorField];
+          data[ApiConstants.MESSAGE_FIELD] ?? data[ApiConstants.ERROR_FIELD];
       return message?.toString();
     }
     if (data is Map) {
       final map = Map<String, dynamic>.from(data);
       final message =
-          map[ApiConstants.messageField] ?? map[ApiConstants.errorField];
+          map[ApiConstants.MESSAGE_FIELD] ?? map[ApiConstants.ERROR_FIELD];
       return message?.toString();
     }
     if (data is String && data.trim().isNotEmpty) {

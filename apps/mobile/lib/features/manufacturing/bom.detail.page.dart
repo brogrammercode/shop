@@ -14,7 +14,7 @@ class BomDetailPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.pureWhite,
         elevation: 0,
-        title: Text(ProductionConstant.bomDetailTitle, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(ProductionConstant.BOM_DETAIL_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
         centerTitle: true,
       ),
       body: Padding(
@@ -36,7 +36,7 @@ class BomDetailPage extends StatelessWidget {
               ),
             ),
             AppButton(
-              text: ProductionConstant.startBatch,
+              text: ProductionConstant.START_BATCH,
               onPressed: () => Navigator.pushNamed(context, '/create-production-batch'),
             ),
           ],
