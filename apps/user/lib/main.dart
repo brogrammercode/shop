@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
             ),
           ],
           child: MaterialApp(
-            title: 'User Shop App',
+            title: "L'em",
             debugShowCheckedModeBanner: false,
             navigatorKey: navigatorKey,
             theme: AppTheme.lightTheme,

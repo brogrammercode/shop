@@ -219,8 +219,7 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                           hintText: BranchConstant.BANK_BRANCH_LABEL,
                           controller: _bankBranchController,
                         ),
-
-                        SizedBox(height: 32.h),
+                        SizedBox(height: 100.h),
                       ],
                     ),
                   ),

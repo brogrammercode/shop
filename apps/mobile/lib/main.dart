@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
         splitScreenMode: true,
         builder: (context, child) {
           return MaterialApp(
-            title: "Ladyluck'em",
+            title: "L'em",
             debugShowCheckedModeBanner: false,
             navigatorKey: navigatorKey,
             theme: AppTheme.lightTheme,
