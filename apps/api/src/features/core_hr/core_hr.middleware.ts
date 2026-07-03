@@ -4,6 +4,7 @@ import config from '../../core/config';
 import { _CORE_HR_CONSTANTS } from './core_hr.constant';
 import { UnauthorizedError, ForbiddenError } from '../../utils/error';
 import { coreHrRepo } from './core_hr.repo';
+import { requestContext } from '../../core/request_context';
 
 declare global {
   namespace Express {
@@ -24,7 +25,9 @@ export const authenticate = (req: Request, _res: Response, next: NextFunction) =
     const token = authHeader.split(' ')[1];
     const decoded = Jwt.verify<{ uid: string; id: string }>(token, config.JWT_SECRET);
     req.user = decoded;
-    next();
+    requestContext.run({ uid: decoded.uid }, () => {
+      next();
+    });
   } catch {
     next(new UnauthorizedError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.INVALID_TOKEN));
   }

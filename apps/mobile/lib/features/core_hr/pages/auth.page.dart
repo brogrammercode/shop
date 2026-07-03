@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/services/json_cache.dart';
 import 'package:mobile/core/routes.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.state.dart';
@@ -112,10 +113,17 @@ class _AuthPageState extends State<AuthPage> {
             listenWhen: (previous, current) =>
                 previous.loginInfo.status != current.loginInfo.status ||
                 previous.googleSignInInfo.status != current.googleSignInInfo.status,
-            listener: (context, state) {
+            listener: (context, state) async {
               if (state.loginInfo.status == OperationStatus.success ||
                   state.googleSignInInfo.status == OperationStatus.success) {
-                Navigator.pushReplacementNamed(context, AppRoutes.home);
+                final hasEmployee = state.currentEmployee != null;
+                final businessContext = await JsonCache().getBusinessContext();
+                final hasBusinessContext = businessContext != null && businessContext.isNotEmpty;
+                if (!hasEmployee || !hasBusinessContext) {
+                  if (context.mounted) Navigator.pushReplacementNamed(context, AppRoutes.crossRoad);
+                } else {
+                  if (context.mounted) Navigator.pushReplacementNamed(context, AppRoutes.home);
+                }
               }
             },
           ),

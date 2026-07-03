@@ -13,7 +13,6 @@ export class CoreHrService {
   private smsService = new SmsService();
   private googleClient = new OAuth2Client(config.GOOGLE_SERVER_CLIENT_ID);
 
-
   async sendOtp(phoneNumber: string) {
     if (!phoneNumber) throw new BadRequestError('Phone number is required');
 
@@ -36,12 +35,12 @@ export class CoreHrService {
       }
     }
 
-    await coreHrRepo.deleteOtpsByActor(user.id, 'LOGIN');
+    await coreHrRepo.deleteOtpsByActor(user.id, user.id, 'LOGIN');
 
     const otp = randomInt(_CORE_HR_CONSTANTS.OTP_MIN, _CORE_HR_CONSTANTS.OTP_MAX).toString().padStart(6, '0');
     const valid_till = new Date(Date.now() + _CORE_HR_CONSTANTS.OTP_EXPIRY_MS);
 
-    await coreHrRepo.createOtp({
+    await coreHrRepo.createOtp(user.id, {
       actor: user.id,
       otp,
       type: 'LOGIN',
@@ -86,7 +85,7 @@ export class CoreHrService {
           if (!storedOtp) {
             throw new BadRequestError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.INVALID_OTP);
           }
-          await coreHrRepo.deleteOtpsByActor(user.id, 'LOGIN');
+          await coreHrRepo.deleteOtpsByActor(user.id, user.id, 'LOGIN');
         }
         
         uid = user.id;
@@ -114,7 +113,7 @@ export class CoreHrService {
 
       const refreshToken = randomBytes(40).toString('hex');
 
-      await coreHrRepo.createSession({
+      await coreHrRepo.createSession(user.id, {
         uid: user.id,
         access_token: token,
         refresh_token: refreshToken,
@@ -133,7 +132,7 @@ export class CoreHrService {
         title: 'User Login',
         description: 'User successfully logged in',
         meta: { method: idToken ? 'Google' : 'OTP' },
-        ref_link: '',
+        ref_link: `/user/${user.id}`,
       });
 
       return { user, employee, tokens: { accessToken: token, refreshToken } };
@@ -148,7 +147,7 @@ export class CoreHrService {
     if (!refreshToken) throw new BadRequestError('Refresh token required');
     const session = await coreHrRepo.findSessionByRefreshToken(refreshToken);
     if (!session || session.expires_at < new Date()) {
-      if (session) await coreHrRepo.deleteSession(session.id);
+      if (session) await coreHrRepo.deleteSession(session.uid, session.id);
       throw new AppError('Invalid or expired refresh token', undefined, HttpStatus.UNAUTHORIZED);
     }
 
@@ -159,16 +158,16 @@ export class CoreHrService {
     return { accessToken: token };
   }
 
-  async logout(sessionId: string) {
-    await coreHrRepo.deleteSession(sessionId);
+  async logout(actorUid: string, sessionId: string) {
+    await coreHrRepo.deleteSession(actorUid, sessionId);
   }
 
   async getSessions(uid: string) {
     return coreHrRepo.findSessionsByUserId(uid);
   }
 
-  async terminateSession(sessionId: string) {
-    return coreHrRepo.deleteSession(sessionId);
+  async terminateSession(actorUid: string, sessionId: string) {
+    return coreHrRepo.deleteSession(actorUid, sessionId);
   }
 
   async logActivity(data: any) {
@@ -188,10 +187,10 @@ export class CoreHrService {
     return { user, employee };
   }
 
-  async createBranch(uid: string, name: string, code: string, isHq: boolean) {
-    const branch = await coreHrRepo.createBranch({ name, code, is_hq: isHq });
-    const role = await coreHrRepo.createRole(branch.id, _CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.OWNER_ROLE, [_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S._A_L_L]);
-    const employee = await coreHrRepo.createEmployee(branch.id, uid, role.id);
+  async createBranch(uid: string, name: string, isHq: boolean, addresses?: any[], bank_details?: any[]) {
+    const branch = await coreHrRepo.createBranch(uid, { name, is_hq: isHq, addresses, bank_details });
+    const role = await coreHrRepo.createRole(uid, branch.id, _CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.OWNER_ROLE, [_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S._A_L_L]);
+    const employee = await coreHrRepo.createEmployee(uid, branch.id, uid, role.id);
     return { branch, employee };
   }
 
@@ -215,7 +214,7 @@ export class CoreHrService {
       throw new ConflictError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.PENDING_REQUEST_EXISTS);
     }
 
-    return coreHrRepo.createJoinRequest(uid, branchId, message);
+    return coreHrRepo.createJoinRequest(uid, uid, branchId, message);
   }
 
   async listJoinRequests(branchId: string) {
@@ -234,8 +233,8 @@ export class CoreHrService {
       throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.ROLE_NOT_FOUND);
     }
 
-    const employee = await coreHrRepo.createEmployee(branchId, request.uid, defaultRole.id);
-    const updatedRequest = await coreHrRepo.updateJoinRequestStatus(requestId, 'APPROVED', reviewedBy);
+    const employee = await coreHrRepo.createEmployee(reviewedBy, branchId, request.uid, defaultRole.id);
+    const updatedRequest = await coreHrRepo.updateJoinRequestStatus(reviewedBy, requestId, 'APPROVED', reviewedBy);
 
     return { employee, request: updatedRequest };
   }
@@ -246,78 +245,78 @@ export class CoreHrService {
       throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.JOIN_REQUEST_NOT_FOUND);
     }
 
-    return coreHrRepo.updateJoinRequestStatus(requestId, 'REJECTED', reviewedBy);
+    return coreHrRepo.updateJoinRequestStatus(reviewedBy, requestId, 'REJECTED', reviewedBy);
   }
 
   async listEmployees(branchId: string) {
     return coreHrRepo.findEmployeesByBranch(branchId);
   }
 
-  async createEmployee(branchId: string, uid: string, roleId: string) {
-    return coreHrRepo.createEmployee(branchId, uid, roleId);
+  async createEmployee(actorUid: string, branchId: string, uid: string, roleId: string) {
+    return coreHrRepo.createEmployee(actorUid, branchId, uid, roleId);
   }
 
-  async updateEmployee(id: string, branchId: string, data: any) {
+  async updateEmployee(actorUid: string, id: string, branchId: string, data: any) {
     const employee = await coreHrRepo.findEmployeeById(id);
     if (!employee || employee.branch_id !== branchId) {
       throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.EMPLOYEE_NOT_FOUND);
     }
-    return coreHrRepo.updateEmployee(id, data);
+    return coreHrRepo.updateEmployee(actorUid, id, data);
   }
 
-  async deleteEmployee(id: string, branchId: string) {
+  async deleteEmployee(actorUid: string, id: string, branchId: string) {
     const employee = await coreHrRepo.findEmployeeById(id);
     if (!employee || employee.branch_id !== branchId) {
       throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.EMPLOYEE_NOT_FOUND);
     }
-    return coreHrRepo.deleteEmployee(id);
+    return coreHrRepo.deleteEmployee(actorUid, id);
   }
 
   async listDepartments(branchId: string) {
     return coreHrRepo.findDepartmentsByBranch(branchId);
   }
 
-  async createDepartment(branchId: string, name: string, description?: string) {
-    return coreHrRepo.createDepartment(branchId, name, description);
+  async createDepartment(actorUid: string, branchId: string, name: string, description?: string) {
+    return coreHrRepo.createDepartment(actorUid, branchId, name, description);
   }
 
   async listRoles(branchId: string) {
     return coreHrRepo.findRolesByBranch(branchId);
   }
 
-  async createRole(branchId: string, name: string, permissions: string[]) {
-    return coreHrRepo.createRole(branchId, name, permissions);
+  async createRole(actorUid: string, branchId: string, name: string, permissions: string[]) {
+    return coreHrRepo.createRole(actorUid, branchId, name, permissions);
   }
 
   async listPosts(branchId: string) {
     return coreHrRepo.findPostsByBranch(branchId);
   }
 
-  async createPost(branchId: string, departmentId: string, name: string, description?: string) {
-    return coreHrRepo.createPost(branchId, departmentId, name, description);
+  async createPost(actorUid: string, branchId: string, departmentId: string, name: string, description?: string) {
+    return coreHrRepo.createPost(actorUid, branchId, departmentId, name, description);
   }
 
   async listShifts(branchId: string) {
     return coreHrRepo.findShiftsByBranch(branchId);
   }
 
-  async createShift(branchId: string, name: string, startTime: string, endTime: string) {
-    return coreHrRepo.createShift(branchId, name, startTime, endTime);
+  async createShift(actorUid: string, branchId: string, name: string, startTime: string, endTime: string) {
+    return coreHrRepo.createShift(actorUid, branchId, name, startTime, endTime);
   }
 
   async listTimeLogs(branchId: string) {
     return coreHrRepo.findTimeLogsByBranch(branchId);
   }
 
-  async clockIn(branchId: string, employeeId: string) {
+  async clockIn(actorUid: string, branchId: string, employeeId: string) {
     const openLog = await coreHrRepo.findOpenTimeLog(employeeId);
     if (openLog) {
       throw new ConflictError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.ALREADY_CLOCKED_IN);
     }
-    return coreHrRepo.createTimeLog(branchId, employeeId, new Date());
+    return coreHrRepo.createTimeLog(actorUid, branchId, employeeId, new Date());
   }
 
-  async clockOut(id: string, employeeId: string) {
+  async clockOut(actorUid: string, id: string, employeeId: string) {
     const log = await coreHrRepo.findTimeLogById(id);
     if (!log || log.employee_id !== employeeId) {
       throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.TIME_LOG_NOT_FOUND);
@@ -328,18 +327,18 @@ export class CoreHrService {
     const clockOut = new Date();
     const diff = clockOut.getTime() - log.clock_in.getTime();
     const totalHours = diff / (1000 * 60 * 60);
-    return coreHrRepo.closeTimeLog(id, clockOut, totalHours);
+    return coreHrRepo.closeTimeLog(actorUid, id, clockOut, totalHours);
   }
 
   async listCashRegisters(branchId: string) {
     return coreHrRepo.findCashRegistersByBranch(branchId);
   }
 
-  async createCashRegister(branchId: string, registerName: string, macAddress?: string) {
-    return coreHrRepo.createCashRegister(branchId, registerName, macAddress);
+  async createCashRegister(actorUid: string, branchId: string, registerName: string, macAddress?: string) {
+    return coreHrRepo.createCashRegister(actorUid, branchId, registerName, macAddress);
   }
 
-  async openCashRegister(id: string, branchId: string, expectedCash: number, openedBy: string) {
+  async openCashRegister(actorUid: string, id: string, branchId: string, expectedCash: number, openedBy: string) {
     const register = await coreHrRepo.findCashRegisterById(id);
     if (!register || register.branch_id !== branchId) {
       throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.CASH_REGISTER_NOT_FOUND);
@@ -347,10 +346,10 @@ export class CoreHrService {
     if (register.status === 'OPEN') {
       throw new ConflictError('Cash register is already open');
     }
-    return coreHrRepo.openCashRegister(id, expectedCash, openedBy);
+    return coreHrRepo.openCashRegister(actorUid, id, expectedCash, openedBy);
   }
 
-  async closeCashRegister(id: string, branchId: string, actualCash: number, closedBy: string) {
+  async closeCashRegister(actorUid: string, id: string, branchId: string, actualCash: number, closedBy: string) {
     const register = await coreHrRepo.findCashRegisterById(id);
     if (!register || register.branch_id !== branchId) {
       throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.CASH_REGISTER_NOT_FOUND);
@@ -358,7 +357,7 @@ export class CoreHrService {
     if (register.status === 'CLOSED') {
       throw new ConflictError('Cash register is already closed');
     }
-    return coreHrRepo.closeCashRegister(id, actualCash, closedBy);
+    return coreHrRepo.closeCashRegister(actorUid, id, actualCash, closedBy);
   }
 
   async listUserLogs(uid: string) {

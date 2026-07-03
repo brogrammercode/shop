@@ -258,13 +258,18 @@ class CoreHrCubit extends Cubit<CoreHrState> {
     );
   }
 
-  Future<void> createBranch(String name, String code, bool isHq) async {
+  Future<void> createBranch(
+    String name,
+    bool isHq,
+    List<Map<String, dynamic>>? addresses,
+    List<Map<String, dynamic>>? bankDetails,
+  ) async {
     emit(
       state.copyWith(
         branchInfo: const OperationInfo(status: OperationStatus.loading),
       ),
     );
-    final result = await _repo.createBranch(name, code, isHq);
+    final result = await _repo.createBranch(name, isHq, addresses, bankDetails);
     result.fold(
       (failure) {
         Fluttertoast.showToast(msg: failure.message);

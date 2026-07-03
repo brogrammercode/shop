@@ -97,10 +97,7 @@ class CoreHrRepo {
     return tryCatchAsync(() async {
       final response = await _apiClient.post(
         CoreHrEndpoints.login,
-        data: {
-          'phone_number': phoneNumber,
-          'otp': otp,
-        },
+        data: {'phone_number': phoneNumber, 'otp': otp},
       );
       final data = response.data['data'];
       await _localStorage.saveToken(data['tokens']['accessToken']);
@@ -123,7 +120,10 @@ class CoreHrRepo {
 
   TaskResult<String> refreshAccessToken(String refreshToken) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post('/hr/auth/refresh', data: {'refreshToken': refreshToken});
+      final response = await _apiClient.post(
+        '/hr/auth/refresh',
+        data: {'refreshToken': refreshToken},
+      );
       final accessToken = response.data['data']['accessToken'];
       await _localStorage.saveToken(accessToken);
       return accessToken;
@@ -165,7 +165,8 @@ class CoreHrRepo {
         'employee': data['employee'] != null
             ? EmployeeModel.fromJson(data['employee'])
             : null,
-        'branch': (data['employee'] != null && data['employee']['branch'] != null)
+        'branch':
+            (data['employee'] != null && data['employee']['branch'] != null)
             ? BranchModel.fromJson(data['employee']['branch'])
             : null,
       };
@@ -174,13 +175,19 @@ class CoreHrRepo {
 
   TaskResult<Map<String, dynamic>> createBranch(
     String name,
-    String code,
     bool isHq,
+    List<Map<String, dynamic>>? addresses,
+    List<Map<String, dynamic>>? bankDetails,
   ) async {
     return tryCatchAsync(() async {
       final response = await _apiClient.post(
         CoreHrEndpoints.branch,
-        data: {'name': name, 'code': code, 'is_hq': isHq},
+        data: {
+          'name': name,
+          'is_hq': isHq,
+          'addresses': ?addresses,
+          'bank_details': ?bankDetails,
+        },
       );
       final data = response.data['data'];
       return {

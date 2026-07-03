@@ -10,6 +10,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.state.dart';
 import 'package:mobile/utils/error.dart';
+import 'package:mobile/services/location_service.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class CreateBranchPage extends StatefulWidget {
   const CreateBranchPage({super.key});
@@ -20,50 +22,138 @@ class CreateBranchPage extends StatefulWidget {
 
 class _CreateBranchPageState extends State<CreateBranchPage> {
   final _nameController = TextEditingController();
-  final _codeController = TextEditingController();
-  final _franchiseController = TextEditingController();
   bool _isHq = false;
+  
+  int? _fetchingLocationIndex;
+  final LocationService _locationService = LocationService();
 
-  final _areaController = TextEditingController();
-  final _localityController = TextEditingController();
-  final _cityController = TextEditingController();
-  final _stateController = TextEditingController();
-  final _countryController = TextEditingController();
-  final _pinCodeController = TextEditingController();
+  final List<Map<String, TextEditingController>> _addressControllers = [];
+  final List<Map<String, TextEditingController>> _bankControllers = [];
 
-  final _bankNameController = TextEditingController();
-  final _accountNameController = TextEditingController();
-  final _accountNumberController = TextEditingController();
-  final _ifscCodeController = TextEditingController();
-  final _swiftCodeController = TextEditingController();
-  final _bankBranchController = TextEditingController();
+  @override
+  void initState() {
+    super.initState();
+    _addAddressBlock();
+    _addBankBlock();
+  }
+
+  void _addAddressBlock() {
+    setState(() {
+      _addressControllers.add({
+        'area': TextEditingController(),
+        'locality': TextEditingController(),
+        'city': TextEditingController(),
+        'state': TextEditingController(),
+        'country': TextEditingController(),
+        'pinCode': TextEditingController(),
+        'lat': TextEditingController(),
+        'long': TextEditingController(),
+      });
+    });
+  }
+
+  void _addBankBlock() {
+    setState(() {
+      _bankControllers.add({
+        'bankName': TextEditingController(),
+        'accountName': TextEditingController(),
+        'accountNumber': TextEditingController(),
+        'ifscCode': TextEditingController(),
+        'swiftCode': TextEditingController(),
+        'branchName': TextEditingController(),
+      });
+    });
+  }
+
+  void _removeAddressBlock(int index) {
+    if (index == 0 || index >= _addressControllers.length) return;
+    setState(() {
+      final block = _addressControllers.removeAt(index);
+      for (var c in block.values) {
+        c.dispose();
+      }
+    });
+  }
+
+  void _removeBankBlock(int index) {
+    if (index == 0 || index >= _bankControllers.length) return;
+    setState(() {
+      final block = _bankControllers.removeAt(index);
+      for (var c in block.values) {
+        c.dispose();
+      }
+    });
+  }
 
   @override
   void dispose() {
     _nameController.dispose();
-    _codeController.dispose();
-    _franchiseController.dispose();
-    _areaController.dispose();
-    _localityController.dispose();
-    _cityController.dispose();
-    _stateController.dispose();
-    _countryController.dispose();
-    _pinCodeController.dispose();
-    _bankNameController.dispose();
-    _accountNameController.dispose();
-    _accountNumberController.dispose();
-    _ifscCodeController.dispose();
-    _swiftCodeController.dispose();
-    _bankBranchController.dispose();
+    for (var addr in _addressControllers) {
+      for (var c in addr.values) {
+        c.dispose();
+      }
+    }
+    for (var bank in _bankControllers) {
+      for (var c in bank.values) {
+        c.dispose();
+      }
+    }
     super.dispose();
   }
 
   void _onCreate() {
     final name = _nameController.text.trim();
-    final code = _codeController.text.trim();
-    if (name.isNotEmpty && code.isNotEmpty) {
-      context.read<CoreHrCubit>().createBranch(name, code, _isHq);
+    if (name.isNotEmpty) {
+      List<Map<String, dynamic>> addresses = [];
+      for (var addr in _addressControllers) {
+        if (addr['area']!.text.isNotEmpty || addr['city']!.text.isNotEmpty) {
+          addresses.add({
+            'area': addr['area']!.text.trim(),
+            'locality': addr['locality']!.text.trim(),
+            'city': addr['city']!.text.trim(),
+            'state': addr['state']!.text.trim(),
+            'country': addr['country']!.text.trim(),
+            'pin_code': addr['pinCode']!.text.trim(),
+            if (addr['lat']!.text.isNotEmpty) 'lat': double.tryParse(addr['lat']!.text.trim()),
+            if (addr['long']!.text.isNotEmpty) 'long': double.tryParse(addr['long']!.text.trim()),
+          });
+        }
+      }
+      List<Map<String, dynamic>> banks = [];
+      for (var bank in _bankControllers) {
+        if (bank['accountNumber']!.text.isNotEmpty || bank['ifscCode']!.text.isNotEmpty) {
+          banks.add({
+            'bank_name': bank['bankName']!.text.trim(),
+            'account_name': bank['accountName']!.text.trim(),
+            'account_number': bank['accountNumber']!.text.trim(),
+            'ifsc_code': bank['ifscCode']!.text.trim(),
+            'swift_code': bank['swiftCode']!.text.trim(),
+            'branch_name': bank['branchName']!.text.trim(),
+          });
+        }
+      }
+      context.read<CoreHrCubit>().createBranch(name, _isHq, addresses.isNotEmpty ? addresses : null, banks.isNotEmpty ? banks : null);
     }
+  }
+
+  Future<void> _fetchLocation(int index) async {
+    setState(() => _fetchingLocationIndex = index);
+    final result = await _locationService.getCurrentLocation();
+    setState(() => _fetchingLocationIndex = null);
+    result.fold(
+      (failure) => Fluttertoast.showToast(msg: failure.message),
+      (location) {
+        final address = _addressControllers[index];
+        if (location.street != null) address['area']!.text = location.street!;
+        if (location.locality != null) address['locality']!.text = location.locality!;
+        if (location.city != null) address['city']!.text = location.city!;
+        if (location.state != null) address['state']!.text = location.state!;
+        if (location.country != null) address['country']!.text = location.country!;
+        if (location.pinCode != null) address['pinCode']!.text = location.pinCode!;
+        address['lat']!.text = location.latitude.toString();
+        address['long']!.text = location.longitude.toString();
+      },
+    );
   }
 
   @override
@@ -112,16 +202,6 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                           controller: _nameController,
                         ),
                         SizedBox(height: 12.h),
-                        AppInput(
-                          hintText: BranchConstant.BRANCH_CODE_LABEL,
-                          controller: _codeController,
-                        ),
-                        SizedBox(height: 12.h),
-                        AppInput(
-                          hintText: BranchConstant.FRANCHISE_LABEL,
-                          controller: _franchiseController,
-                        ),
-                        SizedBox(height: 12.h),
                         AppToggle(
                           label: BranchConstant.IS_HQ_LABEL,
                           value: _isHq,
@@ -129,95 +209,180 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                         ),
 
                         SizedBox(height: 32.h),
-                        _buildSectionHeader(BranchConstant.ADDRESS_SECTION),
-                        SizedBox(height: 12.h),
-                        AppInput(
-                          hintText: BranchConstant.AREA_LABEL,
-                          controller: _areaController,
-                        ),
-                        SizedBox(height: 12.h),
-                        AppInput(
-                          hintText: BranchConstant.LOCALITY_LABEL,
-                          controller: _localityController,
-                        ),
-                        SizedBox(height: 12.h),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: AppInput(
-                                hintText: BranchConstant.CITY_LABEL,
-                                controller: _cityController,
+                        ..._addressControllers.asMap().entries.map((entry) {
+                          final idx = entry.key;
+                          final addr = entry.value;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionHeaderWithLocation(
+                                idx == 0 ? BranchConstant.ADDRESS_SECTION : 'Address ${idx + 1}',
+                                idx,
+                              ),
+                              SizedBox(height: 12.h),
+                              AppInput(
+                                hintText: BranchConstant.AREA_LABEL,
+                                controller: addr['area'],
+                              ),
+                              SizedBox(height: 12.h),
+                              AppInput(
+                                hintText: BranchConstant.LOCALITY_LABEL,
+                                controller: addr['locality'],
+                              ),
+                              SizedBox(height: 12.h),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: AppInput(
+                                      hintText: BranchConstant.CITY_LABEL,
+                                      controller: addr['city'],
+                                    ),
+                                  ),
+                                  SizedBox(width: 12.w),
+                                  Expanded(
+                                    child: AppInput(
+                                      hintText: BranchConstant.STATE_LABEL,
+                                      controller: addr['state'],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 12.h),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: AppInput(
+                                      hintText: BranchConstant.COUNTRY_LABEL,
+                                      controller: addr['country'],
+                                    ),
+                                  ),
+                                  SizedBox(width: 12.w),
+                                  Expanded(
+                                    child: AppInput(
+                                      hintText: BranchConstant.PIN_CODE_LABEL,
+                                      controller: addr['pinCode'],
+                                      keyboardType: TextInputType.number,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 24.h),
+                              if (idx > 0)
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: GestureDetector(
+                                    onTap: () => _removeAddressBlock(idx),
+                                    child: Text(
+                                      'Remove',
+                                      style: TextStyle(
+                                        color: AppColors.error,
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              if (idx > 0) SizedBox(height: 12.h),
+                            ],
+                          );
+                        }),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            onPressed: _addAddressBlock,
+                            icon: Icon(Icons.add, color: AppColors.primaryGreen, size: 16.w),
+                            label: Text(
+                              'Add Address',
+                              style: TextStyle(
+                                color: AppColors.primaryGreen,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12.sp,
                               ),
                             ),
-                            SizedBox(width: 12.w),
-                            Expanded(
-                              child: AppInput(
-                                hintText: BranchConstant.STATE_LABEL,
-                                controller: _stateController,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 12.h),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: AppInput(
-                                hintText: BranchConstant.COUNTRY_LABEL,
-                                controller: _countryController,
-                              ),
-                            ),
-                            SizedBox(width: 12.w),
-                            Expanded(
-                              child: AppInput(
-                                hintText: BranchConstant.PIN_CODE_LABEL,
-                                controller: _pinCodeController,
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
 
-                        SizedBox(height: 32.h),
-                        _buildSectionHeader(BranchConstant.BANK_SECTION),
-                        SizedBox(height: 12.h),
-                        AppInput(
-                          hintText: BranchConstant.BANK_NAME_LABEL,
-                          controller: _bankNameController,
-                        ),
-                        SizedBox(height: 12.h),
-                        AppInput(
-                          hintText: BranchConstant.ACCOUNT_NAME_LABEL,
-                          controller: _accountNameController,
-                        ),
-                        SizedBox(height: 12.h),
-                        AppInput(
-                          hintText: BranchConstant.ACCOUNT_NUMBER_LABEL,
-                          controller: _accountNumberController,
-                          keyboardType: TextInputType.number,
-                        ),
-                        SizedBox(height: 12.h),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: AppInput(
-                                hintText: BranchConstant.IFSC_CODE_LABEL,
-                                controller: _ifscCodeController,
+                        SizedBox(height: 16.h),
+                        ..._bankControllers.asMap().entries.map((entry) {
+                          final idx = entry.key;
+                          final bank = entry.value;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSectionHeader(idx == 0 ? BranchConstant.BANK_SECTION : 'Bank Detail ${idx + 1}'),
+                              SizedBox(height: 12.h),
+                              AppInput(
+                                hintText: BranchConstant.BANK_NAME_LABEL,
+                                controller: bank['bankName'],
+                              ),
+                              SizedBox(height: 12.h),
+                              AppInput(
+                                hintText: BranchConstant.ACCOUNT_NAME_LABEL,
+                                controller: bank['accountName'],
+                              ),
+                              SizedBox(height: 12.h),
+                              AppInput(
+                                hintText: BranchConstant.ACCOUNT_NUMBER_LABEL,
+                                controller: bank['accountNumber'],
+                                keyboardType: TextInputType.number,
+                              ),
+                              SizedBox(height: 12.h),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: AppInput(
+                                      hintText: BranchConstant.IFSC_CODE_LABEL,
+                                      controller: bank['ifscCode'],
+                                    ),
+                                  ),
+                                  SizedBox(width: 12.w),
+                                  Expanded(
+                                    child: AppInput(
+                                      hintText: BranchConstant.SWIFT_CODE_LABEL,
+                                      controller: bank['swiftCode'],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 12.h),
+                              AppInput(
+                                hintText: BranchConstant.BANK_BRANCH_LABEL,
+                                controller: bank['branchName'],
+                              ),
+                              SizedBox(height: 24.h),
+                              if (idx > 0)
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: GestureDetector(
+                                    onTap: () => _removeBankBlock(idx),
+                                    child: Text(
+                                      'Remove',
+                                      style: TextStyle(
+                                        color: AppColors.error,
+                                        fontSize: 12.sp,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              if (idx > 0) SizedBox(height: 12.h),
+                            ],
+                          );
+                        }),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            onPressed: _addBankBlock,
+                            icon: Icon(Icons.add, color: AppColors.primaryGreen, size: 16.w),
+                            label: Text(
+                              'Add Bank Detail',
+                              style: TextStyle(
+                                color: AppColors.primaryGreen,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12.sp,
                               ),
                             ),
-                            SizedBox(width: 12.w),
-                            Expanded(
-                              child: AppInput(
-                                hintText: BranchConstant.SWIFT_CODE_LABEL,
-                                controller: _swiftCodeController,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 12.h),
-                        AppInput(
-                          hintText: BranchConstant.BANK_BRANCH_LABEL,
-                          controller: _bankBranchController,
+                          ),
                         ),
                         SizedBox(height: 100.h),
                       ],
@@ -275,6 +440,47 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
         color: AppColors.textTertiary,
         letterSpacing: 0.8,
       ),
+    );
+  }
+
+  Widget _buildSectionHeaderWithLocation(String title, int index) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textTertiary,
+            letterSpacing: 0.8,
+          ),
+        ),
+        GestureDetector(
+          onTap: _fetchingLocationIndex != null ? null : () => _fetchLocation(index),
+          child: Row(
+            children: [
+              if (_fetchingLocationIndex == index)
+                SizedBox(
+                  width: 12.w,
+                  height: 12.w,
+                  child: const CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryGreen),
+                )
+              else
+                Icon(Icons.my_location, size: 14.w, color: AppColors.primaryGreen),
+              SizedBox(width: 4.w),
+              Text(
+                'Use Current Location',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryGreen,
+                ),
+              ),
+            ],
+          ),
+        )
+      ],
     );
   }
 }

@@ -28,7 +28,7 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
 export const logout = asyncHandler(async (req: Request, res: Response) => {
   const { sessionId } = req.body;
   if (sessionId) {
-    await coreHrService.logout(sessionId);
+    await coreHrService.logout(req.user!.uid, sessionId);
   }
   return sendSuccess(res, null, 'Logged out successfully', HttpStatus.OK);
 });
@@ -40,7 +40,7 @@ export const getSessions = asyncHandler(async (req: Request, res: Response) => {
 
 export const terminateSession = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as Record<string, string>;
-  const result = await coreHrService.terminateSession(id);
+  const result = await coreHrService.terminateSession(req.user!.uid, id);
   return sendSuccess(res, result, 'Session terminated successfully', HttpStatus.OK);
 });
 
@@ -65,8 +65,8 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const createBranch = asyncHandler(async (req: Request, res: Response) => {
-  const { name, code, is_hq } = req.body;
-  const result = await coreHrService.createBranch(req.user!.uid, name, code, is_hq);
+  const { name, is_hq, addresses, bank_details } = req.body;
+  const result = await coreHrService.createBranch(req.user!.uid, name, is_hq, addresses, bank_details);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.BRANCH_CREATED, HttpStatus.CREATED);
 });
 
@@ -106,19 +106,19 @@ export const listEmployees = asyncHandler(async (req: Request, res: Response) =>
 
 export const createEmployee = asyncHandler(async (req: Request, res: Response) => {
   const { uid, role_id } = req.body;
-  const result = await coreHrService.createEmployee(req.employee.branch_id, uid, role_id);
+  const result = await coreHrService.createEmployee(req.user!.uid, req.employee.branch_id, uid, role_id);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.EMPLOYEE_CREATED, HttpStatus.CREATED);
 });
 
 export const updateEmployee = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as Record<string, string>;
-  const result = await coreHrService.updateEmployee(id, req.employee.branch_id, req.body);
+  const result = await coreHrService.updateEmployee(req.user!.uid, id, req.employee.branch_id, req.body);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.EMPLOYEE_UPDATED, HttpStatus.OK);
 });
 
 export const deleteEmployee = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as Record<string, string>;
-  const result = await coreHrService.deleteEmployee(id, req.employee.branch_id);
+  const result = await coreHrService.deleteEmployee(req.user!.uid, id, req.employee.branch_id);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.EMPLOYEE_DELETED, HttpStatus.OK);
 });
 
@@ -129,7 +129,7 @@ export const listDepartments = asyncHandler(async (req: Request, res: Response) 
 
 export const createDepartment = asyncHandler(async (req: Request, res: Response) => {
   const { name, description } = req.body;
-  const result = await coreHrService.createDepartment(req.employee.branch_id, name, description);
+  const result = await coreHrService.createDepartment(req.user!.uid, req.employee.branch_id, name, description);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.DEPARTMENT_CREATED, HttpStatus.CREATED);
 });
 
@@ -140,7 +140,7 @@ export const listRoles = asyncHandler(async (req: Request, res: Response) => {
 
 export const createRole = asyncHandler(async (req: Request, res: Response) => {
   const { name, permissions } = req.body;
-  const result = await coreHrService.createRole(req.employee.branch_id, name, permissions);
+  const result = await coreHrService.createRole(req.user!.uid, req.employee.branch_id, name, permissions);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.ROLE_CREATED, HttpStatus.CREATED);
 });
 
@@ -151,7 +151,7 @@ export const listPosts = asyncHandler(async (req: Request, res: Response) => {
 
 export const createPost = asyncHandler(async (req: Request, res: Response) => {
   const { department_id, name, description } = req.body;
-  const result = await coreHrService.createPost(req.employee.branch_id, department_id, name, description);
+  const result = await coreHrService.createPost(req.user!.uid, req.employee.branch_id, department_id, name, description);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.POST_CREATED, HttpStatus.CREATED);
 });
 
@@ -162,7 +162,7 @@ export const listShifts = asyncHandler(async (req: Request, res: Response) => {
 
 export const createShift = asyncHandler(async (req: Request, res: Response) => {
   const { name, start_time, end_time } = req.body;
-  const result = await coreHrService.createShift(req.employee.branch_id, name, start_time, end_time);
+  const result = await coreHrService.createShift(req.user!.uid, req.employee.branch_id, name, start_time, end_time);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.SHIFT_CREATED, HttpStatus.CREATED);
 });
 
@@ -172,13 +172,13 @@ export const listTimeLogs = asyncHandler(async (req: Request, res: Response) => 
 });
 
 export const clockIn = asyncHandler(async (req: Request, res: Response) => {
-  const result = await coreHrService.clockIn(req.employee.branch_id, req.employee.id);
+  const result = await coreHrService.clockIn(req.user!.uid, req.employee.branch_id, req.employee.id);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.CLOCKED_IN, HttpStatus.CREATED);
 });
 
 export const clockOut = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as Record<string, string>;
-  const result = await coreHrService.clockOut(id, req.employee.id);
+  const result = await coreHrService.clockOut(req.user!.uid, id, req.employee.id);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.CLOCKED_OUT, HttpStatus.OK);
 });
 
@@ -189,21 +189,21 @@ export const listCashRegisters = asyncHandler(async (req: Request, res: Response
 
 export const createCashRegister = asyncHandler(async (req: Request, res: Response) => {
   const { register_name, mac_address } = req.body;
-  const result = await coreHrService.createCashRegister(req.employee.branch_id, register_name, mac_address);
+  const result = await coreHrService.createCashRegister(req.user!.uid, req.employee.branch_id, register_name, mac_address);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.CASH_REGISTER_CREATED, HttpStatus.CREATED);
 });
 
 export const openCashRegister = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as Record<string, string>;
   const { expected_cash } = req.body;
-  const result = await coreHrService.openCashRegister(id, req.employee.branch_id, expected_cash, req.employee.id);
+  const result = await coreHrService.openCashRegister(req.user!.uid, id, req.employee.branch_id, expected_cash, req.employee.id);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.CASH_REGISTER_OPENED, HttpStatus.OK);
 });
 
 export const closeCashRegister = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as Record<string, string>;
   const { actual_cash } = req.body;
-  const result = await coreHrService.closeCashRegister(id, req.employee.branch_id, actual_cash, req.employee.id);
+  const result = await coreHrService.closeCashRegister(req.user!.uid, id, req.employee.branch_id, actual_cash, req.employee.id);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.CASH_REGISTER_CLOSED, HttpStatus.OK);
 });
 

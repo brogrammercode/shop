@@ -25,5 +25,7 @@ class AppColors {
   static const Color districtPurple = Color(0xFF5F25D9);
   
   static const Color shadowColor = Color(0x0A000000);
+  
+  static const Color error = Color(0xFFD32F2F);
 }
 

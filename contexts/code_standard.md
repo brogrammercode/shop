@@ -9,6 +9,7 @@ This document outlines the sequential steps for creating, updating, or fixing an
 - **Centralized Constants**: Nothing throughout the app will be hardcoded, not a single thing. If globally used, it will be maintained inside the global constant folder, otherwise inside their feature constant / param file.
 - **Dartz Integration**: Use dartz `Either` (e.g., `TaskResult` and `SyncResult`) for repository methods and Cubits to return success or failure explicitly.
 - **Consistent Timestamps**: Always use `created_at` and `updated_at` (snake_case) throughout the entire codebase (both backend API and mobile models) instead of camelCase `createdAt` and `updatedAt`.
+- **Auto-Generated IDs and Codes**: Wherever there is a document/entity creating, the `code` will be automatically generated (no need to provide a field in UI forms). The `id` will always be a current datetime `millisecondsSinceEpoch` (e.g. `DateTime.now().millisecondsSinceEpoch.toString()` or `Date.now().toString()`) for each and every entity creation.
 
 ---
 
@@ -20,11 +21,25 @@ Follow these steps in order when implementing a new feature:
 3.  **Repository**: Implement `[feature].repo.ts` using Prisma for all database operations.
 4.  **Service (Business Logic)**: Implement `[feature].service.ts` to handle logic and interact with Repositories.
 5.  **Security/Utilities**: Implement `src/infra/security/` utilities if specific hashing or token logic is needed.
-6.  **Constants**: Populate `[feature].constant.ts` with all messages, error strings, and configuration values. Absolutely nothing (such as endpoints, payload keys, regexes, separators, or default labels) will be hardcoded in logical files; everything must be moved to constants. **Every variable name inside the constants file must be written in CAPITAL_SNAKE_CASE (e.g., `NOT_FOUND_ERROR = "..."`).**
+6.  **User Logging**: Every repository method that modifies data (create, update, delete) MUST accept an `actorUid: string` parameter and wrap its execution in a `prisma.$transaction`. Inside the transaction, it MUST call a helper to create a `UserLog` record alongside the mutation to trace every single action down to the minute details.
+7.  **Constants**: Populate `[feature].constant.ts` with all messages, error strings, and configuration values. Absolutely nothing (such as endpoints, payload keys, regexes, separators, or default labels) will be hardcoded in logical files; everything must be moved to constants. **Every variable name inside the constants file must be written in CAPITAL_SNAKE_CASE (e.g., `NOT_FOUND_ERROR = "..."`).**
 7.  **Controller**: Implement `[feature].controller.ts` using the `asyncHandler` utility.
 8.  **Middleware**: Implement `[feature].middleware.ts` for authentication or validation if required.
 9.  **Route**: Create `[feature].route.ts` to map endpoints to controller methods.
 10. **Register Route**: Attach the new route to the global router in `src/routes/index.ts`.
+
+### 2.1 Database Polymorphic Relations
+Models like `Address` and `BankDetail` do not have strict foreign-key relations defined via array fields on parent models. Instead, they use `entity_type` and `entity_id`.
+- **Never** nest `.create()` inside the parent model for these polymorphic relations (e.g. `addresses: { create: [...] }`).
+- **Always** create the parent entity first, then use a `prisma.$transaction` to perform sequential creates, injecting the newly created `parent.id` as the `entity_id` and passing the correct `AddressType` or `BankDetailType`.
+
+### 2.2 Entity IDs
+- **Every single entity** must have its `id` automatically generated as a string representing `millisecondsSinceEpoch`. This is handled dynamically by the Prisma middleware (`src/infra/database/client.ts`).
+- **Never** explicitly pass an `id` field during entity creation in a Repository, as it will bypass the middleware.
+- If an entity needs to map to an external system (e.g. Firebase Auth), create a separate column (like `uid`) instead of hijacking the primary `id` field.
+
+### 2.3 Ownership Tracking
+- For any entity that contains `created_by` or `updated_by` fields in the schema, these fields must be strictly populated with the `uid` of the current user (`actorUid`) performing the operation. This applies to both entity creation (populate `created_by`) and entity modification (populate `updated_by`) across all repositories.
 
 ---
 

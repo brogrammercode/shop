@@ -2,6 +2,22 @@ import { JoinRequestStatus } from '@prisma/client';
 import prisma from '../../infra/database/client';
 
 export class CoreHrRepo {
+  private async _logAction(tx: any, uid: string, action: string, title: string, description: string, meta: any, ref_link: string = '') {
+    if (!uid) return;
+    await tx.userLog.create({
+      data: {
+        uid,
+        action,
+        type: 'MUTATION',
+        module: 'CORE_HR',
+        title,
+        description,
+        meta,
+        ref_link,
+      }
+    });
+  }
+
   async findOrCreateUser(
     firebaseUid: string,
     name: string,
@@ -9,16 +25,20 @@ export class CoreHrRepo {
     email: string | null,
     avatar: string | null,
   ) {
-    const existing = await prisma.user.findUnique({ where: { id: firebaseUid } });
+    const existing = await prisma.user.findUnique({ where: { uid: firebaseUid } });
     if (existing) return existing;
-    return prisma.user.create({
-      data: {
-        id: firebaseUid,
-        name,
-        phone,
-        email: email ?? undefined,
-        avatar: avatar ?? undefined,
-      },
+    return prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          uid: firebaseUid,
+          name,
+          phone,
+          email: email ?? undefined,
+          avatar: avatar ?? undefined,
+        },
+      });
+      await this._logAction(tx, user.id, 'CREATE_USER', 'User Signup', `Created user account for ${phone}`, { user_id: user.id }, `/user/${user.id}`);
+      return user;
     });
   }
 
@@ -43,8 +63,41 @@ export class CoreHrRepo {
     });
   }
 
-  async createBranch(data: { name: string; code: string; is_hq: boolean }) {
-    return prisma.branch.create({ data });
+  async createBranch(actorUid: string, data: { name: string; is_hq: boolean; addresses?: any[]; bank_details?: any[] }) {
+    return prisma.$transaction(async (tx) => {
+      const branch = await tx.branch.create({
+        data: {
+          name: data.name,
+          is_hq: data.is_hq,
+          created_by: actorUid,
+          updated_by: actorUid,
+        } as any
+      });
+
+      if (data.addresses && data.addresses.length > 0) {
+        const addressesToCreate = data.addresses.map((addr: any) => ({
+          ...addr,
+          entity_type: 'BRANCH',
+          entity_id: branch.id,
+        }));
+        await tx.address.createMany({ data: addressesToCreate });
+      }
+
+      if (data.bank_details && data.bank_details.length > 0) {
+        const banksToCreate = data.bank_details.map((bank: any) => ({
+          ...bank,
+          entity_type: 'BRANCH',
+          entity_id: branch.id,
+        }));
+        await tx.bankDetail.createMany({ data: banksToCreate });
+      }
+
+      await this._logAction(tx, actorUid, 'CREATE_BRANCH', 'Branch Created', `Created branch ${data.name}`, { branch_id: branch.id }, `/branch/${branch.id}`);
+      return branch;
+    }, {
+      maxWait: 15000,
+      timeout: 20000,
+    });
   }
 
   async findBranchById(id: string) {
@@ -63,9 +116,13 @@ export class CoreHrRepo {
     });
   }
 
-  async createRole(branchId: string, name: string, permissions: string[]) {
-    return prisma.role.create({
-      data: { branch_id: branchId, name, permissions },
+  async createRole(actorUid: string, branchId: string, name: string, permissions: string[]) {
+    return prisma.$transaction(async (tx) => {
+      const role = await tx.role.create({
+        data: { branch_id: branchId, name, permissions },
+      });
+      await this._logAction(tx, actorUid, 'CREATE_ROLE', 'Role Created', `Created role ${name}`, { role_id: role.id }, `/role/${role.id}`);
+      return role;
     });
   }
 
@@ -79,9 +136,13 @@ export class CoreHrRepo {
     return prisma.role.findUnique({ where: { id } });
   }
 
-  async createEmployee(branchId: string, uid: string, roleId: string) {
-    return prisma.employee.create({
-      data: { branch_id: branchId, uid, role: roleId },
+  async createEmployee(actorUid: string, branchId: string, uid: string, roleId: string) {
+    return prisma.$transaction(async (tx) => {
+      const emp = await tx.employee.create({
+        data: { branch_id: branchId, uid, role: roleId },
+      });
+      await this._logAction(tx, actorUid, 'CREATE_EMPLOYEE', 'Employee Joined', `Employee added to branch`, { employee_id: emp.id }, `/employee/${emp.id}`);
+      return emp;
     });
   }
 
@@ -111,23 +172,32 @@ export class CoreHrRepo {
     });
   }
 
-  async updateEmployee(
-    id: string,
-    data: any,
-  ) {
-    return prisma.employee.update({ where: { id }, data });
-  }
-
-  async deleteEmployee(id: string) {
-    return prisma.employee.update({
-      where: { id },
-      data: { is_deleted: true },
+  async updateEmployee(actorUid: string, id: string, data: any) {
+    return prisma.$transaction(async (tx) => {
+      const emp = await tx.employee.update({ where: { id }, data });
+      await this._logAction(tx, actorUid, 'UPDATE_EMPLOYEE', 'Employee Updated', `Employee profile updated`, { employee_id: emp.id, changes: data }, `/employee/${emp.id}`);
+      return emp;
     });
   }
 
-  async createJoinRequest(uid: string, branchId: string, message: string | undefined) {
-    return prisma.joinRequest.create({
-      data: { uid, branch_id: branchId, message },
+  async deleteEmployee(actorUid: string, id: string) {
+    return prisma.$transaction(async (tx) => {
+      const emp = await tx.employee.update({
+        where: { id },
+        data: { is_deleted: true },
+      });
+      await this._logAction(tx, actorUid, 'DELETE_EMPLOYEE', 'Employee Deleted', `Employee removed from branch`, { employee_id: emp.id }, `/employee/${emp.id}`);
+      return emp;
+    });
+  }
+
+  async createJoinRequest(actorUid: string, uid: string, branchId: string, message: string | undefined) {
+    return prisma.$transaction(async (tx) => {
+      const req = await tx.joinRequest.create({
+        data: { uid, branch_id: branchId, message },
+      });
+      await this._logAction(tx, actorUid, 'CREATE_JOIN_REQUEST', 'Join Request Submitted', `Requested to join branch`, { request_id: req.id }, `/join-request/${req.id}`);
+      return req;
     });
   }
 
@@ -148,16 +218,24 @@ export class CoreHrRepo {
     return prisma.joinRequest.findUnique({ where: { id } });
   }
 
-  async updateJoinRequestStatus(id: string, status: JoinRequestStatus, reviewedBy: string) {
-    return prisma.joinRequest.update({
-      where: { id },
-      data: { status, reviewed_by: reviewedBy },
+  async updateJoinRequestStatus(actorUid: string, id: string, status: JoinRequestStatus, reviewedBy: string) {
+    return prisma.$transaction(async (tx) => {
+      const req = await tx.joinRequest.update({
+        where: { id },
+        data: { status, reviewed_by: reviewedBy },
+      });
+      await this._logAction(tx, actorUid, 'UPDATE_JOIN_REQUEST', `Join Request ${status}`, `Request was ${status.toLowerCase()}`, { request_id: req.id }, `/join-request/${req.id}`);
+      return req;
     });
   }
 
-  async createDepartment(branchId: string, name: string, description: string | undefined) {
-    return prisma.department.create({
-      data: { branch_id: branchId, name, description },
+  async createDepartment(actorUid: string, branchId: string, name: string, description: string | undefined) {
+    return prisma.$transaction(async (tx) => {
+      const dep = await tx.department.create({
+        data: { branch_id: branchId, name, description },
+      });
+      await this._logAction(tx, actorUid, 'CREATE_DEPARTMENT', 'Department Created', `Created department ${name}`, { department_id: dep.id }, `/department/${dep.id}`);
+      return dep;
     });
   }
 
@@ -171,14 +249,13 @@ export class CoreHrRepo {
     return prisma.department.findUnique({ where: { id } });
   }
 
-  async createPost(
-    branchId: string,
-    departmentId: string,
-    name: string,
-    description: string | undefined,
-  ) {
-    return prisma.post.create({
-      data: { branch_id: branchId, department_id: departmentId, name, description },
+  async createPost(actorUid: string, branchId: string, departmentId: string, name: string, description: string | undefined) {
+    return prisma.$transaction(async (tx) => {
+      const post = await tx.post.create({
+        data: { branch_id: branchId, department_id: departmentId, name, description },
+      });
+      await this._logAction(tx, actorUid, 'CREATE_POST', 'Post Created', `Created post ${name}`, { post_id: post.id }, `/post/${post.id}`);
+      return post;
     });
   }
 
@@ -189,14 +266,13 @@ export class CoreHrRepo {
     });
   }
 
-  async createShift(
-    branchId: string,
-    name: string,
-    startTime: string,
-    endTime: string,
-  ) {
-    return prisma.shift.create({
-      data: { branch_id: branchId, name, start_time: startTime, end_time: endTime },
+  async createShift(actorUid: string, branchId: string, name: string, startTime: string, endTime: string) {
+    return prisma.$transaction(async (tx) => {
+      const shift = await tx.shift.create({
+        data: { branch_id: branchId, name, start_time: startTime, end_time: endTime },
+      });
+      await this._logAction(tx, actorUid, 'CREATE_SHIFT', 'Shift Created', `Created shift ${name}`, { shift_id: shift.id }, `/shift/${shift.id}`);
+      return shift;
     });
   }
 
@@ -206,9 +282,13 @@ export class CoreHrRepo {
     });
   }
 
-  async createTimeLog(branchId: string, employeeId: string, clockIn: Date) {
-    return prisma.timeLog.create({
-      data: { branch_id: branchId, employee_id: employeeId, clock_in: clockIn },
+  async createTimeLog(actorUid: string, branchId: string, employeeId: string, clockIn: Date) {
+    return prisma.$transaction(async (tx) => {
+      const log = await tx.timeLog.create({
+        data: { branch_id: branchId, employee_id: employeeId, clock_in: clockIn },
+      });
+      await this._logAction(tx, actorUid, 'CREATE_TIMELOG', 'Clock In', `Employee clocked in`, { timelog_id: log.id }, `/timelog/${log.id}`);
+      return log;
     });
   }
 
@@ -218,10 +298,14 @@ export class CoreHrRepo {
     });
   }
 
-  async closeTimeLog(id: string, clockOut: Date, totalHours: number) {
-    return prisma.timeLog.update({
-      where: { id },
-      data: { clock_out: clockOut, total_hours: totalHours },
+  async closeTimeLog(actorUid: string, id: string, clockOut: Date, totalHours: number) {
+    return prisma.$transaction(async (tx) => {
+      const log = await tx.timeLog.update({
+        where: { id },
+        data: { clock_out: clockOut, total_hours: totalHours },
+      });
+      await this._logAction(tx, actorUid, 'CLOSE_TIMELOG', 'Clock Out', `Employee clocked out`, { timelog_id: log.id, hours: totalHours }, `/timelog/${log.id}`);
+      return log;
     });
   }
 
@@ -237,9 +321,13 @@ export class CoreHrRepo {
     });
   }
 
-  async createCashRegister(branchId: string, registerName: string, macAddress: string | undefined) {
-    return prisma.cashRegister.create({
-      data: { branch_id: branchId, register_name: registerName, mac_address: macAddress },
+  async createCashRegister(actorUid: string, branchId: string, registerName: string, macAddress: string | undefined) {
+    return prisma.$transaction(async (tx) => {
+      const reg = await tx.cashRegister.create({
+        data: { branch_id: branchId, register_name: registerName, mac_address: macAddress },
+      });
+      await this._logAction(tx, actorUid, 'CREATE_CASH_REGISTER', 'Register Created', `Created cash register ${registerName}`, { register_id: reg.id }, `/cash-register/${reg.id}`);
+      return reg;
     });
   }
 
@@ -253,17 +341,25 @@ export class CoreHrRepo {
     return prisma.cashRegister.findUnique({ where: { id } });
   }
 
-  async openCashRegister(id: string, expectedCash: number, openedBy: string) {
-    return prisma.cashRegister.update({
-      where: { id },
-      data: { expected_cash: expectedCash, opened_by: openedBy, status: 'OPEN' },
+  async openCashRegister(actorUid: string, id: string, expectedCash: number, openedBy: string) {
+    return prisma.$transaction(async (tx) => {
+      const reg = await tx.cashRegister.update({
+        where: { id },
+        data: { expected_cash: expectedCash, opened_by: openedBy, status: 'OPEN' },
+      });
+      await this._logAction(tx, actorUid, 'OPEN_REGISTER', 'Register Opened', `Register was opened`, { register_id: reg.id, cash: expectedCash }, `/cash-register/${reg.id}`);
+      return reg;
     });
   }
 
-  async closeCashRegister(id: string, actualCash: number, closedBy: string) {
-    return prisma.cashRegister.update({
-      where: { id },
-      data: { actual_cash: actualCash, closed_by: closedBy, status: 'CLOSED' },
+  async closeCashRegister(actorUid: string, id: string, actualCash: number, closedBy: string) {
+    return prisma.$transaction(async (tx) => {
+      const reg = await tx.cashRegister.update({
+        where: { id },
+        data: { actual_cash: actualCash, closed_by: closedBy, status: 'CLOSED' },
+      });
+      await this._logAction(tx, actorUid, 'CLOSE_REGISTER', 'Register Closed', `Register was closed`, { register_id: reg.id, cash: actualCash }, `/cash-register/${reg.id}`);
+      return reg;
     });
   }
 
@@ -275,12 +371,17 @@ export class CoreHrRepo {
   }
 
   async createUserLog(data: any) {
+    if (!data.ref_link) data.ref_link = `/user/${data.uid || ''}`;
     return prisma.userLog.create({ data });
   }
 
   // --- OTP Methods ---
-  async createOtp(data: { actor: string; otp: string; type: any; valid_till: Date }) {
-    return prisma.userOtp.create({ data });
+  async createOtp(actorUid: string, data: { actor: string; otp: string; type: any; valid_till: Date }) {
+    return prisma.$transaction(async (tx) => {
+      const otp = await tx.userOtp.create({ data });
+      await this._logAction(tx, actorUid, 'CREATE_OTP', 'OTP Generated', `Generated new OTP`, { type: data.type }, `/otp/${otp.id}`);
+      return otp;
+    });
   }
 
   async findValidOtp(actor: string, otp: string, type: any) {
@@ -301,13 +402,21 @@ export class CoreHrRepo {
     });
   }
 
-  async deleteOtpsByActor(actor: string, type: any) {
-    return prisma.userOtp.deleteMany({ where: { actor, type } });
+  async deleteOtpsByActor(actorUid: string, actor: string, type: any) {
+    return prisma.$transaction(async (tx) => {
+      const del = await tx.userOtp.deleteMany({ where: { actor, type } });
+      await this._logAction(tx, actorUid, 'DELETE_OTPS', 'OTPs Cleared', `Cleared previous OTPs`, { type }, `/user/${actorUid}`);
+      return del;
+    });
   }
 
   // --- Session Methods ---
-  async createSession(data: any) {
-    return prisma.userSession.create({ data });
+  async createSession(actorUid: string, data: any) {
+    return prisma.$transaction(async (tx) => {
+      const session = await tx.userSession.create({ data });
+      await this._logAction(tx, actorUid, 'CREATE_SESSION', 'Login Session Created', `User logged in`, { session_id: session.id }, `/session/${session.id}`);
+      return session;
+    });
   }
 
   async findSessionsByUserId(uid: string) {
@@ -324,8 +433,12 @@ export class CoreHrRepo {
     });
   }
 
-  async deleteSession(id: string) {
-    return prisma.userSession.delete({ where: { id } });
+  async deleteSession(actorUid: string, id: string) {
+    return prisma.$transaction(async (tx) => {
+      const del = await tx.userSession.delete({ where: { id } });
+      await this._logAction(tx, actorUid, 'DELETE_SESSION', 'Session Terminated', `User logged out`, { session_id: id }, `/session/${id}`);
+      return del;
+    });
   }
 }
 
