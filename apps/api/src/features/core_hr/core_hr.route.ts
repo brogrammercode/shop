@@ -22,6 +22,7 @@ router.get(_CORE_HR_CONSTANTS._R_O_U_T_E_S._M_E, coreHrController.getMe);
 router.post(_CORE_HR_CONSTANTS._R_O_U_T_E_S._B_R_A_N_C_H, coreHrController.createBranch);
 router.get(_CORE_HR_CONSTANTS._R_O_U_T_E_S.BRANCH_SEARCH, coreHrController.searchBranches);
 router.post(_CORE_HR_CONSTANTS._R_O_U_T_E_S.BRANCH_JOIN_REQUEST, coreHrController.createJoinRequest);
+router.delete(`${_CORE_HR_CONSTANTS._R_O_U_T_E_S.BRANCH_JOIN_REQUEST}/:branch_id`, coreHrController.withdrawJoinRequest);
 
 router.get(_CORE_HR_CONSTANTS._R_O_U_T_E_S.USER_LOGS, coreHrController.listUserLogs);
 

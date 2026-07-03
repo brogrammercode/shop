@@ -13,7 +13,14 @@ class RoleListPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.pureWhite,
         elevation: 0,
-        title: Text(HrConstant.ROLE_LIST_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(
+          HrConstant.ROLE_LIST_TITLE,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w900,
+            color: AppColors.textPrimary,
+          ),
+        ),
         centerTitle: true,
       ),
       body: ListView.separated(
@@ -24,8 +31,18 @@ class RoleListPage extends StatelessWidget {
           final depts = ['Admin', 'Cashier', 'Chef'];
           return Container(
             padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(border: Border.all(color: AppColors.borderGrey), borderRadius: BorderRadius.circular(12.r)),
-            child: Text(depts[index], style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.borderGrey),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Text(
+              depts[index],
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+            ),
           );
         },
       ),
@@ -33,7 +50,13 @@ class RoleListPage extends StatelessWidget {
         onPressed: () => Navigator.pushNamed(context, '/role-form'),
         backgroundColor: AppColors.primaryGreen,
         icon: const Icon(Icons.add, color: AppColors.pureWhite),
-        label: Text(HrConstant.ADD_ROLE, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
+        label: Text(
+          HrConstant.ADD_ROLE,
+          style: TextStyle(
+            color: AppColors.pureWhite,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
     );
   }

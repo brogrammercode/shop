@@ -34,6 +34,7 @@ splitScreenMode: true
 - Every font size → `.sp`
 - Every border radius → `.r`
 - Never use raw `double` literals for layout measurements
+- The circular indicator should be 2 strokewidth, very small, and centered on the page
 
 ---
 
@@ -1207,6 +1208,26 @@ GestureDetector(
     ],
   ),
 )
+```
+
+### 6.4 Confirmation Dialogs
+For critical actions (Sign out, Request to join, Withdraw, Create branch), ALWAYS use the reusable `AppDialog.showConfirmation` component from `lib/components/ui/dialog.dart`.
+- Uses a bottom-aligned action row with "Cancel" and a primary action.
+- Uses `AppColors.error` if `isDestructive: true`, otherwise uses `AppColors.primaryGreen`.
+- Title should be bold and concise (`18.sp w700`).
+- Message should be a descriptive string (`14.sp w400 textSecondary`).
+
+```dart
+final confirm = await AppDialog.showConfirmation(
+  context: context,
+  title: 'Sign out',
+  message: 'Are you sure you want to sign out?',
+  confirmText: 'Sign out',
+  isDestructive: true,
+);
+if (confirm == true) {
+  // execute action
+}
 ```
 
 ---

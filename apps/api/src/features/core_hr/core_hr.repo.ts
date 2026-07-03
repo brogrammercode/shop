@@ -25,12 +25,23 @@ export class CoreHrRepo {
     email: string | null,
     avatar: string | null,
   ) {
-    const existing = await prisma.user.findUnique({ where: { uid: firebaseUid } });
+    let existing = await prisma.user.findUnique({ where: { id: firebaseUid } });
     if (existing) return existing;
+
+    if (phone) {
+      existing = await prisma.user.findUnique({ where: { phone } });
+      if (existing) return existing;
+    }
+
+    if (email) {
+      existing = await prisma.user.findUnique({ where: { email } });
+      if (existing) return existing;
+    }
+
     return prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
-          uid: firebaseUid,
+          id: firebaseUid,
           name,
           phone,
           email: email ?? undefined,
@@ -105,7 +116,7 @@ export class CoreHrRepo {
   }
 
   async searchBranches(query: string) {
-    return prisma.branch.findMany({
+    const branches = await prisma.branch.findMany({
       where: {
         OR: [
           { name: { contains: query, mode: 'insensitive' } },
@@ -113,6 +124,37 @@ export class CoreHrRepo {
         ],
         is_deleted: false,
       },
+      include: {
+        _count: {
+          select: { employees: true }
+        }
+      }
+    });
+
+    if (branches.length === 0) return [];
+
+    const branchIds = branches.map(b => b.id);
+    const addresses = await prisma.address.findMany({
+      where: {
+        entity_type: 'BRANCH',
+        entity_id: { in: branchIds },
+      }
+    });
+
+    const userIds = branches.map(b => b.created_by).filter(id => id) as string[];
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, name: true, phone: true }
+    });
+
+    return branches.map(branch => {
+      const owner = users.find(u => u.id === branch.created_by);
+      return {
+        ...branch,
+        addresses: addresses.filter(a => a.entity_id === branch.id),
+        employee_count: branch._count.employees,
+        owner: owner ? { name: owner.name, phone: owner.phone } : null
+      };
     });
   }
 
@@ -204,6 +246,22 @@ export class CoreHrRepo {
   async findPendingJoinRequest(uid: string, branchId: string) {
     return prisma.joinRequest.findFirst({
       where: { uid, branch_id: branchId, status: 'PENDING' },
+    });
+  }
+
+  async findPendingJoinRequestAnywhere(uid: string) {
+    return prisma.joinRequest.findFirst({
+      where: { uid, status: 'PENDING' },
+    });
+  }
+
+  async deleteJoinRequest(actorUid: string, id: string) {
+    return prisma.$transaction(async (tx) => {
+      const req = await tx.joinRequest.delete({
+        where: { id },
+      });
+      await this._logAction(tx, actorUid, 'WITHDRAW_JOIN_REQUEST', 'Join Request Withdrawn', `Withdrew join request to branch`, { request_id: id }, ``);
+      return req;
     });
   }
 

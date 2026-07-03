@@ -12,6 +12,7 @@ import 'package:mobile/features/core_hr/controllers/core_hr.state.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/services/location_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:mobile/components/ui/dialog.dart';
 
 class CreateBranchPage extends StatefulWidget {
   const CreateBranchPage({super.key});
@@ -35,6 +36,9 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
     super.initState();
     _addAddressBlock();
     _addBankBlock();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CoreHrCubit>().resetBranchInfo();
+    });
   }
 
   void _addAddressBlock() {
@@ -101,7 +105,7 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
     super.dispose();
   }
 
-  void _onCreate() {
+  Future<void> _onCreate() async {
     final name = _nameController.text.trim();
     if (name.isNotEmpty) {
       List<Map<String, dynamic>> addresses = [];
@@ -132,7 +136,16 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
           });
         }
       }
-      context.read<CoreHrCubit>().createBranch(name, _isHq, addresses.isNotEmpty ? addresses : null, banks.isNotEmpty ? banks : null);
+
+      final confirm = await AppDialog.showConfirmation(
+        context: context,
+        title: 'Create Branch',
+        message: 'Are you sure you want to create this branch?',
+        confirmText: 'Create',
+      );
+      if (confirm == true && mounted) {
+        context.read<CoreHrCubit>().createBranch(name, _isHq, addresses.isNotEmpty ? addresses : null, banks.isNotEmpty ? banks : null);
+      }
     }
   }
 

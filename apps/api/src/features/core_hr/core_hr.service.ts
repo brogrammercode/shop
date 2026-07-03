@@ -194,8 +194,15 @@ export class CoreHrService {
     return { branch, employee };
   }
 
-  async searchBranches(query: string) {
-    return coreHrRepo.searchBranches(query);
+  async searchBranches(uid: string, query: string) {
+    const branches = await coreHrRepo.searchBranches(query);
+    if (branches.length === 0) return branches;
+
+    const pendingRequest = await coreHrRepo.findPendingJoinRequestAnywhere(uid);
+    return branches.map(branch => ({
+      ...branch,
+      has_pending_request: pendingRequest?.branch_id === branch.id
+    }));
   }
 
   async createJoinRequest(uid: string, branchId: string, message?: string) {
@@ -209,12 +216,20 @@ export class CoreHrService {
       throw new ConflictError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.EMPLOYEE_ALREADY_EXISTS);
     }
 
-    const pendingRequest = await coreHrRepo.findPendingJoinRequest(uid, branchId);
-    if (pendingRequest) {
+    const anyPendingRequest = await coreHrRepo.findPendingJoinRequestAnywhere(uid);
+    if (anyPendingRequest) {
       throw new ConflictError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.PENDING_REQUEST_EXISTS);
     }
 
     return coreHrRepo.createJoinRequest(uid, uid, branchId, message);
+  }
+
+  async withdrawJoinRequest(uid: string, branchId: string) {
+    const pendingRequest = await coreHrRepo.findPendingJoinRequest(uid, branchId);
+    if (!pendingRequest) {
+      throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.JOIN_REQUEST_NOT_FOUND);
+    }
+    return coreHrRepo.deleteJoinRequest(uid, pendingRequest.id);
   }
 
   async listJoinRequests(branchId: string) {

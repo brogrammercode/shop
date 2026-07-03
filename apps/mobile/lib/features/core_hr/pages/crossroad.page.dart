@@ -2,16 +2,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/features/core_hr/constants/branch.constant.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';
+import 'package:mobile/features/core_hr/controllers/core_hr.state.dart';
+import 'package:mobile/utils/error.dart';
+import 'package:mobile/components/ui/dialog.dart';
 
 class CrossRoadPage extends StatelessWidget {
   const CrossRoadPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.pureWhite,
-      body: SafeArea(
-        child: Padding(
+    return BlocConsumer<CoreHrCubit, CoreHrState>(
+      listenWhen: (previous, current) => previous.logoutInfo.status != current.logoutInfo.status,
+      listener: (context, state) {
+        if (state.logoutInfo.status == OperationStatus.success) {
+          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+        }
+      },
+      builder: (context, state) {
+        final isLoggingOut = state.logoutInfo.status == OperationStatus.loading;
+        return Scaffold(
+          backgroundColor: AppColors.pureWhite,
+          body: SafeArea(
+            child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,27 +72,49 @@ class CrossRoadPage extends StatelessWidget {
               ),
               const Spacer(),
               Center(
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/home');
-                  },
-                  style: TextButton.styleFrom(
-                    padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-                  ),
-                  child: Text(
-                    BranchConstant.SKIP_FOR_NOW,
-                    style: TextStyle(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
+                child: isLoggingOut
+                    ? SizedBox(
+                        height: 20.w,
+                        width: 20.w,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.textSecondary,
+                        ),
+                      )
+                    : TextButton(
+                        onPressed: () async {
+                          final confirm = await AppDialog.showConfirmation(
+                            context: context,
+                            title: 'Sign Out',
+                            message: 'Are you sure you want to sign out?',
+                            confirmText: 'Sign out',
+                            isDestructive: true,
+                          );
+                          if (confirm == true) {
+                            if (context.mounted) {
+                              context.read<CoreHrCubit>().logout();
+                            }
+                          }
+                        },
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                        ),
+                        child: Text(
+                          'Sign out',
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
               ),
             ],
           ),
         ),
       ),
+        );
+      },
     );
   }
 

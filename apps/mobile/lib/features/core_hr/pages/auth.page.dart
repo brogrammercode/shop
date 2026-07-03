@@ -116,10 +116,16 @@ class _AuthPageState extends State<AuthPage> {
             listener: (context, state) async {
               if (state.loginInfo.status == OperationStatus.success ||
                   state.googleSignInInfo.status == OperationStatus.success) {
-                final hasEmployee = state.currentEmployee != null;
-                final businessContext = await JsonCache().getBusinessContext();
-                final hasBusinessContext = businessContext != null && businessContext.isNotEmpty;
-                if (!hasEmployee || !hasBusinessContext) {
+                final employee = state.currentEmployee;
+                final hasEmployee = employee != null;
+                final hasBranch = hasEmployee && employee.branch_id.isNotEmpty;
+                if (hasBranch) {
+                  await JsonCache().saveBusinessContext({
+                    'branch_id': employee.branch_id,
+                    'employee_id': employee.id,
+                  });
+                }
+                if (!hasEmployee || !hasBranch) {
                   if (context.mounted) Navigator.pushReplacementNamed(context, AppRoutes.crossRoad);
                 } else {
                   if (context.mounted) Navigator.pushReplacementNamed(context, AppRoutes.home);

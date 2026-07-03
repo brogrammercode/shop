@@ -33,9 +33,15 @@ class _SplashPageState extends State<SplashPage> {
     }
 
     final hasEmployee = savedProfile['employee'] != null;
-    final businessContext = await _cache.getBusinessContext();
-    final hasBusinessContext =
-        businessContext != null && businessContext.isNotEmpty;
+    final String? branchId = hasEmployee ? (savedProfile['employee']['branch_id'] as String?) : null;
+    final hasBranch = branchId != null && branchId.isNotEmpty;
+
+    if (hasBranch) {
+      await _cache.saveBusinessContext({
+        'branch_id': branchId,
+        'employee_id': savedProfile['employee']['id'] ?? '',
+      });
+    }
 
     // 2. Fire background validation that will silently sync or force logout on failure
     if (mounted) {
@@ -44,7 +50,7 @@ class _SplashPageState extends State<SplashPage> {
 
     // 3. Route instantly based on cached info
     if (mounted) {
-      if (!hasEmployee || !hasBusinessContext) {
+      if (!hasEmployee || !hasBranch) {
         Navigator.pushReplacementNamed(context, AppRoutes.crossRoad);
       } else {
         Navigator.pushReplacementNamed(context, AppRoutes.home);

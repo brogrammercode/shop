@@ -244,8 +244,10 @@ UI standards:
 - Use `flutter_screenutil` on dimensions:
   - Horizontal sizes and widths use `.w`.
   - Vertical sizes and heights use `.h`.
-  - Font sizes use `.sp`.
+- Font sizes use `.sp`.
   - Radii use `.r`.
+- The circular indicator should be 2 strokewidth and very small and center the page
+- Use `AppDialog.showConfirmation` for destructive or important actions like sign out, request to join, withdraw, and create branch. It is a reusable generic component.
 - Follow `contexts/ui_standard.md` for visual style.
 - Do not introduce hardcoded spacing systems that conflict with the existing `24.w`, `40.h`, `16.r`, and `56.h` rhythm.
 - For loading states: Widgets like buttons must use a thin circular indicator inside them. For the whole page or major widgets, use a shimmer loading effect. The shimmer widget must be the exact size of the upcoming widget.

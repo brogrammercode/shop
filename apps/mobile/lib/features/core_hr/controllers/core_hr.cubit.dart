@@ -16,20 +16,46 @@ class CoreHrCubit extends Cubit<CoreHrState> {
       super(const CoreHrState());
 
   Future<void> loginWithSavedProfile() async {
-    emit(state.copyWith(loginWithSavedProfileInfo: const OperationInfo(status: OperationStatus.loading)));
+    emit(
+      state.copyWith(
+        loginWithSavedProfileInfo: const OperationInfo(
+          status: OperationStatus.loading,
+        ),
+      ),
+    );
     try {
       final profile = await _cache.getSavedProfile();
       if (profile != null) {
-        emit(state.copyWith(
-          currentUser: profile['user'] != null ? UserModel.fromJson(profile['user']) : null,
-          currentEmployee: profile['employee'] != null ? EmployeeModel.fromJson(profile['employee']) : null,
-          loginWithSavedProfileInfo: const OperationInfo(status: OperationStatus.success),
-        ));
+        emit(
+          state.copyWith(
+            currentUser: profile['user'] != null
+                ? UserModel.fromJson(profile['user'])
+                : null,
+            currentEmployee: profile['employee'] != null
+                ? EmployeeModel.fromJson(profile['employee'])
+                : null,
+            loginWithSavedProfileInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
+          ),
+        );
       } else {
-        emit(state.copyWith(loginWithSavedProfileInfo: const OperationInfo(status: OperationStatus.initial)));
+        emit(
+          state.copyWith(
+            loginWithSavedProfileInfo: const OperationInfo(
+              status: OperationStatus.initial,
+            ),
+          ),
+        );
       }
     } catch (e) {
-      emit(state.copyWith(loginWithSavedProfileInfo: const OperationInfo(status: OperationStatus.initial)));
+      emit(
+        state.copyWith(
+          loginWithSavedProfileInfo: const OperationInfo(
+            status: OperationStatus.initial,
+          ),
+        ),
+      );
     }
   }
 
@@ -62,7 +88,9 @@ class CoreHrCubit extends Cubit<CoreHrState> {
           state.copyWith(
             currentUser: data['user'],
             currentEmployee: data['employee'],
-            googleSignInInfo: const OperationInfo(status: OperationStatus.success),
+            googleSignInInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
           ),
         );
       },
@@ -142,52 +170,105 @@ class CoreHrCubit extends Cubit<CoreHrState> {
     );
   }
 
-  Future<void> logout(String sessionId) async {
-    emit(state.copyWith(logoutInfo: const OperationInfo(status: OperationStatus.loading)));
+  Future<void> logout([String? sessionId]) async {
+    emit(
+      state.copyWith(
+        logoutInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
     final result = await _repo.logout(sessionId);
     result.fold(
       (failure) {
         Fluttertoast.showToast(msg: failure.message);
-        emit(state.copyWith(logoutInfo: OperationInfo(status: OperationStatus.error, error: failure)));
+        emit(
+          state.copyWith(
+            logoutInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
       },
       (_) {
         _cache.clearSavedProfile();
-        emit(state.copyWith(
-          currentUser: null,
-          currentEmployee: null,
-          logoutInfo: const OperationInfo(status: OperationStatus.success),
-        ));
+        emit(
+          state.copyWith(
+            currentUser: null,
+            currentEmployee: null,
+            logoutInfo: const OperationInfo(status: OperationStatus.success),
+          ),
+        );
       },
     );
   }
 
   Future<void> getSessions() async {
-    emit(state.copyWith(sessionInfo: const OperationInfo(status: OperationStatus.loading)));
+    emit(
+      state.copyWith(
+        sessionInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
     final result = await _repo.getSessions();
     result.fold(
-      (failure) => emit(state.copyWith(sessionInfo: OperationInfo(status: OperationStatus.error, error: failure))),
-      (data) => emit(state.copyWith(sessions: data, sessionInfo: const OperationInfo(status: OperationStatus.success))),
+      (failure) => emit(
+        state.copyWith(
+          sessionInfo: OperationInfo(
+            status: OperationStatus.error,
+            error: failure,
+          ),
+        ),
+      ),
+      (data) => emit(
+        state.copyWith(
+          sessions: data,
+          sessionInfo: const OperationInfo(status: OperationStatus.success),
+        ),
+      ),
     );
   }
 
   Future<void> terminateSession(String sessionId) async {
-    emit(state.copyWith(sessionInfo: const OperationInfo(status: OperationStatus.loading)));
-    final result = await _repo.terminateSession(sessionId);
-    result.fold(
-      (failure) {
-        Fluttertoast.showToast(msg: failure.message);
-        emit(state.copyWith(sessionInfo: OperationInfo(status: OperationStatus.error, error: failure)));
-      },
-      (_) => getSessions(),
+    emit(
+      state.copyWith(
+        sessionInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
     );
+    final result = await _repo.terminateSession(sessionId);
+    result.fold((failure) {
+      Fluttertoast.showToast(msg: failure.message);
+      emit(
+        state.copyWith(
+          sessionInfo: OperationInfo(
+            status: OperationStatus.error,
+            error: failure,
+          ),
+        ),
+      );
+    }, (_) => getSessions());
   }
 
   Future<void> getActivities() async {
-    emit(state.copyWith(activityInfo: const OperationInfo(status: OperationStatus.loading)));
+    emit(
+      state.copyWith(
+        activityInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
     final result = await _repo.getActivities();
     result.fold(
-      (failure) => emit(state.copyWith(activityInfo: OperationInfo(status: OperationStatus.error, error: failure))),
-      (data) => emit(state.copyWith(activities: data, activityInfo: const OperationInfo(status: OperationStatus.success))),
+      (failure) => emit(
+        state.copyWith(
+          activityInfo: OperationInfo(
+            status: OperationStatus.error,
+            error: failure,
+          ),
+        ),
+      ),
+      (data) => emit(
+        state.copyWith(
+          activities: data,
+          activityInfo: const OperationInfo(status: OperationStatus.success),
+        ),
+      ),
     );
   }
 
@@ -242,7 +323,8 @@ class CoreHrCubit extends Cubit<CoreHrState> {
             await _cache.saveBusinessContext({
               'branch_id': branch.id,
               'branch_name': branch.name,
-              'role_id': data['employee'].role, // Actually employee model has role string or id? Wait, EmployeeModel has role string
+              'role_id': data['employee']
+                  .role, // Actually employee model has role string or id? Wait, EmployeeModel has role string
               'employee_id': data['employee'].id,
             });
           }
@@ -270,8 +352,8 @@ class CoreHrCubit extends Cubit<CoreHrState> {
       ),
     );
     final result = await _repo.createBranch(name, isHq, addresses, bankDetails);
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         Fluttertoast.showToast(msg: failure.message);
         emit(
           state.copyWith(
@@ -282,15 +364,42 @@ class CoreHrCubit extends Cubit<CoreHrState> {
           ),
         );
       },
-      (data) {
+      (data) async {
+        final employee = data['employee'];
+        await _cache.saveSavedProfile({
+          'user': state.currentUser?.toJson(),
+          'employee': employee?.toJson(),
+        });
+        if (employee != null && employee.branch_id.isNotEmpty) {
+          await _cache.saveBusinessContext({
+            'branch_id': employee.branch_id,
+            'employee_id': employee.id,
+          });
+        }
         emit(
           state.copyWith(
             currentBranch: data['branch'],
-            currentEmployee: data['employee'],
+            currentEmployee: employee,
             branchInfo: const OperationInfo(status: OperationStatus.success),
           ),
         );
       },
+    );
+  }
+
+  void resetBranchInfo() {
+    emit(
+      state.copyWith(
+        branchInfo: const OperationInfo(status: OperationStatus.initial),
+      ),
+    );
+  }
+
+  void resetJoinInfo() {
+    emit(
+      state.copyWith(
+        joinInfo: const OperationInfo(status: OperationStatus.initial),
+      ),
     );
   }
 
@@ -347,8 +456,54 @@ class CoreHrCubit extends Cubit<CoreHrState> {
       },
       (_) {
         Fluttertoast.showToast(msg: 'Join request sent');
+        final updatedBranches = state.searchedBranches.map((b) {
+          if (b.id == branchId) {
+            return b.copyWith(has_pending_request: true);
+          }
+          return b;
+        }).toList();
+
         emit(
           state.copyWith(
+            searchedBranches: updatedBranches,
+            joinInfo: const OperationInfo(status: OperationStatus.success),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> withdrawJoinRequest(String branchId) async {
+    emit(
+      state.copyWith(
+        joinInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.withdrawJoinRequest(branchId);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            joinInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Join request withdrawn');
+        final updatedBranches = state.searchedBranches.map((b) {
+          if (b.id == branchId) {
+            return b.copyWith(has_pending_request: false);
+          }
+          return b;
+        }).toList();
+
+        emit(
+          state.copyWith(
+            searchedBranches: updatedBranches,
             joinInfo: const OperationInfo(status: OperationStatus.success),
           ),
         );

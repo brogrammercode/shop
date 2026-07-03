@@ -72,7 +72,7 @@ export const createBranch = asyncHandler(async (req: Request, res: Response) => 
 
 export const searchBranches = asyncHandler(async (req: Request, res: Response) => {
   const query = req.query.q as string || '';
-  const result = await coreHrService.searchBranches(query);
+  const result = await coreHrService.searchBranches(req.user!.uid, query);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.BRANCHES_FOUND, HttpStatus.OK);
 });
 
@@ -80,6 +80,12 @@ export const createJoinRequest = asyncHandler(async (req: Request, res: Response
   const { branch_id, message } = req.body;
   const result = await coreHrService.createJoinRequest(req.user!.uid, branch_id, message);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.JOIN_REQUEST_CREATED, HttpStatus.CREATED);
+});
+
+export const withdrawJoinRequest = asyncHandler(async (req: Request, res: Response) => {
+  const { branch_id } = req.params as Record<string, string>;
+  const result = await coreHrService.withdrawJoinRequest(req.user!.uid, branch_id);
+  return sendSuccess(res, result, 'Join request withdrawn successfully', HttpStatus.OK);
 });
 
 export const listJoinRequests = asyncHandler(async (req: Request, res: Response) => {

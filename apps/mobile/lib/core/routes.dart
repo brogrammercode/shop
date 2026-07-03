@@ -61,6 +61,7 @@ import 'package:mobile/features/core_hr/pages/cash_register.list.page.dart';
 import 'package:mobile/features/core_hr/pages/cash_register.detail.page.dart';
 import 'package:mobile/features/core_hr/pages/user_log.list.page.dart';
 
+import 'package:mobile/features/core_hr/pages/setting.page.dart';
 import 'package:mobile/features/core_hr/pages/department.form.page.dart';
 import 'package:mobile/features/core_hr/pages/role.form.page.dart';
 import 'package:mobile/features/core_hr/pages/post.form.page.dart';
@@ -144,6 +145,7 @@ class AppRoutes {
   static const String postForm = '/post-form';
   static const String shiftForm = '/shift-form';
   static const String cashRegisterForm = '/cash-register-form';
+  static const String settings = '/settings';
 
   // Finance Routes
   static const String financeDashboard = '/finance-dashboard';
@@ -231,6 +233,7 @@ class AppRoutes {
     postForm: (context) => const PostFormPage(),
     shiftForm: (context) => const ShiftFormPage(),
     cashRegisterForm: (context) => const CashRegisterFormPage(),
+    settings: (context) => const SettingPage(),
 
     // Finance
     financeDashboard: (context) => const FinanceDashboardPage(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/core/routes.dart';
 
 class BillingPage extends StatelessWidget {
   const BillingPage({super.key});
@@ -27,11 +28,7 @@ class ProductsPage extends StatelessWidget {
   Widget build(BuildContext context) => const Center(child: Text("Products"));
 }
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-  @override
-  Widget build(BuildContext context) => const Center(child: Text("Settings"));
-}
+
 
 enum MainTab { billing, orders, more }
 
@@ -90,8 +87,6 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
         return const EmployeesPage();
       } else if (_moreTab == MoreTab.products) {
         return const ProductsPage();
-      } else if (_moreTab == MoreTab.settings) {
-        return const SettingsPage();
       }
     }
 
@@ -795,10 +790,9 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _moreTab == MoreTab.settings && _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-                      _mainTab = MainTab.more;
-                      _moreTab = MoreTab.settings;
                       _showMoreNav = false;
                     });
+                    Navigator.pushNamed(context, AppRoutes.settings);
                   },
                 ),
               ],

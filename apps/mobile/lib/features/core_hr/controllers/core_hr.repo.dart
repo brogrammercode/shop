@@ -21,6 +21,7 @@ class CoreHrEndpoints {
   static const String branch = '/hr/branch';
   static const String searchBranch = '/hr/branch/search';
   static const String joinRequest = '/hr/branch/join-request';
+  static String withdrawJoinRequest(String id) => '/hr/branch/join-request/$id';
   static const String joinRequests = '/hr/branch/join-requests';
   static String approveJoinRequest(String id) =>
       '/hr/branch/join-requests/$id/approve';
@@ -111,9 +112,9 @@ class CoreHrRepo {
     });
   }
 
-  TaskResult<void> logout(String sessionId) async {
+  TaskResult<void> logout([String? sessionId]) async {
     return tryCatchAsync(() async {
-      await _apiClient.post('/hr/auth/logout', data: {'sessionId': sessionId});
+      await _apiClient.post('/hr/auth/logout', data: sessionId != null ? {'sessionId': sessionId} : {});
       await _localStorage.clearSession();
     });
   }
@@ -212,6 +213,15 @@ class CoreHrRepo {
       final response = await _apiClient.post(
         CoreHrEndpoints.joinRequest,
         data: {'branch_id': branchId, 'message': message},
+      );
+      return response.data['data'];
+    });
+  }
+
+  TaskResult<dynamic> withdrawJoinRequest(String branchId) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.delete(
+        CoreHrEndpoints.withdrawJoinRequest(branchId),
       );
       return response.data['data'];
     });

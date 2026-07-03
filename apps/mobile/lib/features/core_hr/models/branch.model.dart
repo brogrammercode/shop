@@ -17,6 +17,9 @@ class BranchModel {
   final String franchise;
   final List<AddressModel> addresses;
   final List<BankDetailModel> bank_details;
+  final int? employee_count;
+  final Map<String, dynamic>? owner;
+  final bool? has_pending_request;
 
   const BranchModel({
     required this.id,
@@ -32,6 +35,9 @@ class BranchModel {
     required this.franchise,
     required this.addresses,
     required this.bank_details,
+    this.employee_count,
+    this.owner,
+    this.has_pending_request,
   });
 
   factory BranchModel.fromJson(Map<String, dynamic> json) {
@@ -53,6 +59,9 @@ class BranchModel {
       bank_details: (json['bank_details'] as List<dynamic>? ?? [])
           .map((x) => BankDetailModel.fromJson(x as Map<String, dynamic>))
           .toList(),
+      employee_count: json['employee_count'] as int?,
+      owner: json['owner'] as Map<String, dynamic>?,
+      has_pending_request: json['has_pending_request'] as bool?,
     );
   }
 
@@ -71,6 +80,9 @@ class BranchModel {
       'franchise': franchise,
       'addresses': addresses.map((x) => x.toJson()).toList(),
       'bank_details': bank_details.map((x) => x.toJson()).toList(),
+      'employee_count': employee_count,
+      'owner': owner,
+      'has_pending_request': has_pending_request,
     };
   }
 
@@ -88,6 +100,9 @@ class BranchModel {
     String? franchise,
     List<AddressModel>? addresses,
     List<BankDetailModel>? bank_details,
+    int? employee_count,
+    Map<String, dynamic>? owner,
+    bool? has_pending_request,
   }) {
     return BranchModel(
       id: id ?? this.id,
@@ -103,6 +118,9 @@ class BranchModel {
       franchise: franchise ?? this.franchise,
       addresses: addresses ?? this.addresses,
       bank_details: bank_details ?? this.bank_details,
+      employee_count: employee_count ?? this.employee_count,
+      owner: owner ?? this.owner,
+      has_pending_request: has_pending_request ?? this.has_pending_request,
     );
   }
 }
