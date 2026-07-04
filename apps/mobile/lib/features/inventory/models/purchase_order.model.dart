@@ -31,7 +31,7 @@ class PurchaseOrderModel {
       branch_id: json['branch_id'] ?? '',
       supplier_id: json['supplier_id'] ?? '',
       status: json['status'] ?? '',
-      total_amount: json['total_amount'] ?? 0.0,
+      total_amount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
       notes: json['notes'] ?? '',
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',

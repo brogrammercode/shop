@@ -22,7 +22,7 @@ class BOMItemModel {
       id: json['id'] ?? '',
       bom_id: json['bom_id'] ?? '',
       input_variant_id: json['input_variant_id'] ?? '',
-      quantity: json['quantity'] ?? 0.0,
+      quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
     );

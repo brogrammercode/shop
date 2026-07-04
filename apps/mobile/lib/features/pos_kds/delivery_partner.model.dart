@@ -36,7 +36,7 @@ class DeliveryPartnerModel {
       branch_id: json['branch_id'] ?? '',
       name: json['name'] ?? '',
       avatar: json['avatar'] ?? '',
-      commission_pct: json['commission_pct'] ?? 0.0,
+      commission_pct: (json['commission_pct'] as num?)?.toDouble() ?? 0.0,
       status: json['status'] ?? '',
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',

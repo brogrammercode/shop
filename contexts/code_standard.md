@@ -979,3 +979,5 @@ Before finishing mobile work:
 8. Confirm dimensions use ScreenUtil.
 9. Confirm UI follows `contexts/ui_standard.md`.
 10. Confirm new code is comment-free.
+
+11. Confirm every singular icon floating widget is perfectly circular (e.g., shape: CircleBorder()).

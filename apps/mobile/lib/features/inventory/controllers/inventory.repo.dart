@@ -1,16 +1,16 @@
 import 'package:mobile/services/api_client.dart';
 import 'package:mobile/utils/try_catch.dart';
-import 'package:mobile/features/inventory/supplier.model.dart';
-import 'package:mobile/features/inventory/item_category.model.dart';
-import 'package:mobile/features/inventory/item.model.dart';
-import 'package:mobile/features/inventory/unit_of_measure.model.dart';
-import 'package:mobile/features/inventory/u_o_m_conversion.model.dart';
-import 'package:mobile/features/inventory/item_variant.model.dart';
-import 'package:mobile/features/inventory/purchase_order.model.dart';
-import 'package:mobile/features/inventory/goods_receipt.model.dart';
-import 'package:mobile/features/inventory/vendor_return.model.dart';
-import 'package:mobile/features/inventory/stock_ledger.model.dart';
-import 'package:mobile/features/inventory/stock_transfer.model.dart';
+import 'package:mobile/features/inventory/models/supplier.model.dart';
+import 'package:mobile/features/inventory/models/item_category.model.dart';
+import 'package:mobile/features/inventory/models/item.model.dart';
+import 'package:mobile/features/inventory/models/unit_of_measure.model.dart';
+import 'package:mobile/features/inventory/models/u_o_m_conversion.model.dart';
+import 'package:mobile/features/inventory/models/item_variant.model.dart';
+import 'package:mobile/features/inventory/models/purchase_order.model.dart';
+import 'package:mobile/features/inventory/models/goods_receipt.model.dart';
+import 'package:mobile/features/inventory/models/vendor_return.model.dart';
+import 'package:mobile/features/inventory/models/stock_ledger.model.dart';
+import 'package:mobile/features/inventory/models/stock_transfer.model.dart';
 
 class InventoryEndpoints {
   static const String suppliers = '/inventory/suppliers';
@@ -18,24 +18,31 @@ class InventoryEndpoints {
   static const String itemCategories = '/inventory/item-categories';
   static const String items = '/inventory/items';
   static String item(String id) => '/inventory/items/$id';
-  static String itemVariants(String itemId) => '/inventory/items/$itemId/variants';
+  static String itemVariants(String itemId) =>
+      '/inventory/items/$itemId/variants';
   static String variant(String id) => '/inventory/variants/$id';
   static const String uom = '/inventory/uom';
   static const String uomConversions = '/inventory/uom-conversions';
+  static String uomConversion(String id) => '/inventory/uom-conversions/$id';
   static const String purchaseOrders = '/inventory/purchase-orders';
   static String purchaseOrder(String id) => '/inventory/purchase-orders/$id';
   static String sendPO(String id) => '/inventory/purchase-orders/$id/send';
-  static String receivePO(String id) => '/inventory/purchase-orders/$id/receive';
-  static String poReceipts(String id) => '/inventory/purchase-orders/$id/receipts';
-  static String poReturns(String id) => '/inventory/purchase-orders/$id/returns';
-  static String poReturn(String id, String returnId) => '/inventory/purchase-orders/$id/returns/$returnId';
+  static String receivePO(String id) =>
+      '/inventory/purchase-orders/$id/receive';
+  static String poReceipts(String id) =>
+      '/inventory/purchase-orders/$id/receipts';
+  static String poReturns(String id) =>
+      '/inventory/purchase-orders/$id/returns';
+  static String poReturn(String id, String returnId) =>
+      '/inventory/purchase-orders/$id/returns/$returnId';
   static const String stock = '/inventory/stock';
   static const String stockLedger = '/inventory/stock-ledger';
   static const String usage = '/inventory/usage';
   static const String wastage = '/inventory/wastage';
   static const String stockTransfers = '/inventory/stock-transfers';
   static String stockTransfer(String id) => '/inventory/stock-transfers/$id';
-  static String receiveTransfer(String id) => '/inventory/stock-transfers/$id/receive';
+  static String receiveTransfer(String id) =>
+      '/inventory/stock-transfers/$id/receive';
 }
 
 class InventoryRepo {
@@ -53,14 +60,23 @@ class InventoryRepo {
 
   TaskResult<SupplierModel> createSupplier(Map<String, dynamic> data) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(InventoryEndpoints.suppliers, data: data);
+      final response = await _apiClient.post(
+        InventoryEndpoints.suppliers,
+        data: data,
+      );
       return SupplierModel.fromJson(response.data['data']);
     });
   }
 
-  TaskResult<SupplierModel> updateSupplier(String id, Map<String, dynamic> data) async {
+  TaskResult<SupplierModel> updateSupplier(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.patch(InventoryEndpoints.supplier(id), data: data);
+      final response = await _apiClient.patch(
+        InventoryEndpoints.supplier(id),
+        data: data,
+      );
       return SupplierModel.fromJson(response.data['data']);
     });
   }
@@ -80,9 +96,14 @@ class InventoryRepo {
     });
   }
 
-  TaskResult<ItemCategoryModel> createItemCategory(Map<String, dynamic> data) async {
+  TaskResult<ItemCategoryModel> createItemCategory(
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(InventoryEndpoints.itemCategories, data: data);
+      final response = await _apiClient.post(
+        InventoryEndpoints.itemCategories,
+        data: data,
+      );
       return ItemCategoryModel.fromJson(response.data['data']);
     });
   }
@@ -97,14 +118,20 @@ class InventoryRepo {
 
   TaskResult<ItemModel> createItem(Map<String, dynamic> data) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(InventoryEndpoints.items, data: data);
+      final response = await _apiClient.post(
+        InventoryEndpoints.items,
+        data: data,
+      );
       return ItemModel.fromJson(response.data['data']);
     });
   }
 
   TaskResult<ItemModel> updateItem(String id, Map<String, dynamic> data) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.patch(InventoryEndpoints.item(id), data: data);
+      final response = await _apiClient.patch(
+        InventoryEndpoints.item(id),
+        data: data,
+      );
       return ItemModel.fromJson(response.data['data']);
     });
   }
@@ -118,22 +145,36 @@ class InventoryRepo {
 
   TaskResult<List<ItemVariantModel>> listVariants(String itemId) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.get(InventoryEndpoints.itemVariants(itemId));
+      final response = await _apiClient.get(
+        InventoryEndpoints.itemVariants(itemId),
+      );
       final data = response.data['data'] as List;
       return data.map((e) => ItemVariantModel.fromJson(e)).toList();
     });
   }
 
-  TaskResult<ItemVariantModel> createVariant(String itemId, Map<String, dynamic> data) async {
+  TaskResult<ItemVariantModel> createVariant(
+    String itemId,
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(InventoryEndpoints.itemVariants(itemId), data: data);
+      final response = await _apiClient.post(
+        InventoryEndpoints.itemVariants(itemId),
+        data: data,
+      );
       return ItemVariantModel.fromJson(response.data['data']);
     });
   }
 
-  TaskResult<ItemVariantModel> updateVariant(String id, Map<String, dynamic> data) async {
+  TaskResult<ItemVariantModel> updateVariant(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.patch(InventoryEndpoints.variant(id), data: data);
+      final response = await _apiClient.patch(
+        InventoryEndpoints.variant(id),
+        data: data,
+      );
       return ItemVariantModel.fromJson(response.data['data']);
     });
   }
@@ -148,7 +189,10 @@ class InventoryRepo {
 
   TaskResult<UnitOfMeasureModel> createUOM(Map<String, dynamic> data) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(InventoryEndpoints.uom, data: data);
+      final response = await _apiClient.post(
+        InventoryEndpoints.uom,
+        data: data,
+      );
       return UnitOfMeasureModel.fromJson(response.data['data']);
     });
   }
@@ -161,9 +205,27 @@ class InventoryRepo {
     });
   }
 
-  TaskResult<UOMConversionModel> createUOMConversion(Map<String, dynamic> data) async {
+  TaskResult<UOMConversionModel> createUOMConversion(
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(InventoryEndpoints.uomConversions, data: data);
+      final response = await _apiClient.post(
+        InventoryEndpoints.uomConversions,
+        data: data,
+      );
+      return UOMConversionModel.fromJson(response.data['data']);
+    });
+  }
+
+  TaskResult<UOMConversionModel> updateUOMConversion(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.patch(
+        InventoryEndpoints.uomConversion(id),
+        data: data,
+      );
       return UOMConversionModel.fromJson(response.data['data']);
     });
   }
@@ -176,16 +238,23 @@ class InventoryRepo {
     });
   }
 
-  TaskResult<PurchaseOrderModel> createPurchaseOrder(Map<String, dynamic> data) async {
+  TaskResult<PurchaseOrderModel> createPurchaseOrder(
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(InventoryEndpoints.purchaseOrders, data: data);
+      final response = await _apiClient.post(
+        InventoryEndpoints.purchaseOrders,
+        data: data,
+      );
       return PurchaseOrderModel.fromJson(response.data['data']);
     });
   }
 
   TaskResult<PurchaseOrderModel> getPurchaseOrder(String id) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.get(InventoryEndpoints.purchaseOrder(id));
+      final response = await _apiClient.get(
+        InventoryEndpoints.purchaseOrder(id),
+      );
       return PurchaseOrderModel.fromJson(response.data['data']);
     });
   }
@@ -197,24 +266,38 @@ class InventoryRepo {
     });
   }
 
-  TaskResult<GoodsReceiptModel> receivePurchaseOrder(String id, Map<String, dynamic> data) async {
+  TaskResult<GoodsReceiptModel> receivePurchaseOrder(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(InventoryEndpoints.receivePO(id), data: data);
+      final response = await _apiClient.post(
+        InventoryEndpoints.receivePO(id),
+        data: data,
+      );
       return GoodsReceiptModel.fromJson(response.data['data']);
     });
   }
 
   TaskResult<List<GoodsReceiptModel>> listReceipts(String poId) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.get(InventoryEndpoints.poReceipts(poId));
+      final response = await _apiClient.get(
+        InventoryEndpoints.poReceipts(poId),
+      );
       final data = response.data['data'] as List;
       return data.map((e) => GoodsReceiptModel.fromJson(e)).toList();
     });
   }
 
-  TaskResult<VendorReturnModel> createVendorReturn(String poId, Map<String, dynamic> data) async {
+  TaskResult<VendorReturnModel> createVendorReturn(
+    String poId,
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(InventoryEndpoints.poReturns(poId), data: data);
+      final response = await _apiClient.post(
+        InventoryEndpoints.poReturns(poId),
+        data: data,
+      );
       return VendorReturnModel.fromJson(response.data['data']);
     });
   }
@@ -227,9 +310,16 @@ class InventoryRepo {
     });
   }
 
-  TaskResult<VendorReturnModel> updateVendorReturn(String poId, String returnId, Map<String, dynamic> data) async {
+  TaskResult<VendorReturnModel> updateVendorReturn(
+    String poId,
+    String returnId,
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.patch(InventoryEndpoints.poReturn(poId, returnId), data: data);
+      final response = await _apiClient.patch(
+        InventoryEndpoints.poReturn(poId, returnId),
+        data: data,
+      );
       return VendorReturnModel.fromJson(response.data['data']);
     });
   }
@@ -251,14 +341,20 @@ class InventoryRepo {
 
   TaskResult<StockLedgerModel> logUsage(Map<String, dynamic> data) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(InventoryEndpoints.usage, data: data);
+      final response = await _apiClient.post(
+        InventoryEndpoints.usage,
+        data: data,
+      );
       return StockLedgerModel.fromJson(response.data['data']);
     });
   }
 
   TaskResult<StockLedgerModel> logWastage(Map<String, dynamic> data) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(InventoryEndpoints.wastage, data: data);
+      final response = await _apiClient.post(
+        InventoryEndpoints.wastage,
+        data: data,
+      );
       return StockLedgerModel.fromJson(response.data['data']);
     });
   }
@@ -271,23 +367,32 @@ class InventoryRepo {
     });
   }
 
-  TaskResult<StockTransferModel> createStockTransfer(Map<String, dynamic> data) async {
+  TaskResult<StockTransferModel> createStockTransfer(
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(InventoryEndpoints.stockTransfers, data: data);
+      final response = await _apiClient.post(
+        InventoryEndpoints.stockTransfers,
+        data: data,
+      );
       return StockTransferModel.fromJson(response.data['data']);
     });
   }
 
   TaskResult<StockTransferModel> getStockTransfer(String id) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.get(InventoryEndpoints.stockTransfer(id));
+      final response = await _apiClient.get(
+        InventoryEndpoints.stockTransfer(id),
+      );
       return StockTransferModel.fromJson(response.data['data']);
     });
   }
 
   TaskResult<StockTransferModel> receiveStockTransfer(String id) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.patch(InventoryEndpoints.receiveTransfer(id));
+      final response = await _apiClient.patch(
+        InventoryEndpoints.receiveTransfer(id),
+      );
       return StockTransferModel.fromJson(response.data['data']);
     });
   }

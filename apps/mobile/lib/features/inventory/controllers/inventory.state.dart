@@ -1,15 +1,15 @@
 import 'package:mobile/utils/error.dart';
-import 'package:mobile/features/inventory/supplier.model.dart';
-import 'package:mobile/features/inventory/item_category.model.dart';
-import 'package:mobile/features/inventory/item.model.dart';
-import 'package:mobile/features/inventory/unit_of_measure.model.dart';
-import 'package:mobile/features/inventory/u_o_m_conversion.model.dart';
-import 'package:mobile/features/inventory/item_variant.model.dart';
-import 'package:mobile/features/inventory/purchase_order.model.dart';
-import 'package:mobile/features/inventory/goods_receipt.model.dart';
-import 'package:mobile/features/inventory/vendor_return.model.dart';
-import 'package:mobile/features/inventory/stock_ledger.model.dart';
-import 'package:mobile/features/inventory/stock_transfer.model.dart';
+import 'package:mobile/features/inventory/models/supplier.model.dart';
+import 'package:mobile/features/inventory/models/item_category.model.dart';
+import 'package:mobile/features/inventory/models/item.model.dart';
+import 'package:mobile/features/inventory/models/unit_of_measure.model.dart';
+import 'package:mobile/features/inventory/models/u_o_m_conversion.model.dart';
+import 'package:mobile/features/inventory/models/item_variant.model.dart';
+import 'package:mobile/features/inventory/models/purchase_order.model.dart';
+import 'package:mobile/features/inventory/models/goods_receipt.model.dart';
+import 'package:mobile/features/inventory/models/vendor_return.model.dart';
+import 'package:mobile/features/inventory/models/stock_ledger.model.dart';
+import 'package:mobile/features/inventory/models/stock_transfer.model.dart';
 
 class InventoryState {
   final List<SupplierModel> suppliers;
@@ -42,6 +42,10 @@ class InventoryState {
   final OperationInfo wastageInfo;
   final OperationInfo transferInfo;
   final OperationInfo loadTransferInfo;
+  final OperationInfo loadUomsInfo;
+  final OperationInfo saveUomsInfo;
+  final OperationInfo loadUomConversionsInfo;
+  final OperationInfo saveUomConversionsInfo;
 
   const InventoryState({
     this.suppliers = const [],
@@ -58,12 +62,20 @@ class InventoryState {
     this.stockLedger = const [],
     this.stockTransfers = const [],
     this.selectedTransfer,
-    this.loadSuppliersInfo = const OperationInfo(status: OperationStatus.initial),
-    this.saveSuppliersInfo = const OperationInfo(status: OperationStatus.initial),
+    this.loadSuppliersInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
+    this.saveSuppliersInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
     this.loadItemsInfo = const OperationInfo(status: OperationStatus.initial),
     this.saveItemsInfo = const OperationInfo(status: OperationStatus.initial),
-    this.loadVariantsInfo = const OperationInfo(status: OperationStatus.initial),
-    this.saveVariantsInfo = const OperationInfo(status: OperationStatus.initial),
+    this.loadVariantsInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
+    this.saveVariantsInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
     this.loadPOInfo = const OperationInfo(status: OperationStatus.initial),
     this.savePOInfo = const OperationInfo(status: OperationStatus.initial),
     this.receiveInfo = const OperationInfo(status: OperationStatus.initial),
@@ -72,7 +84,17 @@ class InventoryState {
     this.usageInfo = const OperationInfo(status: OperationStatus.initial),
     this.wastageInfo = const OperationInfo(status: OperationStatus.initial),
     this.transferInfo = const OperationInfo(status: OperationStatus.initial),
-    this.loadTransferInfo = const OperationInfo(status: OperationStatus.initial),
+    this.loadTransferInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
+    this.loadUomsInfo = const OperationInfo(status: OperationStatus.initial),
+    this.saveUomsInfo = const OperationInfo(status: OperationStatus.initial),
+    this.loadUomConversionsInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
+    this.saveUomConversionsInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
   });
 
   InventoryState copyWith({
@@ -105,6 +127,10 @@ class InventoryState {
     OperationInfo? wastageInfo,
     OperationInfo? transferInfo,
     OperationInfo? loadTransferInfo,
+    OperationInfo? loadUomsInfo,
+    OperationInfo? saveUomsInfo,
+    OperationInfo? loadUomConversionsInfo,
+    OperationInfo? saveUomConversionsInfo,
   }) {
     return InventoryState(
       suppliers: suppliers ?? this.suppliers,
@@ -136,6 +162,12 @@ class InventoryState {
       wastageInfo: wastageInfo ?? this.wastageInfo,
       transferInfo: transferInfo ?? this.transferInfo,
       loadTransferInfo: loadTransferInfo ?? this.loadTransferInfo,
+      loadUomsInfo: loadUomsInfo ?? this.loadUomsInfo,
+      saveUomsInfo: saveUomsInfo ?? this.saveUomsInfo,
+      loadUomConversionsInfo:
+          loadUomConversionsInfo ?? this.loadUomConversionsInfo,
+      saveUomConversionsInfo:
+          saveUomConversionsInfo ?? this.saveUomConversionsInfo,
     );
   }
 }

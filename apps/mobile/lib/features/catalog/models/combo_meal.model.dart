@@ -28,7 +28,7 @@ class ComboMealModel {
       id: json['id'] ?? '',
       branch_id: json['branch_id'] ?? '',
       name: json['name'] ?? '',
-      fixed_price: json['fixed_price'] ?? 0.0,
+      fixed_price: (json['fixed_price'] as num?)?.toDouble() ?? 0.0,
       image_url: json['image_url'] ?? '',
       status: json['status'] ?? '',
       created_at: json['created_at'] ?? '',

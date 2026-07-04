@@ -24,7 +24,7 @@ class RoyaltyTransModel {
       id: json['id'] ?? '',
       branch_id: json['branch_id'] ?? '',
       franchise_id: json['franchise_id'] ?? '',
-      calculated_amt: json['calculated_amt'] ?? 0.0,
+      calculated_amt: (json['calculated_amt'] as num?)?.toDouble() ?? 0.0,
       status: json['status'] ?? '',
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',

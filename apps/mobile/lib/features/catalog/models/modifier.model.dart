@@ -32,7 +32,7 @@ class ModifierModel {
       group_id: json['group_id'] ?? '',
       variant_id: json['variant_id'] ?? '',
       name: json['name'] ?? '',
-      extra_price: json['extra_price'] ?? 0.0,
+      extra_price: (json['extra_price'] as num?)?.toDouble() ?? 0.0,
       status: json['status'] ?? '',
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',

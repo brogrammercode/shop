@@ -62,6 +62,10 @@ export class InventoryRepo {
     return prisma.uOMConversion.create({ data });
   }
 
+  async updateUOMConversion(id: string, factor: number) {
+    return prisma.uOMConversion.update({ where: { id }, data: { factor } });
+  }
+
   async findUOMConversionsByBranch(branchId: string) {
     return prisma.uOMConversion.findMany({ where: { branch_id: branchId }, include: { from_uom: true, to_uom: true } });
   }

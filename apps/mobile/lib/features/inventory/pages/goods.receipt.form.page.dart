@@ -6,8 +6,8 @@ import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/features/inventory/constants/procurement.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile/features/inventory/inventory.cubit.dart';
-import 'package:mobile/features/inventory/inventory.state.dart';
+import 'package:mobile/features/inventory/controllers/inventory.cubit.dart';
+import 'package:mobile/features/inventory/controllers/inventory.state.dart';
 import 'package:mobile/utils/error.dart';
 
 class GoodsReceiptFormPage extends StatefulWidget {
@@ -35,7 +35,8 @@ class _GoodsReceiptFormPageState extends State<GoodsReceiptFormPage> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<InventoryCubit, InventoryState>(
-      listenWhen: (previous, current) => previous.receiveInfo.status != current.receiveInfo.status,
+      listenWhen: (previous, current) =>
+          previous.receiveInfo.status != current.receiveInfo.status,
       listener: (context, state) {
         if (state.receiveInfo.status == OperationStatus.success) {
           if (Navigator.canPop(context)) Navigator.pop(context);
@@ -49,17 +50,25 @@ class _GoodsReceiptFormPageState extends State<GoodsReceiptFormPage> {
             elevation: 0,
             scrolledUnderElevation: 0,
             iconTheme: const IconThemeData(color: AppColors.textPrimary),
-            title: Text(ProcurementConstant.GRN_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+            title: Text(
+              ProcurementConstant.GRN_TITLE,
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w900,
+                color: AppColors.textPrimary,
+              ),
+            ),
             centerTitle: true,
           ),
-      floatingActionButton:         AppBottomAction(
-        child: AppButton(
-        text: ProcurementConstant.CONFIRM_RECEIPT,
-        isLoading: state.receiveInfo.status == OperationStatus.loading,
-        onPressed: _onConfirm,
-        ),
-        ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+          floatingActionButton: AppBottomAction(
+            child: AppButton(
+              text: ProcurementConstant.CONFIRM_RECEIPT,
+              isLoading: state.receiveInfo.status == OperationStatus.loading,
+              onPressed: _onConfirm,
+            ),
+          ),
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerFloat,
           body: SafeArea(
             child: Column(
               children: [
@@ -69,13 +78,37 @@ class _GoodsReceiptFormPageState extends State<GoodsReceiptFormPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('PO-2026-001', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                        Text(
+                          'PO-2026-001',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
                         SizedBox(height: 4.h),
-                        Text('Fresh Farms Ltd.', style: TextStyle(fontSize: 14.sp, color: AppColors.textSecondary)),
+                        Text(
+                          'Fresh Farms Ltd.',
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                         SizedBox(height: 24.h),
-                        AppInput(hintText: ProcurementConstant.INVOICE_NUMBER, controller: _invoiceController),
+                        AppInput(
+                          hintText: ProcurementConstant.INVOICE_NUMBER,
+                          controller: _invoiceController,
+                        ),
                         SizedBox(height: 32.h),
-                        Text(ProcurementConstant.ITEMS_SECTION, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary, letterSpacing: 0.8)),
+                        Text(
+                          ProcurementConstant.ITEMS_SECTION,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textTertiary,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
                         SizedBox(height: 12.h),
                         _buildReceiveItem('Tomatoes (Grade A)', '50 kg'),
                         _buildReceiveItem('Onions', '100 kg'),
@@ -95,20 +128,39 @@ class _GoodsReceiptFormPageState extends State<GoodsReceiptFormPage> {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(border: Border.all(color: AppColors.borderGrey), borderRadius: BorderRadius.circular(8.r)),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.borderGrey),
+        borderRadius: BorderRadius.circular(8.r),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(name, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+          Text(
+            name,
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w800,
+              color: AppColors.textPrimary,
+            ),
+          ),
           SizedBox(height: 12.h),
           Row(
             children: [
               Expanded(
-                child: Text('Ordered: $orderedQty', style: TextStyle(fontSize: 13.sp, color: AppColors.textSecondary)),
+                child: Text(
+                  'Ordered: $orderedQty',
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ),
               SizedBox(
                 width: 120.w,
-                child: AppInput(hintText: 'Received', keyboardType: TextInputType.number),
+                child: AppInput(
+                  hintText: 'Received',
+                  keyboardType: TextInputType.number,
+                ),
               ),
             ],
           ),

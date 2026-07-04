@@ -4,8 +4,8 @@ import 'package:mobile/core/color.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/features/manufacturing/constants/production.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile/features/inventory/inventory.cubit.dart';
-import 'package:mobile/features/inventory/inventory.state.dart';
+import 'package:mobile/features/inventory/controllers/inventory.cubit.dart';
+import 'package:mobile/features/inventory/controllers/inventory.state.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/components/ui/loader.dart';
 

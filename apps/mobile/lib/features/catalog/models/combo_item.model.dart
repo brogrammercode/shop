@@ -22,7 +22,7 @@ class ComboItemModel {
       id: json['id'] ?? '',
       combo_id: json['combo_id'] ?? '',
       menu_item_id: json['menu_item_id'] ?? '',
-      qty_included: json['qty_included'] ?? 0.0,
+      qty_included: (json['qty_included'] as num?)?.toDouble() ?? 0.0,
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
     );

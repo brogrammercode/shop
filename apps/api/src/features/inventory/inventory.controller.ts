@@ -96,6 +96,13 @@ export const createUOMConversion = asyncHandler(async (req: Request, res: Respon
   return sendSuccess(res, result, _INVENTORY_CONSTANTS._M_E_S_S_A_G_E_S.UOM_CONVERSION_CREATED, HttpStatus.CREATED);
 });
 
+export const updateUOMConversion = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as Record<string, string>;
+  const { factor } = req.body;
+  const result = await inventoryService.updateUOMConversion(id, factor);
+  return sendSuccess(res, result, _INVENTORY_CONSTANTS._M_E_S_S_A_G_E_S.UOM_CONVERSION_UPDATED, HttpStatus.OK);
+});
+
 export const listVariantsByItem = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as Record<string, string>;
   const result = await inventoryService.listVariantsByItem(id, req.employee.branch_id);

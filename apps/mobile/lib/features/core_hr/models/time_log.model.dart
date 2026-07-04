@@ -28,7 +28,7 @@ class TimeLogModel {
       employee_id: json['employee_id'] ?? '',
       clock_in: json['clock_in'] ?? '',
       clock_out: json['clock_out'] ?? '',
-      total_hours: json['total_hours'] ?? 0.0,
+      total_hours: (json['total_hours'] as num?)?.toDouble() ?? 0.0,
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
     );

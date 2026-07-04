@@ -1,10 +1,10 @@
 import 'package:mobile/services/api_client.dart';
 import 'package:mobile/utils/try_catch.dart';
-import 'package:mobile/features/catalog/menu_category.model.dart';
-import 'package:mobile/features/catalog/menu_item.model.dart';
-import 'package:mobile/features/catalog/modifier_group.model.dart';
-import 'package:mobile/features/catalog/modifier.model.dart';
-import 'package:mobile/features/catalog/combo_meal.model.dart';
+import 'package:mobile/features/catalog/models/menu_category.model.dart';
+import 'package:mobile/features/catalog/models/menu_item.model.dart';
+import 'package:mobile/features/catalog/models/modifier_group.model.dart';
+import 'package:mobile/features/catalog/models/modifier.model.dart';
+import 'package:mobile/features/catalog/models/combo_meal.model.dart';
 
 class CatalogEndpoints {
   static const String publicMenu = '/catalog/menu';
@@ -14,12 +14,15 @@ class CatalogEndpoints {
   static String item(String id) => '/catalog/items/$id';
   static const String modifierGroups = '/catalog/modifier-groups';
   static const String modifiers = '/catalog/modifiers';
-  static String modifiersByGroup(String groupId) => '/catalog/modifier-groups/$groupId/modifiers';
+  static String modifiersByGroup(String groupId) =>
+      '/catalog/modifier-groups/$groupId/modifiers';
   static String modifier(String id) => '/catalog/modifiers/$id';
   static const String comboMeals = '/catalog/combo-meals';
   static String comboMeal(String id) => '/catalog/combo-meals/$id';
-  static String comboItem(String comboId, String itemId) => '/catalog/combo-meals/$comboId/items/$itemId';
-  static String addComboItem(String comboId) => '/catalog/combo-meals/$comboId/items';
+  static String comboItem(String comboId, String itemId) =>
+      '/catalog/combo-meals/$comboId/items/$itemId';
+  static String addComboItem(String comboId) =>
+      '/catalog/combo-meals/$comboId/items';
 }
 
 class CatalogRepo {
@@ -29,7 +32,9 @@ class CatalogRepo {
 
   TaskResult<dynamic> getPublicMenu(String branchId) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.get('${CatalogEndpoints.publicMenu}?branch_id=$branchId');
+      final response = await _apiClient.get(
+        '${CatalogEndpoints.publicMenu}?branch_id=$branchId',
+      );
       return response.data['data'];
     });
   }
@@ -42,16 +47,27 @@ class CatalogRepo {
     });
   }
 
-  TaskResult<MenuCategoryModel> createCategory(Map<String, dynamic> data) async {
+  TaskResult<MenuCategoryModel> createCategory(
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(CatalogEndpoints.categories, data: data);
+      final response = await _apiClient.post(
+        CatalogEndpoints.categories,
+        data: data,
+      );
       return MenuCategoryModel.fromJson(response.data['data']);
     });
   }
 
-  TaskResult<MenuCategoryModel> updateCategory(String id, Map<String, dynamic> data) async {
+  TaskResult<MenuCategoryModel> updateCategory(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.patch(CatalogEndpoints.category(id), data: data);
+      final response = await _apiClient.patch(
+        CatalogEndpoints.category(id),
+        data: data,
+      );
       return MenuCategoryModel.fromJson(response.data['data']);
     });
   }
@@ -73,14 +89,23 @@ class CatalogRepo {
 
   TaskResult<MenuItemModel> createItem(Map<String, dynamic> data) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(CatalogEndpoints.items, data: data);
+      final response = await _apiClient.post(
+        CatalogEndpoints.items,
+        data: data,
+      );
       return MenuItemModel.fromJson(response.data['data']);
     });
   }
 
-  TaskResult<MenuItemModel> updateItem(String id, Map<String, dynamic> data) async {
+  TaskResult<MenuItemModel> updateItem(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.patch(CatalogEndpoints.item(id), data: data);
+      final response = await _apiClient.patch(
+        CatalogEndpoints.item(id),
+        data: data,
+      );
       return MenuItemModel.fromJson(response.data['data']);
     });
   }
@@ -100,16 +125,23 @@ class CatalogRepo {
     });
   }
 
-  TaskResult<ModifierGroupModel> createModifierGroup(Map<String, dynamic> data) async {
+  TaskResult<ModifierGroupModel> createModifierGroup(
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(CatalogEndpoints.modifierGroups, data: data);
+      final response = await _apiClient.post(
+        CatalogEndpoints.modifierGroups,
+        data: data,
+      );
       return ModifierGroupModel.fromJson(response.data['data']);
     });
   }
 
   TaskResult<List<ModifierModel>> listModifiersByGroup(String groupId) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.get(CatalogEndpoints.modifiersByGroup(groupId));
+      final response = await _apiClient.get(
+        CatalogEndpoints.modifiersByGroup(groupId),
+      );
       final data = response.data['data'] as List;
       return data.map((e) => ModifierModel.fromJson(e)).toList();
     });
@@ -117,14 +149,23 @@ class CatalogRepo {
 
   TaskResult<ModifierModel> createModifier(Map<String, dynamic> data) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(CatalogEndpoints.modifiers, data: data);
+      final response = await _apiClient.post(
+        CatalogEndpoints.modifiers,
+        data: data,
+      );
       return ModifierModel.fromJson(response.data['data']);
     });
   }
 
-  TaskResult<ModifierModel> updateModifier(String id, Map<String, dynamic> data) async {
+  TaskResult<ModifierModel> updateModifier(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.patch(CatalogEndpoints.modifier(id), data: data);
+      final response = await _apiClient.patch(
+        CatalogEndpoints.modifier(id),
+        data: data,
+      );
       return ModifierModel.fromJson(response.data['data']);
     });
   }
@@ -146,14 +187,23 @@ class CatalogRepo {
 
   TaskResult<ComboMealModel> createComboMeal(Map<String, dynamic> data) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(CatalogEndpoints.comboMeals, data: data);
+      final response = await _apiClient.post(
+        CatalogEndpoints.comboMeals,
+        data: data,
+      );
       return ComboMealModel.fromJson(response.data['data']);
     });
   }
 
-  TaskResult<ComboMealModel> updateComboMeal(String id, Map<String, dynamic> data) async {
+  TaskResult<ComboMealModel> updateComboMeal(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.patch(CatalogEndpoints.comboMeal(id), data: data);
+      final response = await _apiClient.patch(
+        CatalogEndpoints.comboMeal(id),
+        data: data,
+      );
       return ComboMealModel.fromJson(response.data['data']);
     });
   }
@@ -165,16 +215,24 @@ class CatalogRepo {
     });
   }
 
-  TaskResult<dynamic> addComboItem(String comboId, Map<String, dynamic> data) async {
+  TaskResult<dynamic> addComboItem(
+    String comboId,
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(CatalogEndpoints.addComboItem(comboId), data: data);
+      final response = await _apiClient.post(
+        CatalogEndpoints.addComboItem(comboId),
+        data: data,
+      );
       return response.data['data'];
     });
   }
 
   TaskResult<dynamic> removeComboItem(String comboId, String itemId) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.delete(CatalogEndpoints.comboItem(comboId, itemId));
+      final response = await _apiClient.delete(
+        CatalogEndpoints.comboItem(comboId, itemId),
+      );
       return response.data['data'];
     });
   }

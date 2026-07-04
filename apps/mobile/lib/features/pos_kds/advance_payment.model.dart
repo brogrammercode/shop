@@ -28,7 +28,7 @@ class AdvancePaymentModel {
       id: json['id'] ?? '',
       branch_id: json['branch_id'] ?? '',
       order_id: json['order_id'] ?? '',
-      amount_paid: json['amount_paid'] ?? 0.0,
+      amount_paid: (json['amount_paid'] as num?)?.toDouble() ?? 0.0,
       payment_method: json['payment_method'] ?? '',
       transaction_ref: json['transaction_ref'] ?? '',
       created_at: json['created_at'] ?? '',

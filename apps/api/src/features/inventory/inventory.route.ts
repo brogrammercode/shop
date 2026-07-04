@@ -32,6 +32,7 @@ router.post(_INVENTORY_CONSTANTS._R_O_U_T_E_S._U_O_M, inventoryController.create
 
 router.get(_INVENTORY_CONSTANTS._R_O_U_T_E_S.UOM_CONVERSIONS, inventoryController.listUOMConversions);
 router.post(_INVENTORY_CONSTANTS._R_O_U_T_E_S.UOM_CONVERSIONS, inventoryController.createUOMConversion);
+router.patch(_INVENTORY_CONSTANTS._R_O_U_T_E_S.UOM_CONVERSION_BY_ID, inventoryController.updateUOMConversion);
 
 router.get(_INVENTORY_CONSTANTS._R_O_U_T_E_S.PURCHASE_ORDERS, inventoryController.listPurchaseOrders);
 router.post(_INVENTORY_CONSTANTS._R_O_U_T_E_S.PURCHASE_ORDERS, inventoryController.createPurchaseOrder);

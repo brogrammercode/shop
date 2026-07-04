@@ -27,7 +27,7 @@ class WastageLogModel {
       branch_id: json['branch_id'] ?? '',
       variant_id: json['variant_id'] ?? '',
       reason: json['reason'] ?? '',
-      quantity: json['quantity'] ?? 0.0,
+      quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
       logged_by: json['logged_by'] ?? '',

@@ -22,7 +22,7 @@ class TransferItemModel {
       id: json['id'] ?? '',
       transfer_id: json['transfer_id'] ?? '',
       variant_id: json['variant_id'] ?? '',
-      quantity: json['quantity'] ?? 0.0,
+      quantity: (json['quantity'] as num?)?.toDouble() ?? 0.0,
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
     );

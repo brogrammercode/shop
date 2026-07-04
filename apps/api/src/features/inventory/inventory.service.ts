@@ -77,6 +77,10 @@ export class InventoryService {
     return inventoryRepo.createUOMConversion({ branch_id: branchId, from_uom_id, to_uom_id, factor });
   }
 
+  async updateUOMConversion(id: string, factor: number) {
+    return inventoryRepo.updateUOMConversion(id, factor);
+  }
+
   async listUOMConversions(branchId: string) {
     return inventoryRepo.findUOMConversionsByBranch(branchId);
   }

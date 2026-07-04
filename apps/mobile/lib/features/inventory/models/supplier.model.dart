@@ -1,7 +1,7 @@
 // Auto-generated Model file for Supplier
 
-import '../core_hr/models/address.model.dart';
-import '../finance/bank_detail.model.dart';
+import '../../core_hr/models/address.model.dart';
+import '../../finance/bank_detail.model.dart';
 
 class SupplierModel {
   final String id;

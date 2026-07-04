@@ -30,7 +30,7 @@ class FranchiseModel {
       id: json['id'] ?? '',
       branch_id: json['branch_id'] ?? '',
       owner_name: json['owner_name'] ?? '',
-      royalty_pct: json['royalty_pct'] ?? 0.0,
+      royalty_pct: (json['royalty_pct'] as num?)?.toDouble() ?? 0.0,
       agreement_doc: json['agreement_doc'] ?? '',
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',

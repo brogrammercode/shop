@@ -4,9 +4,9 @@ import 'package:mobile/core/color.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/features/inventory/constants/procurement.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile/features/inventory/inventory.cubit.dart';
-import 'package:mobile/features/inventory/inventory.state.dart';
-import 'package:mobile/features/inventory/purchase_order.model.dart';
+import 'package:mobile/features/inventory/controllers/inventory.cubit.dart';
+import 'package:mobile/features/inventory/controllers/inventory.state.dart';
+import 'package:mobile/features/inventory/models/purchase_order.model.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/components/ui/loader.dart';
 

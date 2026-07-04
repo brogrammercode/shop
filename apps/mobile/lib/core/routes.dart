@@ -7,29 +7,30 @@ import 'package:mobile/features/core_hr/pages/join.branch.page.dart';
 import 'package:mobile/features/core_hr/pages/create.branch.page.dart';
 import 'package:mobile/features/core_hr/pages/branch.detail.page.dart';
 
-import 'package:mobile/features/inventory/supplier.list.page.dart';
-import 'package:mobile/features/inventory/create.supplier.page.dart';
-import 'package:mobile/features/inventory/supplier.detail.page.dart';
-import 'package:mobile/features/inventory/purchase.order.list.page.dart';
-import 'package:mobile/features/inventory/create.po.page.dart';
-import 'package:mobile/features/inventory/purchase.order.detail.page.dart';
-import 'package:mobile/features/inventory/goods.receipt.form.page.dart';
-import 'package:mobile/features/inventory/vendor.return.form.page.dart';
+import 'package:mobile/features/inventory/pages/supplier.list.page.dart';
+import 'package:mobile/features/inventory/pages/create.supplier.page.dart';
+import 'package:mobile/features/inventory/pages/supplier.detail.page.dart';
+import 'package:mobile/features/inventory/pages/purchase.order.list.page.dart';
+import 'package:mobile/features/inventory/pages/create.po.page.dart';
+import 'package:mobile/features/inventory/pages/purchase.order.detail.page.dart';
+import 'package:mobile/features/inventory/pages/goods.receipt.form.page.dart';
+import 'package:mobile/features/inventory/pages/vendor.return.form.page.dart';
 
-import 'package:mobile/features/catalog/item.list.page.dart';
-import 'package:mobile/features/catalog/create.item.page.dart';
-import 'package:mobile/features/catalog/item.detail.page.dart';
-import 'package:mobile/features/catalog/create.variant.page.dart';
-import 'package:mobile/features/catalog/variant.detail.page.dart';
-import 'package:mobile/features/catalog/category.list.page.dart';
-import 'package:mobile/features/catalog/create.category.page.dart';
-import 'package:mobile/features/catalog/uom.list.page.dart';
-import 'package:mobile/features/catalog/create.uom.page.dart';
+import 'package:mobile/features/catalog/pages/item.list.page.dart';
+import 'package:mobile/features/catalog/pages/create.item.page.dart';
+import 'package:mobile/features/catalog/pages/item.detail.page.dart';
+import 'package:mobile/features/catalog/pages/create.variant.page.dart';
+import 'package:mobile/features/catalog/pages/variant.detail.page.dart';
+import 'package:mobile/features/catalog/pages/category.list.page.dart';
+import 'package:mobile/features/catalog/pages/create.category.page.dart';
+import 'package:mobile/features/catalog/pages/uom.list.page.dart';
+import 'package:mobile/features/catalog/pages/create.uom.page.dart';
+import 'package:mobile/features/catalog/pages/uom.detail.page.dart';
 
-import 'package:mobile/features/inventory/stock_ledger.list.page.dart';
-import 'package:mobile/features/inventory/stock_transfer.list.page.dart';
-import 'package:mobile/features/inventory/create.stock_transfer.page.dart';
-import 'package:mobile/features/inventory/stock_transfer.detail.page.dart';
+import 'package:mobile/features/inventory/pages/stock_ledger.list.page.dart';
+import 'package:mobile/features/inventory/pages/stock_transfer.list.page.dart';
+import 'package:mobile/features/inventory/pages/create.stock_transfer.page.dart';
+import 'package:mobile/features/inventory/pages/stock_transfer.detail.page.dart';
 
 import 'package:mobile/features/manufacturing/bom.list.page.dart';
 import 'package:mobile/features/manufacturing/create.bom.page.dart';
@@ -109,6 +110,7 @@ class AppRoutes {
   static const String createCategory = '/create-category';
   static const String uomList = '/uom-list';
   static const String createUom = '/create-uom';
+  static const String uomDetail = '/uom-detail';
 
   // Production & Inventory Routes
   static const String stockLedger = '/stock-ledger';
@@ -197,6 +199,7 @@ class AppRoutes {
     createCategory: (context) => const CreateCategoryPage(),
     uomList: (context) => const UomListPage(),
     createUom: (context) => const CreateUomPage(),
+    uomDetail: (context) => const UomDetailPage(),
 
     // Production & Inventory
     stockLedger: (context) => const StockLedgerListPage(),

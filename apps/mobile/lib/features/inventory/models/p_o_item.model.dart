@@ -26,9 +26,9 @@ class POItemModel {
       id: json['id'] ?? '',
       po_id: json['po_id'] ?? '',
       variant_id: json['variant_id'] ?? '',
-      qty_ordered: json['qty_ordered'] ?? 0.0,
-      unit_price: json['unit_price'] ?? 0.0,
-      total_price: json['total_price'] ?? 0.0,
+      qty_ordered: (json['qty_ordered'] as num?)?.toDouble() ?? 0.0,
+      unit_price: (json['unit_price'] as num?)?.toDouble() ?? 0.0,
+      total_price: (json['total_price'] as num?)?.toDouble() ?? 0.0,
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
     );

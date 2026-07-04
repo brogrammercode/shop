@@ -30,7 +30,7 @@ class BillOfMaterialModel {
       id: json['id'] ?? '',
       branch_id: json['branch_id'] ?? '',
       output_variant_id: json['output_variant_id'] ?? '',
-      yield_quantity: json['yield_quantity'] ?? 0.0,
+      yield_quantity: (json['yield_quantity'] as num?)?.toDouble() ?? 0.0,
       instructions: json['instructions'] ?? '',
       status: json['status'] ?? '',
       created_at: json['created_at'] ?? '',

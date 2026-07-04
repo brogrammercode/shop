@@ -39,7 +39,7 @@ class MenuItemModel {
       variant_id: json['variant_id'] ?? '',
       display_name: json['display_name'] ?? '',
       description: json['description'] ?? '',
-      selling_price: json['selling_price'] ?? 0.0,
+      selling_price: (json['selling_price'] as num?)?.toDouble() ?? 0.0,
       image_url: json['image_url'] ?? '',
       status: json['status'] ?? '',
       created_at: json['created_at'] ?? '',

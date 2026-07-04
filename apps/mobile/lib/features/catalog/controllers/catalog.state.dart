@@ -1,9 +1,9 @@
 import 'package:mobile/utils/error.dart';
-import 'package:mobile/features/catalog/menu_category.model.dart';
-import 'package:mobile/features/catalog/menu_item.model.dart';
-import 'package:mobile/features/catalog/modifier_group.model.dart';
-import 'package:mobile/features/catalog/modifier.model.dart';
-import 'package:mobile/features/catalog/combo_meal.model.dart';
+import 'package:mobile/features/catalog/models/menu_category.model.dart';
+import 'package:mobile/features/catalog/models/menu_item.model.dart';
+import 'package:mobile/features/catalog/models/modifier_group.model.dart';
+import 'package:mobile/features/catalog/models/modifier.model.dart';
+import 'package:mobile/features/catalog/models/combo_meal.model.dart';
 
 class CatalogState {
   final List<MenuCategoryModel> categories;
@@ -30,12 +30,20 @@ class CatalogState {
     this.modifiers = const [],
     this.comboMeals = const [],
     this.publicMenu,
-    this.loadCategoriesInfo = const OperationInfo(status: OperationStatus.initial),
-    this.saveCategoriesInfo = const OperationInfo(status: OperationStatus.initial),
+    this.loadCategoriesInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
+    this.saveCategoriesInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
     this.loadItemsInfo = const OperationInfo(status: OperationStatus.initial),
     this.saveItemsInfo = const OperationInfo(status: OperationStatus.initial),
-    this.loadModifiersInfo = const OperationInfo(status: OperationStatus.initial),
-    this.saveModifiersInfo = const OperationInfo(status: OperationStatus.initial),
+    this.loadModifiersInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
+    this.saveModifiersInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
     this.loadCombosInfo = const OperationInfo(status: OperationStatus.initial),
     this.saveCombosInfo = const OperationInfo(status: OperationStatus.initial),
     this.loadMenuInfo = const OperationInfo(status: OperationStatus.initial),

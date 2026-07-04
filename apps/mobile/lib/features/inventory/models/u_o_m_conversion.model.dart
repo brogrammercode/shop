@@ -25,7 +25,7 @@ class UOMConversionModel {
       branch_id: json['branch_id'] ?? '',
       from_uom_id: json['from_uom_id'] ?? '',
       to_uom_id: json['to_uom_id'] ?? '',
-      factor: json['factor'] ?? 0.0,
+      factor: (json['factor'] as num?)?.toDouble() ?? 0.0,
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
     );

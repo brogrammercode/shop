@@ -1297,3 +1297,5 @@ if (confirm == true) {
 - [ ] Use `AppColors.shadowColor` for all shadows
 - [ ] Use `AppColors.borderGrey` for all borders
 - [ ] Never write comments
+
+- [ ] Make sure every singular icon floating widget is circular (e.g., using shape: CircleBorder() or a circular container).

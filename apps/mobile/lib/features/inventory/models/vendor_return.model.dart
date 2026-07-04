@@ -29,7 +29,7 @@ class VendorReturnModel {
       branch_id: json['branch_id'] ?? '',
       po_id: json['po_id'] ?? '',
       return_reason: json['return_reason'] ?? '',
-      refund_value: json['refund_value'] ?? 0.0,
+      refund_value: (json['refund_value'] as num?)?.toDouble() ?? 0.0,
       status: json['status'] ?? '',
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
