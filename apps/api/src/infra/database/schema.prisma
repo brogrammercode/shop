@@ -474,6 +474,7 @@ model ItemCategory {
   branch_id      String
   name           String
   description    String?
+  images         String[]
   
   created_at     DateTime       @default(now())
   updated_at     DateTime       @updatedAt

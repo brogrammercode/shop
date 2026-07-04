@@ -44,6 +44,8 @@ class InventoryState {
   final OperationInfo loadTransferInfo;
   final OperationInfo loadUomsInfo;
   final OperationInfo saveUomsInfo;
+  final OperationInfo loadItemCategoriesInfo;
+  final OperationInfo saveItemCategoriesInfo;
   final OperationInfo loadUomConversionsInfo;
   final OperationInfo saveUomConversionsInfo;
 
@@ -89,6 +91,8 @@ class InventoryState {
     ),
     this.loadUomsInfo = const OperationInfo(status: OperationStatus.initial),
     this.saveUomsInfo = const OperationInfo(status: OperationStatus.initial),
+    this.loadItemCategoriesInfo = const OperationInfo(status: OperationStatus.initial),
+    this.saveItemCategoriesInfo = const OperationInfo(status: OperationStatus.initial),
     this.loadUomConversionsInfo = const OperationInfo(
       status: OperationStatus.initial,
     ),
@@ -129,6 +133,8 @@ class InventoryState {
     OperationInfo? loadTransferInfo,
     OperationInfo? loadUomsInfo,
     OperationInfo? saveUomsInfo,
+    OperationInfo? loadItemCategoriesInfo,
+    OperationInfo? saveItemCategoriesInfo,
     OperationInfo? loadUomConversionsInfo,
     OperationInfo? saveUomConversionsInfo,
   }) {
@@ -164,6 +170,8 @@ class InventoryState {
       loadTransferInfo: loadTransferInfo ?? this.loadTransferInfo,
       loadUomsInfo: loadUomsInfo ?? this.loadUomsInfo,
       saveUomsInfo: saveUomsInfo ?? this.saveUomsInfo,
+      loadItemCategoriesInfo: loadItemCategoriesInfo ?? this.loadItemCategoriesInfo,
+      saveItemCategoriesInfo: saveItemCategoriesInfo ?? this.saveItemCategoriesInfo,
       loadUomConversionsInfo:
           loadUomConversionsInfo ?? this.loadUomConversionsInfo,
       saveUomConversionsInfo:

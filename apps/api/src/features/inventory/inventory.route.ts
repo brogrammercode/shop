@@ -15,6 +15,7 @@ router.delete(_INVENTORY_CONSTANTS._R_O_U_T_E_S.SUPPLIER_BY_ID, inventoryControl
 
 router.get(_INVENTORY_CONSTANTS._R_O_U_T_E_S.ITEM_CATEGORIES, inventoryController.listItemCategories);
 router.post(_INVENTORY_CONSTANTS._R_O_U_T_E_S.ITEM_CATEGORIES, inventoryController.createItemCategory);
+router.patch(`${_INVENTORY_CONSTANTS._R_O_U_T_E_S.ITEM_CATEGORIES}/:id`, inventoryController.updateItemCategory);
 
 router.get(_INVENTORY_CONSTANTS._R_O_U_T_E_S._I_T_E_M_S, inventoryController.listItems);
 router.post(_INVENTORY_CONSTANTS._R_O_U_T_E_S._I_T_E_M_S, inventoryController.createItem);

@@ -981,3 +981,5 @@ Before finishing mobile work:
 10. Confirm new code is comment-free.
 
 11. Confirm every singular icon floating widget is perfectly circular (e.g., shape: CircleBorder()).
+
+- **Image Uploading**: Don't direct upload the image on selection, show it on UI and upon submit only upload and include the URL inside the entity doc.

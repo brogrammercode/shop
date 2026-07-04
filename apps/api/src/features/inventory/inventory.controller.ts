@@ -40,9 +40,16 @@ export const listItemCategories = asyncHandler(async (req: Request, res: Respons
 });
 
 export const createItemCategory = asyncHandler(async (req: Request, res: Response) => {
-  const { name, description } = req.body;
-  const result = await inventoryService.createItemCategory(req.employee.branch_id, name, description);
+  const { name, description, images } = req.body;
+  const result = await inventoryService.createItemCategory(req.employee.branch_id, name, description, images);
   return sendSuccess(res, result, _INVENTORY_CONSTANTS._M_E_S_S_A_G_E_S.ITEM_CATEGORY_CREATED, HttpStatus.CREATED);
+});
+
+export const updateItemCategory = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { name, description, images } = req.body;
+  const result = await inventoryService.updateItemCategory(id, name, description, images);
+  return sendSuccess(res, result, _INVENTORY_CONSTANTS._M_E_S_S_A_G_E_S.ITEM_CATEGORY_UPDATED, HttpStatus.OK);
 });
 
 export const listItems = asyncHandler(async (req: Request, res: Response) => {

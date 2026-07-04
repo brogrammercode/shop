@@ -85,7 +85,6 @@ class InventoryCubit extends Cubit<InventoryState> {
     final result = await _repo.listItems();
     result.fold(
       (failure) {
-        Fluttertoast.showToast(msg: failure.message);
         emit(
           state.copyWith(
             loadItemsInfo: OperationInfo(
@@ -95,13 +94,115 @@ class InventoryCubit extends Cubit<InventoryState> {
           ),
         );
       },
-      (items) {
+      (data) {
         emit(
           state.copyWith(
-            items: items,
             loadItemsInfo: const OperationInfo(status: OperationStatus.success),
+            items: data,
           ),
         );
+      },
+    );
+  }
+
+  Future<void> listItemCategories() async {
+    emit(
+      state.copyWith(
+        loadItemCategoriesInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.listItemCategories();
+    result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            loadItemCategoriesInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (data) {
+        emit(
+          state.copyWith(
+            loadItemCategoriesInfo: const OperationInfo(status: OperationStatus.success),
+            itemCategories: data,
+          ),
+        );
+      },
+    );
+  }
+
+  Future<String?> uploadImage(String filePath) async {
+    final result = await _repo.uploadImage(filePath);
+    return result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        return null;
+      },
+      (url) => url,
+    );
+  }
+
+  Future<void> createItemCategory(Map<String, dynamic> data) async {
+    emit(
+      state.copyWith(
+        saveItemCategoriesInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.createItemCategory(data);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            saveItemCategoriesInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Item Category created successfully');
+        emit(
+          state.copyWith(
+            saveItemCategoriesInfo: const OperationInfo(status: OperationStatus.success),
+          ),
+        );
+        listItemCategories();
+      },
+    );
+  }
+
+  Future<void> updateItemCategory(String id, Map<String, dynamic> data) async {
+    emit(
+      state.copyWith(
+        saveItemCategoriesInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.updateItemCategory(id, data);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            saveItemCategoriesInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Item Category updated successfully');
+        emit(
+          state.copyWith(
+            saveItemCategoriesInfo: const OperationInfo(status: OperationStatus.success),
+          ),
+        );
+        listItemCategories();
       },
     );
   }

@@ -33,6 +33,7 @@ export const _INVENTORY_CONSTANTS = {
     SUPPLIER_UPDATED: 'Supplier updated successfully',
     SUPPLIER_DELETED: 'Supplier deleted successfully',
     ITEM_CATEGORY_CREATED: 'Item category created successfully',
+    ITEM_CATEGORY_UPDATED: 'Item category updated successfully',
     ITEM_CATEGORIES_LISTED: 'Item categories fetched successfully',
     ITEM_CREATED: 'Item created successfully',
     ITEMS_LISTED: 'Items fetched successfully',

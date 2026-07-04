@@ -31,8 +31,12 @@ export class InventoryService {
     return inventoryRepo.deleteSupplier(id);
   }
 
-  async createItemCategory(branchId: string, name: string, description?: string) {
-    return inventoryRepo.createItemCategory({ branch_id: branchId, name, description });
+  async createItemCategory(branchId: string, name: string, description?: string, images?: string[]) {
+    return inventoryRepo.createItemCategory({ branch_id: branchId, name, description, images });
+  }
+
+  async updateItemCategory(id: string, name?: string, description?: string, images?: string[]) {
+    return inventoryRepo.updateItemCategory(id, { name, description, images });
   }
 
   async listItemCategories(branchId: string) {

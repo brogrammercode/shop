@@ -22,8 +22,12 @@ export class InventoryRepo {
     return prisma.supplier.update({ where: { id }, data: { is_deleted: true } });
   }
 
-  async createItemCategory(data: { branch_id: string; name: string; description?: string }) {
+  async createItemCategory(data: { branch_id: string; name: string; description?: string; images?: string[] }) {
     return prisma.itemCategory.create({ data });
+  }
+
+  async updateItemCategory(id: string, data: { name?: string; description?: string; images?: string[] }) {
+    return prisma.itemCategory.update({ where: { id }, data });
   }
 
   async findItemCategoriesByBranch(branchId: string) {

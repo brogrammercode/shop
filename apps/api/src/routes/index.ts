@@ -10,7 +10,7 @@ import crmRoutes from "../features/crm/crm.route";
 // import businessRoutes from "../features/business/business.route";
 // import orderRoutes from "../features/order/order.route";
 // import productRoutes from "../features/product/product.route";
-// import uploadRoutes from "../features/upload/upload.route";
+import uploadRoutes from "../features/upload/upload.route";
 
 const router = Router();
 
@@ -25,6 +25,6 @@ router.use("/crm", crmRoutes);
 // router.use("/business", businessRoutes);
 // router.use("/product", productRoutes);
 // router.use("/order", orderRoutes);
-// router.use("/upload", uploadRoutes);
+router.use("/upload", uploadRoutes);
 
 export default router;

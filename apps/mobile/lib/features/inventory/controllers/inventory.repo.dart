@@ -16,6 +16,7 @@ class InventoryEndpoints {
   static const String suppliers = '/inventory/suppliers';
   static String supplier(String id) => '/inventory/suppliers/$id';
   static const String itemCategories = '/inventory/item-categories';
+  static String itemCategory(String id) => '/inventory/item-categories/$id';
   static const String items = '/inventory/items';
   static String item(String id) => '/inventory/items/$id';
   static String itemVariants(String itemId) =>
@@ -96,6 +97,13 @@ class InventoryRepo {
     });
   }
 
+  TaskResult<String> uploadImage(String filePath) {
+    return tryCatchAsync<String>(() async {
+      final res = await _apiClient.uploadFile('/upload/image', filePath);
+      return res.data['data']['url'];
+    });
+  }
+
   TaskResult<ItemCategoryModel> createItemCategory(
     Map<String, dynamic> data,
   ) async {
@@ -105,6 +113,26 @@ class InventoryRepo {
         data: data,
       );
       return ItemCategoryModel.fromJson(response.data['data']);
+    });
+  }
+
+  TaskResult<ItemCategoryModel> updateItemCategory(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.patch(
+        InventoryEndpoints.itemCategory(id),
+        data: data,
+      );
+      return ItemCategoryModel.fromJson(response.data['data']);
+    });
+  }
+
+  TaskResult<dynamic> deleteItemCategory(String id) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.delete(InventoryEndpoints.itemCategory(id));
+      return response.data['data'];
     });
   }
 

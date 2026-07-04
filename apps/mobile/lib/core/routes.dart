@@ -23,6 +23,7 @@ import 'package:mobile/features/catalog/pages/create.variant.page.dart';
 import 'package:mobile/features/catalog/pages/variant.detail.page.dart';
 import 'package:mobile/features/catalog/pages/category.list.page.dart';
 import 'package:mobile/features/catalog/pages/create.category.page.dart';
+import 'package:mobile/features/catalog/pages/category.detail.page.dart';
 import 'package:mobile/features/catalog/pages/uom.list.page.dart';
 import 'package:mobile/features/catalog/pages/create.uom.page.dart';
 import 'package:mobile/features/catalog/pages/uom.detail.page.dart';
@@ -108,6 +109,7 @@ class AppRoutes {
   static const String variantDetail = '/variant-detail';
   static const String categoryList = '/category-list';
   static const String createCategory = '/create-category';
+  static const String categoryDetail = '/category-detail';
   static const String uomList = '/uom-list';
   static const String createUom = '/create-uom';
   static const String uomDetail = '/uom-detail';
@@ -197,6 +199,7 @@ class AppRoutes {
     variantDetail: (context) => const VariantDetailPage(),
     categoryList: (context) => const CategoryListPage(),
     createCategory: (context) => const CreateCategoryPage(),
+    categoryDetail: (context) => const CategoryDetailPage(),
     uomList: (context) => const UomListPage(),
     createUom: (context) => const CreateUomPage(),
     uomDetail: (context) => const UomDetailPage(),
