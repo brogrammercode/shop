@@ -8,6 +8,7 @@ import 'package:mobile/features/inventory/inventory.cubit.dart';
 import 'package:mobile/features/inventory/inventory.state.dart';
 import 'package:mobile/features/inventory/purchase_order.model.dart';
 import 'package:mobile/utils/error.dart';
+import 'package:mobile/components/ui/loader.dart';
 
 class PurchaseOrderListPage extends StatefulWidget {
   const PurchaseOrderListPage({super.key});
@@ -41,16 +42,29 @@ class _PurchaseOrderListPageState extends State<PurchaseOrderListPage> {
                     decoration: const BoxDecoration(
                       color: AppColors.pureWhite,
                       shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2))],
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.shadowColor,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: Icon(Icons.chevron_left, color: AppColors.textPrimary, size: 24.w),
+                    child: Icon(
+                      Icons.chevron_left,
+                      color: AppColors.textPrimary,
+                      size: 24.w,
+                    ),
                   ),
                 ),
                 SizedBox(width: 16.w),
                 Expanded(
                   child: AppInput(
                     hintText: ProcurementConstant.SEARCH_PO,
-                    prefixIcon: Icon(Icons.search, color: AppColors.textTertiary),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: AppColors.textTertiary,
+                    ),
                   ),
                 ),
               ],
@@ -72,17 +86,31 @@ class _PurchaseOrderListPageState extends State<PurchaseOrderListPage> {
             child: BlocBuilder<InventoryCubit, InventoryState>(
               builder: (context, state) {
                 if (state.loadPOInfo.status == OperationStatus.loading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: AppLoader(size: 24, strokeWidth: 2),
+                  );
                 }
                 final pos = state.purchaseOrders;
                 if (pos.isEmpty) {
-                  return Center(child: Text('No purchase orders found', style: TextStyle(color: AppColors.textSecondary)));
+                  return Center(
+                    child: Text(
+                      'No purchase orders found',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  );
                 }
-                return ListView.separated(
-                  padding: EdgeInsets.all(16.w),
-                  itemCount: pos.length,
-                  separatorBuilder: (c, i) => SizedBox(height: 12.h),
-                  itemBuilder: (context, index) => _buildPOCard(context, pos[index]),
+                return RefreshIndicator(
+                  color: AppColors.primaryGreen,
+                  onRefresh: () async {
+                    context.read<InventoryCubit>().listPurchaseOrders();
+                  },
+                  child: ListView.separated(
+                    padding: EdgeInsets.all(16.w),
+                    itemCount: pos.length,
+                    separatorBuilder: (c, i) => SizedBox(height: 12.h),
+                    itemBuilder: (context, index) =>
+                        _buildPOCard(context, pos[index]),
+                  ),
                 );
               },
             ),
@@ -93,7 +121,13 @@ class _PurchaseOrderListPageState extends State<PurchaseOrderListPage> {
         onPressed: () => Navigator.pushNamed(context, '/create-po'),
         backgroundColor: AppColors.primaryGreen,
         icon: const Icon(Icons.add, color: AppColors.pureWhite),
-        label: Text(ProcurementConstant.CREATE_PO, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
+        label: Text(
+          ProcurementConstant.CREATE_PO,
+          style: TextStyle(
+            color: AppColors.pureWhite,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
     );
   }
@@ -105,7 +139,9 @@ class _PurchaseOrderListPageState extends State<PurchaseOrderListPage> {
       decoration: BoxDecoration(
         color: isSelected ? AppColors.primaryGreen : AppColors.pureWhite,
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: isSelected ? AppColors.primaryGreen : AppColors.borderGrey),
+        border: Border.all(
+          color: isSelected ? AppColors.primaryGreen : AppColors.borderGrey,
+        ),
       ),
       child: Text(
         label,
@@ -134,7 +170,7 @@ class _PurchaseOrderListPageState extends State<PurchaseOrderListPage> {
       default:
         statusColor = AppColors.textSecondary;
     }
-    
+
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, '/po-detail'),
       child: Container(
@@ -143,7 +179,13 @@ class _PurchaseOrderListPageState extends State<PurchaseOrderListPage> {
           color: AppColors.pureWhite,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(color: AppColors.borderGrey),
-          boxShadow: const [BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2))],
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadowColor,
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -151,22 +193,59 @@ class _PurchaseOrderListPageState extends State<PurchaseOrderListPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(po.id, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                Text(
+                  po.id,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                  decoration: BoxDecoration(color: statusColor.withOpacity(0.1), borderRadius: BorderRadius.circular(6.r)),
-                  child: Text(po.status, style: TextStyle(fontSize: 9.sp, fontWeight: FontWeight.w800, color: statusColor)),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6.r),
+                  ),
+                  child: Text(
+                    po.status,
+                    style: TextStyle(
+                      fontSize: 9.sp,
+                      fontWeight: FontWeight.w800,
+                      color: statusColor,
+                    ),
+                  ),
                 ),
               ],
             ),
             SizedBox(height: 12.h),
-            Text('Supplier: ${po.supplier_id}', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+            Text(
+              'Supplier: ${po.supplier_id}',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
             SizedBox(height: 12.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(po.created_at.split('T').first, style: TextStyle(fontSize: 12.sp, color: AppColors.textTertiary)),
-                Text('₹${po.total_amount}', style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                Text(
+                  po.created_at.split('T').first,
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                Text(
+                  '₹${po.total_amount}',
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
               ],
             ),
           ],

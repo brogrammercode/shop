@@ -1,6 +1,7 @@
 // Auto-generated Model file for Employee
 
 import 'address.model.dart';
+import 'user.model.dart';
 
 class EmployeeModel {
   final String id;
@@ -15,6 +16,7 @@ class EmployeeModel {
   final String updated_at;
   final bool is_deleted;
   final List<AddressModel> addresses;
+  final UserModel? user;
 
   const EmployeeModel({
     required this.id,
@@ -29,6 +31,7 @@ class EmployeeModel {
     required this.updated_at,
     required this.is_deleted,
     required this.addresses,
+    this.user,
   });
 
   factory EmployeeModel.fromJson(Map<String, dynamic> json) {
@@ -36,15 +39,16 @@ class EmployeeModel {
       id: json['id'] ?? '',
       branch_id: json['branch_id'] ?? '',
       uid: json['uid'] ?? '',
-      department: json['department'] ?? '',
-      post: json['post'] ?? '',
-      shift: json['shift'] ?? '',
-      role: json['role'] ?? '',
+      department: json['department_rel']?['name'] ?? json['department'] ?? '',
+      post: json['post_rel']?['name'] ?? json['post'] ?? '',
+      shift: json['shift_rel']?['name'] ?? json['shift'] ?? '',
+      role: json['role_rel']?['name'] ?? json['role'] ?? '',
       status: json['status'] ?? '',
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
       is_deleted: json['is_deleted'] ?? false,
       addresses: (json['addresses'] as List<dynamic>? ?? []).map((x) => AddressModel.fromJson(x as Map<String, dynamic>)).toList(),
+      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
     );
   }
 
@@ -62,6 +66,7 @@ class EmployeeModel {
       'updated_at': updated_at,
       'is_deleted': is_deleted,
       'addresses': addresses.map((x) => x.toJson()).toList(),
+      'user': user?.toJson(),
     };
   }
 
@@ -78,6 +83,7 @@ class EmployeeModel {
     String? updated_at,
     bool? is_deleted,
     List<AddressModel>? addresses,
+    UserModel? user,
   }) {
     return EmployeeModel(
       id: id ?? this.id,
@@ -92,6 +98,7 @@ class EmployeeModel {
       updated_at: updated_at ?? this.updated_at,
       is_deleted: is_deleted ?? this.is_deleted,
       addresses: addresses ?? this.addresses,
+      user: user ?? this.user,
     );
   }
 }

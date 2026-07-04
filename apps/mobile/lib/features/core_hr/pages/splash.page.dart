@@ -3,7 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/routes.dart';
 import 'package:mobile/services/json_cache.dart';
-import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';
+import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';import 'package:mobile/components/ui/loader.dart';
+
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -72,10 +73,7 @@ class _SplashPageState extends State<SplashPage> {
             SizedBox(
               height: 20.h,
               width: 20.h,
-              child: const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF22C55E)),
-                strokeWidth: 2.5,
-              ),
+              child: const AppLoader(size: 24, strokeWidth: 2),
             ),
           ],
         ),

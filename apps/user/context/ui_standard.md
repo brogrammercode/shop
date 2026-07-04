@@ -17,6 +17,13 @@ import 'package:user/core/color.dart';
 
 ---
 
+## 0.5 Navigation & Interactivity Rules
+
+1. **Nested Layout Navigation**: When clicking a secondary or tertiary nav item inside `HomeLayoutPage`, **do not** use `Navigator.push`. Update the layout's internal `_currentRoute` state to render the page directly inside the layout's `body`. This keeps the global layout navigation persistent.
+2. **Pull to Refresh**: All data-fetching pages (lists, dashboards, etc.) must have their scrollable body wrapped in a `RefreshIndicator` that returns the Cubit's fetch method (e.g., `context.read<CoreHrCubit>().listEmployees()`). The indicator should match the app's theme colors.
+
+---
+
 ## 1. Design System — Foundations
 
 ### 1.1 ScreenUtil Design Reference

@@ -55,7 +55,12 @@ class _TableListPageState extends State<TableListPage> {
                 if (tables.isEmpty) {
                   return Center(child: Text('No tables found', style: TextStyle(color: AppColors.textSecondary)));
                 }
-                return GridView.builder(
+                return RefreshIndicator(
+      color: AppColors.primaryGreen,
+      onRefresh: () async {
+        context.read<PosKdsCubit>().listTables();
+      },
+      child: GridView.builder(
               padding: EdgeInsets.all(24.w),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
@@ -101,7 +106,8 @@ class _TableListPageState extends State<TableListPage> {
                   ),
                 );
               },
-            );
+            ),
+    );
           },
         ),
       ),

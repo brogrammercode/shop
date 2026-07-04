@@ -12,7 +12,8 @@ import 'package:mobile/features/core_hr/controllers/core_hr.state.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/services/location_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:mobile/components/ui/dialog.dart';
+import 'package:mobile/components/ui/dialog.dart';import 'package:mobile/components/ui/loader.dart';
+
 
 class CreateBranchPage extends StatefulWidget {
   const CreateBranchPage({super.key});
@@ -477,7 +478,7 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                 SizedBox(
                   width: 12.w,
                   height: 12.w,
-                  child: const CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryGreen),
+                  child: const AppLoader(size: 24, strokeWidth: 2),
                 )
               else
                 Icon(Icons.my_location, size: 14.w, color: AppColors.primaryGreen),

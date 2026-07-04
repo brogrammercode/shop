@@ -8,7 +8,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.state.dart';
 import 'package:mobile/utils/error.dart';
-import 'package:mobile/components/ui/dialog.dart';
+import 'package:mobile/components/ui/dialog.dart';import 'package:mobile/components/ui/loader.dart';
+
 
 class JoinBranchPage extends StatefulWidget {
   const JoinBranchPage({super.key});
@@ -155,10 +156,7 @@ class _JoinBranchPageState extends State<JoinBranchPage> {
         child: SizedBox(
           width: 20.w,
           height: 20.w,
-          child: const CircularProgressIndicator(
-            strokeWidth: 2,
-            color: AppColors.primaryGreen,
-          ),
+          child: const AppLoader(size: 24, strokeWidth: 2),
         ),
       );
     }

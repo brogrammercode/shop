@@ -8,6 +8,7 @@ import 'package:mobile/features/inventory/inventory.cubit.dart';
 import 'package:mobile/features/inventory/inventory.state.dart';
 import 'package:mobile/features/inventory/supplier.model.dart';
 import 'package:mobile/utils/error.dart';
+import 'package:mobile/components/ui/loader.dart';
 
 class SupplierListPage extends StatefulWidget {
   const SupplierListPage({super.key});
@@ -41,16 +42,29 @@ class _SupplierListPageState extends State<SupplierListPage> {
                     decoration: const BoxDecoration(
                       color: AppColors.pureWhite,
                       shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2))],
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.shadowColor,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: Icon(Icons.chevron_left, color: AppColors.textPrimary, size: 24.w),
+                    child: Icon(
+                      Icons.chevron_left,
+                      color: AppColors.textPrimary,
+                      size: 24.w,
+                    ),
                   ),
                 ),
                 SizedBox(width: 16.w),
                 Expanded(
                   child: AppInput(
                     hintText: ProcurementConstant.SEARCH_SUPPLIER,
-                    prefixIcon: Icon(Icons.search, color: AppColors.textTertiary),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: AppColors.textTertiary,
+                    ),
                   ),
                 ),
               ],
@@ -60,17 +74,31 @@ class _SupplierListPageState extends State<SupplierListPage> {
             child: BlocBuilder<InventoryCubit, InventoryState>(
               builder: (context, state) {
                 if (state.loadSuppliersInfo.status == OperationStatus.loading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: AppLoader(size: 24, strokeWidth: 2),
+                  );
                 }
                 final suppliers = state.suppliers;
                 if (suppliers.isEmpty) {
-                  return Center(child: Text('No suppliers found', style: TextStyle(color: AppColors.textSecondary)));
+                  return Center(
+                    child: Text(
+                      'No suppliers found',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  );
                 }
-                return ListView.separated(
-                  padding: EdgeInsets.all(16.w),
-                  itemCount: suppliers.length,
-                  separatorBuilder: (c, i) => SizedBox(height: 12.h),
-                  itemBuilder: (context, index) => _buildSupplierCard(context, suppliers[index]),
+                return RefreshIndicator(
+                  color: AppColors.primaryGreen,
+                  onRefresh: () async {
+                    context.read<InventoryCubit>().listSuppliers();
+                  },
+                  child: ListView.separated(
+                    padding: EdgeInsets.all(16.w),
+                    itemCount: suppliers.length,
+                    separatorBuilder: (c, i) => SizedBox(height: 12.h),
+                    itemBuilder: (context, index) =>
+                        _buildSupplierCard(context, suppliers[index]),
+                  ),
                 );
               },
             ),
@@ -81,7 +109,13 @@ class _SupplierListPageState extends State<SupplierListPage> {
         onPressed: () => Navigator.pushNamed(context, '/create-supplier'),
         backgroundColor: AppColors.primaryGreen,
         icon: const Icon(Icons.add, color: AppColors.pureWhite),
-        label: Text(ProcurementConstant.ADD_SUPPLIER, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
+        label: Text(
+          ProcurementConstant.ADD_SUPPLIER,
+          style: TextStyle(
+            color: AppColors.pureWhite,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
     );
   }
@@ -95,30 +129,63 @@ class _SupplierListPageState extends State<SupplierListPage> {
           color: AppColors.pureWhite,
           borderRadius: BorderRadius.circular(12.r),
           border: Border.all(color: AppColors.borderGrey),
-          boxShadow: const [BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2))],
+          boxShadow: const [
+            BoxShadow(
+              color: AppColors.shadowColor,
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
             CircleAvatar(
               radius: 24.r,
               backgroundColor: const Color(0xFFE8F5E9),
-              child: Icon(Icons.local_shipping, color: AppColors.primaryGreen, size: 24.w),
+              child: Icon(
+                Icons.local_shipping,
+                color: AppColors.primaryGreen,
+                size: 24.w,
+              ),
             ),
             SizedBox(width: 16.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(supplier.name, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                  Text(
+                    supplier.name,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
                   SizedBox(height: 4.h),
-                  Text(supplier.contact_phone, style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary)),
+                  Text(
+                    supplier.contact_phone,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ],
               ),
             ),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-              decoration: BoxDecoration(color: const Color(0xFFE8F5E9), borderRadius: BorderRadius.circular(6.r)),
-              child: Text(ProcurementConstant.ACTIVE, style: TextStyle(fontSize: 9.sp, fontWeight: FontWeight.w800, color: AppColors.primaryGreen)),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F5E9),
+                borderRadius: BorderRadius.circular(6.r),
+              ),
+              child: Text(
+                ProcurementConstant.ACTIVE,
+                style: TextStyle(
+                  fontSize: 9.sp,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primaryGreen,
+                ),
+              ),
             ),
           ],
         ),

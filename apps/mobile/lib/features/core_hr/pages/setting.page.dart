@@ -6,7 +6,8 @@ import 'package:mobile/core/routes.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.state.dart';
 import 'package:mobile/utils/error.dart';
-import 'package:mobile/components/ui/dialog.dart';
+import 'package:mobile/components/ui/dialog.dart';import 'package:mobile/components/ui/loader.dart';
+
 
 class SettingPage extends StatelessWidget {
   const SettingPage({super.key});
@@ -133,10 +134,7 @@ class SettingPage extends StatelessWidget {
               SizedBox(
                 width: 16.w,
                 height: 16.w,
-                child: const CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: Color(0xFFEF4F5F),
-                ),
+                child: const AppLoader(size: 24, strokeWidth: 2),
               )
             else
               Icon(

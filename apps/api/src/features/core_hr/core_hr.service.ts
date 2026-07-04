@@ -243,12 +243,12 @@ export class CoreHrService {
     }
 
     const roles = await coreHrRepo.findRolesByBranch(branchId);
-    const defaultRole = roles[0];
-    if (!defaultRole) {
-      throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.ROLE_NOT_FOUND);
+    let memberRole = roles.find((r) => r.name.toLowerCase() === 'member');
+    if (!memberRole) {
+      memberRole = await coreHrRepo.createRole(reviewedBy, branchId, 'Member', []);
     }
 
-    const employee = await coreHrRepo.createEmployee(reviewedBy, branchId, request.uid, defaultRole.id);
+    const employee = await coreHrRepo.createEmployee(reviewedBy, branchId, request.uid, memberRole.id);
     const updatedRequest = await coreHrRepo.updateJoinRequestStatus(reviewedBy, requestId, 'APPROVED', reviewedBy);
 
     return { employee, request: updatedRequest };

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:mobile/core/color.dart';
+import 'package:mobile/core/color.dart';import 'package:mobile/components/ui/loader.dart';
+
 
 class BottomSheetTopAction {
   final String label;
@@ -157,16 +158,7 @@ class ActionBottomSheet extends StatelessWidget {
                                           ? SizedBox(
                                               width: 24.w,
                                               height: 24.w,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                valueColor:
-                                                    AlwaysStoppedAnimation<
-                                                      Color
-                                                    >(
-                                                      action.iconColor ??
-                                                          AppColors.textPrimary,
-                                                    ),
-                                              ),
+                                              child: const AppLoader(size: 24, strokeWidth: 2),
                                             )
                                           : Icon(
                                               action.icon,

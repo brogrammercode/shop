@@ -266,9 +266,25 @@ export class CoreHrRepo {
   }
 
   async findJoinRequestsByBranch(branchId: string) {
-    return prisma.joinRequest.findMany({
+    const requests = await prisma.joinRequest.findMany({
       where: { branch_id: branchId, status: 'PENDING' },
       orderBy: { created_at: 'desc' },
+    });
+    
+    if (requests.length === 0) return [];
+    
+    const uids = requests.map(r => r.uid);
+    const users = await prisma.user.findMany({
+      where: { id: { in: uids } },
+      select: { id: true, name: true, phone: true }
+    });
+    
+    return requests.map(req => {
+      const user = users.find(u => u.id === req.uid);
+      return {
+        ...req,
+        user: user ? { name: user.name, phone: user.phone } : null
+      };
     });
   }
 

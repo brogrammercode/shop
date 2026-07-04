@@ -15,7 +15,8 @@ import 'package:mobile/features/core_hr/constants/hr.constant.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:pinput/pinput.dart';
 import 'package:mobile/constants/country.constant.dart';
-import 'package:mobile/components/ui/country_picker.dart';
+import 'package:mobile/components/ui/country_picker.dart';import 'package:mobile/components/ui/loader.dart';
+
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -384,10 +385,7 @@ class _AuthPageState extends State<AuthPage> {
               return SizedBox(
                 width: 16.w,
                 height: 16.w,
-                child: const CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFEF4F5F)),
-                ),
+                child: const AppLoader(size: 24, strokeWidth: 2),
               );
             }
             return GestureDetector(
@@ -593,12 +591,7 @@ class _AuthPageState extends State<AuthPage> {
                 child: SizedBox(
                   width: 18.w,
                   height: 18.w,
-                  child: const CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColors.textSecondary,
-                    ),
-                  ),
+                  child: const AppLoader(size: 24, strokeWidth: 2),
                 ),
               )
             : child,

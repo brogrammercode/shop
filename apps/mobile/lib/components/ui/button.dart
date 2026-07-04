@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:mobile/core/color.dart';
+import 'package:mobile/core/color.dart';import 'package:mobile/components/ui/loader.dart';
+
 
 class AppButton extends StatelessWidget {
   final String text;
@@ -49,10 +50,7 @@ class AppButton extends StatelessWidget {
             ? SizedBox(
                 height: 24.w,
                 width: 24.w,
-                child: CircularProgressIndicator(
-                  color: textColor,
-                  strokeWidth: 2,
-                ),
+                child: const AppLoader(size: 24, strokeWidth: 2),
               )
             : (child ??
                 Row(

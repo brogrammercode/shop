@@ -61,6 +61,10 @@ Follow these steps in order when implementing a new feature:
 3.  **Update Constants**: Add any new strings to the relevant `constant.ts` file.
 4.  **Test**: Verify the fix across the entire feature stack (from Repo up to Route/UI).
 
+## 5. Mobile Layout & Navigation
+1.  **State-driven Layout**: When switching between primary tabs and secondary pages from a global layout (like `HomeLayoutPage`), **do not** use `Navigator.push`. Instead, maintain a state variable (`_currentRoute`) and replace the body of the layout dynamically.
+2.  **Pull-to-Refresh**: Every scrollable screen that displays fetched data (e.g., list views, dashboards) must wrap its scrollable body in a `RefreshIndicator` and map its `onRefresh` callback to the corresponding Cubit reload method.
+
 # Mobile Code Standard
 
 This document is the coding standard for `apps/mobile`. It is based on the current Flutter codebase, the project context documents, and the backend shape that the mobile app consumes.

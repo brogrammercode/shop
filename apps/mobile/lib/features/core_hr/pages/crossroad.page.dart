@@ -6,7 +6,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.state.dart';
 import 'package:mobile/utils/error.dart';
-import 'package:mobile/components/ui/dialog.dart';
+import 'package:mobile/components/ui/dialog.dart';import 'package:mobile/components/ui/loader.dart';
+
 
 class CrossRoadPage extends StatelessWidget {
   const CrossRoadPage({super.key});
@@ -76,10 +77,7 @@ class CrossRoadPage extends StatelessWidget {
                     ? SizedBox(
                         height: 20.w,
                         width: 20.w,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.textSecondary,
-                        ),
+                        child: const AppLoader(size: 24, strokeWidth: 2),
                       )
                     : TextButton(
                         onPressed: () async {
