@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/app_refresher.dart';
 import 'package:mobile/features/manufacturing/constants/production.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/manufacturing/manufacturing.cubit.dart';
@@ -55,9 +56,7 @@ class _BomListPageState extends State<BomListPage> {
               ),
             );
           }
-          return RefreshIndicator(
-            color: AppColors.primaryGreen,
-            onRefresh: () async {
+          return AppRefresher(            onRefresh: () async {
               context.read<ManufacturingCubit>().listBOMs();
             },
             child: ListView.separated(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/app_refresher.dart';
 import 'package:mobile/components/ui/loader.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/components/ui/input.dart';
@@ -81,9 +82,8 @@ class _UomDetailPageState extends State<UomDetailPage> {
                     );
                   }
 
-                  return RefreshIndicator(
+                  return AppRefresher(
                     onRefresh: () => context.read<InventoryCubit>().listUomConversions(),
-                    color: AppColors.primaryGreen,
                     child: ListView.separated(
                       padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
                       itemCount: conversions.length,
@@ -184,7 +184,6 @@ class _UomDetailPageState extends State<UomDetailPage> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14.sp,
-                    color: AppColors.primaryGreen,
                   ),
                 ),
               ),
@@ -296,7 +295,6 @@ class _UomDetailPageState extends State<UomDetailPage> {
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w800,
-                  color: AppColors.primaryGreen,
                 ),
               ),
               SizedBox(width: 4.w),

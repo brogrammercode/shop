@@ -46,7 +46,7 @@ export const createItemCategory = asyncHandler(async (req: Request, res: Respons
 });
 
 export const updateItemCategory = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { id } = req.params as Record<string, string>;
   const { name, description, images } = req.body;
   const result = await inventoryService.updateItemCategory(id, name, description, images);
   return sendSuccess(res, result, _INVENTORY_CONSTANTS._M_E_S_S_A_G_E_S.ITEM_CATEGORY_UPDATED, HttpStatus.OK);
@@ -58,8 +58,8 @@ export const listItems = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const createItem = asyncHandler(async (req: Request, res: Response) => {
-  const { category_id, name, item_type, shelf_life_days } = req.body;
-  const result = await inventoryService.createItem(req.employee.branch_id, category_id, name, item_type, shelf_life_days);
+  const { category_id, name, description, images, item_type, shelf_life_days } = req.body;
+  const result = await inventoryService.createItem(req.employee.branch_id, category_id, name, description, images, item_type, shelf_life_days);
   return sendSuccess(res, result, _INVENTORY_CONSTANTS._M_E_S_S_A_G_E_S.ITEM_CREATED, HttpStatus.CREATED);
 });
 
@@ -71,7 +71,8 @@ export const getItemById = asyncHandler(async (req: Request, res: Response) => {
 
 export const updateItem = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as Record<string, string>;
-  const result = await inventoryService.updateItem(id, req.employee.branch_id, req.body);
+  const { category_id, name, description, images, item_type, shelf_life_days, status } = req.body;
+  const result = await inventoryService.updateItem(id, req.employee.branch_id, { category_id, name, description, images, item_type, shelf_life_days, status });
   return sendSuccess(res, result, _INVENTORY_CONSTANTS._M_E_S_S_A_G_E_S.ITEM_UPDATED, HttpStatus.OK);
 });
 
@@ -118,8 +119,8 @@ export const listVariantsByItem = asyncHandler(async (req: Request, res: Respons
 
 export const createItemVariant = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as Record<string, string>;
-  const { uom_id, sku, barcode, base_cost, min_stock_lvl } = req.body;
-  const result = await inventoryService.createItemVariant(req.employee.branch_id, id, uom_id, sku, barcode, base_cost, min_stock_lvl);
+  const { uom_id, sku, barcode, name, images, base_cost, min_stock_lvl } = req.body;
+  const result = await inventoryService.createItemVariant(req.employee.branch_id, id, uom_id, sku, barcode, name, images, base_cost, min_stock_lvl);
   return sendSuccess(res, result, _INVENTORY_CONSTANTS._M_E_S_S_A_G_E_S.VARIANT_CREATED, HttpStatus.CREATED);
 });
 

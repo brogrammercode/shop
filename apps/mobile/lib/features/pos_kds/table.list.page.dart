@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/app_refresher.dart';
 import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/pos_kds/pos_kds.cubit.dart';
@@ -55,8 +56,7 @@ class _TableListPageState extends State<TableListPage> {
                 if (tables.isEmpty) {
                   return Center(child: Text('No tables found', style: TextStyle(color: AppColors.textSecondary)));
                 }
-                return RefreshIndicator(
-      color: AppColors.primaryGreen,
+                return AppRefresher(
       onRefresh: () async {
         context.read<PosKdsCubit>().listTables();
       },

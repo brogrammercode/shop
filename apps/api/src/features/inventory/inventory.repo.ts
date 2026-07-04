@@ -1,4 +1,4 @@
-import { POStatus, ReturnStatus, StockTransType, TransferStatus, ItemType } from '@prisma/client';
+import { POStatus, ReturnStatus, StockTransType, TransferStatus, ItemType, EntityStatus } from '@prisma/client';
 import prisma from '../../infra/database/client';
 
 export class InventoryRepo {
@@ -34,7 +34,7 @@ export class InventoryRepo {
     return prisma.itemCategory.findMany({ where: { branch_id: branchId, is_deleted: false } });
   }
 
-  async createItem(data: { branch_id: string; category_id: string; name: string; item_type: ItemType; shelf_life_days?: number }) {
+  async createItem(data: { branch_id: string; category_id: string; name: string; description?: string; images?: string[]; item_type: ItemType; shelf_life_days?: number }) {
     return prisma.item.create({ data });
   }
 
@@ -46,7 +46,7 @@ export class InventoryRepo {
     return prisma.item.findUnique({ where: { id } });
   }
 
-  async updateItem(id: string, data: Partial<{ category_id: string; name: string; item_type: ItemType; shelf_life_days: number }>) {
+  async updateItem(id: string, data: Partial<{ category_id: string; name: string; description: string; images: string[]; item_type: ItemType; shelf_life_days: number; status: EntityStatus }>) {
     return prisma.item.update({ where: { id }, data });
   }
 
@@ -74,7 +74,7 @@ export class InventoryRepo {
     return prisma.uOMConversion.findMany({ where: { branch_id: branchId }, include: { from_uom: true, to_uom: true } });
   }
 
-  async createItemVariant(data: { branch_id: string; item_id: string; uom_id: string; sku: string; barcode?: string; base_cost: number; min_stock_lvl: number }) {
+  async createItemVariant(data: { branch_id: string; item_id: string; uom_id: string; sku: string; name?: string; images?: string[]; barcode?: string; base_cost: number; min_stock_lvl: number }) {
     return prisma.itemVariant.create({ data });
   }
 
@@ -86,8 +86,13 @@ export class InventoryRepo {
     return prisma.itemVariant.findUnique({ where: { id } });
   }
 
-  async updateVariant(id: string, data: Partial<{ uom_id: string; sku: string; barcode: string; base_cost: number; min_stock_lvl: number }>) {
-    return prisma.itemVariant.update({ where: { id }, data });
+  async updateVariant(id: string, data: Partial<{ uom_id: string; sku: string; name: string; images: string[]; barcode: string; base_cost: number; min_stock_lvl: number; status: EntityStatus }>) {
+    const { uom_id, ...rest } = data;
+    const updateData: any = { ...rest };
+    if (uom_id) {
+      updateData.uom = { connect: { id: uom_id } };
+    }
+    return prisma.itemVariant.update({ where: { id }, data: updateData });
   }
 
   async createPurchaseOrder(data: { branch_id: string; supplier_id: string; created_by: string; total_amount: number; notes?: string }) {

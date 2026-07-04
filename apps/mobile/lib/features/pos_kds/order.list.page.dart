@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/app_refresher.dart';
 import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/pos_kds/pos_kds.cubit.dart';
@@ -54,9 +55,7 @@ class _OrderListPageState extends State<OrderListPage> {
               ),
             );
           }
-          return RefreshIndicator(
-            color: AppColors.primaryGreen,
-            onRefresh: () async {
+          return AppRefresher(            onRefresh: () async {
               context.read<PosKdsCubit>().listOrders();
             },
             child: ListView.separated(
@@ -94,9 +93,7 @@ class _OrderListPageState extends State<OrderListPage> {
                               '\$${order.total_amount}',
                               style: TextStyle(
                                 fontSize: 15.sp,
-                                fontWeight: FontWeight.w900,
-                                color: AppColors.primaryGreen,
-                              ),
+                                fontWeight: FontWeight.w900,                              ),
                             ),
                           ],
                         ),

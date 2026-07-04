@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/app_refresher.dart';
 import 'package:mobile/features/core_hr/constants/hr.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';
@@ -138,8 +139,7 @@ class _EmployeeListPageState extends State<EmployeeListPage>
             ),
           );
         }
-        return RefreshIndicator(
-      color: AppColors.primaryGreen,
+        return AppRefresher(
       onRefresh: () async {
         context.read<CoreHrCubit>().listEmployees();
         context.read<CoreHrCubit>().listJoinRequests();
@@ -179,7 +179,6 @@ class _EmployeeListPageState extends State<EmployeeListPage>
                           ? Text(
                               name.isNotEmpty ? name[0].toUpperCase() : 'E',
                               style: TextStyle(
-                                color: AppColors.primaryGreen,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18.sp,
                               ),
@@ -273,8 +272,7 @@ class _EmployeeListPageState extends State<EmployeeListPage>
             ),
           );
         }
-        return RefreshIndicator(
-      color: AppColors.primaryGreen,
+        return AppRefresher(
       onRefresh: () async {
         context.read<CoreHrCubit>().listEmployees();
         context.read<CoreHrCubit>().listJoinRequests();

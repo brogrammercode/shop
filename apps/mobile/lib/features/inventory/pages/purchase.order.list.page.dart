@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/app_refresher.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/features/inventory/constants/procurement.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -99,9 +100,7 @@ class _PurchaseOrderListPageState extends State<PurchaseOrderListPage> {
                     ),
                   );
                 }
-                return RefreshIndicator(
-                  color: AppColors.primaryGreen,
-                  onRefresh: () async {
+                return AppRefresher(                  onRefresh: () async {
                     context.read<InventoryCubit>().listPurchaseOrders();
                   },
                   child: ListView.separated(

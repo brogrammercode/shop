@@ -490,6 +490,8 @@ model Item {
   branch_id      String
   category_id    String
   name           String
+  description    String?
+  images         String[]
   item_type      ItemType
   shelf_life_days Int?
   status         EntityStatus   @default(ACTIVE)
@@ -552,6 +554,8 @@ model ItemVariant {
   item_id        String
   uom_id         String
   sku            String         @unique
+  name           String?
+  images         String[]
   barcode        String?
   base_cost      Float          @default(0)
   min_stock_lvl  Float          @default(0)

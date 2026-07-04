@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/app_refresher.dart';
 import 'package:mobile/features/finance/constants/finance.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/finance/finance.cubit.dart';
@@ -48,9 +49,7 @@ class _LedgerListPageState extends State<LedgerListPage> {
                     ),
                   );
                 }
-                return RefreshIndicator(
-                  color: AppColors.primaryGreen,
-                  onRefresh: () async {
+                return AppRefresher(                  onRefresh: () async {
                     context.read<FinanceCubit>().listTransactions();
                   },
                   child: ListView.separated(

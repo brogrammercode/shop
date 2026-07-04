@@ -5,6 +5,7 @@ import 'package:mobile/core/color.dart';
 import 'package:mobile/features/catalog/constants/catalog.constant.dart';
 import 'package:mobile/features/inventory/controllers/inventory.cubit.dart';
 import 'package:mobile/features/inventory/controllers/inventory.state.dart';
+import 'package:mobile/components/ui/app_refresher.dart';
 import 'package:mobile/components/ui/loader.dart';
 import 'package:mobile/utils/error.dart';
 
@@ -66,9 +67,8 @@ class _UomListPageState extends State<UomListPage> {
                     );
                   }
 
-                  return RefreshIndicator(
+                  return AppRefresher(
                     onRefresh: () => context.read<InventoryCubit>().listUoms(),
-                    color: AppColors.primaryGreen,
                     child: ListView.separated(
                       padding: EdgeInsets.symmetric(
                         horizontal: 24.w,

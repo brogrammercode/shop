@@ -7,6 +7,8 @@ class ItemVariantModel {
   final String uom_id;
   final String sku;
   final String barcode;
+  final String? name;
+  final List<String> images;
   final double base_cost;
   final double min_stock_lvl;
   final String status;
@@ -21,6 +23,8 @@ class ItemVariantModel {
     required this.uom_id,
     required this.sku,
     required this.barcode,
+    this.name,
+    this.images = const [],
     required this.base_cost,
     required this.min_stock_lvl,
     required this.status,
@@ -37,6 +41,8 @@ class ItemVariantModel {
       uom_id: json['uom_id'] ?? '',
       sku: json['sku'] ?? '',
       barcode: json['barcode'] ?? '',
+      name: json['name'],
+      images: (json['images'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
       base_cost: (json['base_cost'] as num?)?.toDouble() ?? 0.0,
       min_stock_lvl: (json['min_stock_lvl'] as num?)?.toDouble() ?? 0.0,
       status: json['status'] ?? '',
@@ -54,6 +60,8 @@ class ItemVariantModel {
       'uom_id': uom_id,
       'sku': sku,
       'barcode': barcode,
+      'name': name,
+      'images': images,
       'base_cost': base_cost,
       'min_stock_lvl': min_stock_lvl,
       'status': status,
@@ -70,6 +78,8 @@ class ItemVariantModel {
     String? uom_id,
     String? sku,
     String? barcode,
+    String? name,
+    List<String>? images,
     double? base_cost,
     double? min_stock_lvl,
     String? status,
@@ -84,6 +94,8 @@ class ItemVariantModel {
       uom_id: uom_id ?? this.uom_id,
       sku: sku ?? this.sku,
       barcode: barcode ?? this.barcode,
+      name: name ?? this.name,
+      images: images ?? this.images,
       base_cost: base_cost ?? this.base_cost,
       min_stock_lvl: min_stock_lvl ?? this.min_stock_lvl,
       status: status ?? this.status,

@@ -5,6 +5,7 @@ import 'package:mobile/core/color.dart';
 import 'package:mobile/core/routes.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/components/ui/loader.dart';
+import 'package:mobile/components/ui/app_refresher.dart';
 import 'package:mobile/features/inventory/controllers/inventory.cubit.dart';
 import 'package:mobile/features/inventory/controllers/inventory.state.dart';
 
@@ -55,10 +56,9 @@ class _CategoryListPageState extends State<CategoryListPage> {
                     );
                   }
 
-                  return RefreshIndicator(
+                  return AppRefresher(
                     onRefresh: () =>
                         context.read<InventoryCubit>().listItemCategories(),
-                    color: AppColors.primaryGreen,
                     child: ListView.separated(
                       padding: EdgeInsets.all(24.w),
                       itemCount: state.itemCategories.length,

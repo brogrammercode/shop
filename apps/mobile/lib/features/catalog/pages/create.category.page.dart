@@ -47,7 +47,7 @@ class _CreateCategoryPageState extends State<CreateCategoryPage> {
   void _onSave() async {
     if (_nameCtrl.text.isEmpty) return;
     if (mounted) setState(() => _isUploading = true);
-    
+
     List<String> uploadedUrls = [];
     for (String path in _localImages) {
       final url = await context.read<InventoryCubit>().uploadImage(path);
@@ -55,9 +55,9 @@ class _CreateCategoryPageState extends State<CreateCategoryPage> {
         uploadedUrls.add(url);
       }
     }
-    
+
     if (mounted) setState(() => _isUploading = false);
-    
+
     if (mounted) {
       context.read<InventoryCubit>().createItemCategory({
         'name': _nameCtrl.text.trim(),
@@ -70,14 +70,16 @@ class _CreateCategoryPageState extends State<CreateCategoryPage> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<InventoryCubit, InventoryState>(
-      listenWhen: (prev, curr) => prev.saveItemCategoriesInfo != curr.saveItemCategoriesInfo,
+      listenWhen: (prev, curr) =>
+          prev.saveItemCategoriesInfo != curr.saveItemCategoriesInfo,
       listener: (context, state) {
         if (state.saveItemCategoriesInfo.status == OperationStatus.success) {
           Navigator.pop(context);
         }
       },
       builder: (context, state) {
-        final isLoading = state.saveItemCategoriesInfo.status == OperationStatus.loading;
+        final isLoading =
+            state.saveItemCategoriesInfo.status == OperationStatus.loading;
 
         return Scaffold(
           backgroundColor: AppColors.pureWhite,
@@ -133,36 +135,44 @@ class _CreateCategoryPageState extends State<CreateCategoryPage> {
                           spacing: 12.w,
                           runSpacing: 12.h,
                           children: [
-                            ..._localImages.map((path) => Stack(
-                                  children: [
-                                    Container(
-                                      width: 80.r,
-                                      height: 80.r,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(8.r),
-                                        image: DecorationImage(
-                                          image: FileImage(File(path)),
-                                          fit: BoxFit.cover,
+                            ..._localImages.map(
+                              (path) => Stack(
+                                children: [
+                                  Container(
+                                    width: 80.r,
+                                    height: 80.r,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8.r),
+                                      image: DecorationImage(
+                                        image: FileImage(File(path)),
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: -4,
+                                    right: -4,
+                                    child: GestureDetector(
+                                      onTap: () => setState(
+                                        () => _localImages.remove(path),
+                                      ),
+                                      child: Container(
+                                        padding: EdgeInsets.all(4.r),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.close,
+                                          size: 12.r,
+                                          color: Colors.white,
                                         ),
                                       ),
                                     ),
-                                    Positioned(
-                                      top: -4,
-                                      right: -4,
-                                      child: GestureDetector(
-                                        onTap: () => setState(() => _localImages.remove(path)),
-                                        child: Container(
-                                          padding: EdgeInsets.all(4.r),
-                                          decoration: const BoxDecoration(
-                                            color: Colors.red,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Icon(Icons.close, size: 12.r, color: Colors.white),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                )),
+                                  ),
+                                ],
+                              ),
+                            ),
                             GestureDetector(
                               onTap: _isUploading ? null : _pickImage,
                               child: Container(
@@ -171,11 +181,21 @@ class _CreateCategoryPageState extends State<CreateCategoryPage> {
                                 decoration: BoxDecoration(
                                   color: AppColors.softGrey,
                                   borderRadius: BorderRadius.circular(8.r),
-                                  border: Border.all(color: AppColors.borderGrey),
+                                  border: Border.all(
+                                    color: AppColors.borderGrey,
+                                  ),
                                 ),
                                 child: _isUploading
-                                    ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryGreen))
-                                    : Icon(Icons.add_photo_alternate, color: AppColors.textTertiary),
+                                    ? Center(
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: AppColors.primaryGreen,
+                                        ),
+                                      )
+                                    : Icon(
+                                        Icons.add_photo_alternate,
+                                        color: AppColors.textTertiary,
+                                      ),
                               ),
                             ),
                           ],
@@ -194,7 +214,8 @@ class _CreateCategoryPageState extends State<CreateCategoryPage> {
               onPressed: _onSave,
             ),
           ),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+          floatingActionButtonLocation:
+              FloatingActionButtonLocation.centerFloat,
         );
       },
     );
@@ -207,11 +228,7 @@ class _CreateCategoryPageState extends State<CreateCategoryPage> {
       alignment: Alignment.centerLeft,
       child: GestureDetector(
         onTap: () => Navigator.pop(context),
-        child: Icon(
-          Icons.arrow_back,
-          color: AppColors.textPrimary,
-          size: 24.w,
-        ),
+        child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24.w),
       ),
     );
   }

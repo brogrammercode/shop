@@ -226,14 +226,90 @@ class InventoryCubit extends Cubit<InventoryState> {
           ),
         );
       },
-      (_) {
-        Fluttertoast.showToast(msg: 'Item created');
+      (item) {
+        Fluttertoast.showToast(msg: 'Item created successfully');
         emit(
           state.copyWith(
-            saveItemsInfo: const OperationInfo(status: OperationStatus.success),
+            saveItemsInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
           ),
         );
         listItems();
+      },
+    );
+  }
+
+  Future<void> updateItem(String id, Map<String, dynamic> data) async {
+    emit(
+      state.copyWith(
+        saveItemsInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.updateItem(id, data);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            saveItemsInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (item) {
+        Fluttertoast.showToast(msg: 'Item updated successfully');
+        emit(
+          state.copyWith(
+            saveItemsInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
+          ),
+        );
+        listItems();
+      },
+    );
+  }
+
+  Future<void> listVariants(String itemId) async {
+    emit(state.copyWith(loadVariantsInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _repo.listVariants(itemId);
+    result.fold(
+      (failure) => emit(state.copyWith(loadVariantsInfo: OperationInfo(status: OperationStatus.error, error: failure))),
+      (variants) => emit(state.copyWith(loadVariantsInfo: const OperationInfo(status: OperationStatus.success), variants: variants)),
+    );
+  }
+
+  Future<void> createVariant(Map<String, dynamic> data) async {
+    emit(state.copyWith(saveVariantsInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _repo.createVariant(data['item_id'], data);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(state.copyWith(saveVariantsInfo: OperationInfo(status: OperationStatus.error, error: failure)));
+      },
+      (variant) {
+        Fluttertoast.showToast(msg: 'Variant created successfully');
+        emit(state.copyWith(saveVariantsInfo: const OperationInfo(status: OperationStatus.success)));
+        listVariants(data['item_id']);
+      },
+    );
+  }
+
+  Future<void> updateVariant(String id, String itemId, Map<String, dynamic> data) async {
+    emit(state.copyWith(saveVariantsInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _repo.updateVariant(id, data);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(state.copyWith(saveVariantsInfo: OperationInfo(status: OperationStatus.error, error: failure)));
+      },
+      (variant) {
+        Fluttertoast.showToast(msg: 'Variant updated successfully');
+        emit(state.copyWith(saveVariantsInfo: const OperationInfo(status: OperationStatus.success)));
+        listVariants(itemId);
       },
     );
   }

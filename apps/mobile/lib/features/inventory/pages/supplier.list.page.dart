@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/components/ui/app_refresher.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/features/inventory/constants/procurement.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -87,9 +88,7 @@ class _SupplierListPageState extends State<SupplierListPage> {
                     ),
                   );
                 }
-                return RefreshIndicator(
-                  color: AppColors.primaryGreen,
-                  onRefresh: () async {
+                return AppRefresher(                  onRefresh: () async {
                     context.read<InventoryCubit>().listSuppliers();
                   },
                   child: ListView.separated(
@@ -143,9 +142,7 @@ class _SupplierListPageState extends State<SupplierListPage> {
               radius: 24.r,
               backgroundColor: const Color(0xFFE8F5E9),
               child: Icon(
-                Icons.local_shipping,
-                color: AppColors.primaryGreen,
-                size: 24.w,
+                Icons.local_shipping,                size: 24.w,
               ),
             ),
             SizedBox(width: 16.w),
@@ -182,9 +179,7 @@ class _SupplierListPageState extends State<SupplierListPage> {
                 ProcurementConstant.ACTIVE,
                 style: TextStyle(
                   fontSize: 9.sp,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primaryGreen,
-                ),
+                  fontWeight: FontWeight.w800,                ),
               ),
             ),
           ],

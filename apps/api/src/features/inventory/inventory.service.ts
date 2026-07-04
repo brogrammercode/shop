@@ -43,8 +43,8 @@ export class InventoryService {
     return inventoryRepo.findItemCategoriesByBranch(branchId);
   }
 
-  async createItem(branchId: string, category_id: string, name: string, item_type: ItemType, shelf_life_days?: number) {
-    return inventoryRepo.createItem({ branch_id: branchId, category_id, name, item_type, shelf_life_days });
+  async createItem(branchId: string, category_id: string, name: string, description: string | undefined, images: string[] | undefined, item_type: ItemType, shelf_life_days?: number) {
+    return inventoryRepo.createItem({ branch_id: branchId, category_id, name, description, images, item_type, shelf_life_days });
   }
 
   async listItems(branchId: string) {
@@ -89,8 +89,25 @@ export class InventoryService {
     return inventoryRepo.findUOMConversionsByBranch(branchId);
   }
 
-  async createItemVariant(branchId: string, item_id: string, uom_id: string, sku: string, barcode: string | undefined, base_cost: number, min_stock_lvl: number) {
-    return inventoryRepo.createItemVariant({ branch_id: branchId, item_id, uom_id, sku, barcode, base_cost, min_stock_lvl });
+  async createItemVariant(branchId: string, item_id: string, uom_id: string, sku: string | undefined, barcode: string | undefined, name: string | undefined, images: string[] | undefined, base_cost: number, min_stock_lvl: number) {
+    let finalSku = sku;
+    let finalBarcode = barcode;
+
+    if (!finalSku) {
+      const item = await this.getItemById(item_id, branchId);
+      const uoms = await inventoryRepo.findUOMsByBranch(branchId);
+      const uom = uoms.find(u => u.id === uom_id);
+      
+      const itemName = item.name.toUpperCase().replace(/\s+/g, '-');
+      const uomAbbr = uom ? uom.code.toUpperCase() : 'UNIT';
+      finalSku = `${itemName}-${uomAbbr}-C${base_cost}`;
+    }
+
+    if (!finalBarcode) {
+      finalBarcode = Date.now().toString();
+    }
+
+    return inventoryRepo.createItemVariant({ branch_id: branchId, item_id, uom_id, sku: finalSku, barcode: finalBarcode, name, images, base_cost, min_stock_lvl });
   }
 
   async listVariantsByItem(itemId: string, branchId: string) {
