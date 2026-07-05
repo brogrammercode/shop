@@ -7,8 +7,9 @@ export interface MenuItemDTO {
   variant_id: string;
   display_name: string;
   description?: string;
+  images?: string[];
   selling_price: number;
-  image_url?: string;
+  videos?: string[];
   status: string;
   created_at: string | Date;
   updated_at: string | Date;

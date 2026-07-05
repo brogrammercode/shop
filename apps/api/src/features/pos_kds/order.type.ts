@@ -1,3 +1,4 @@
+import { OrderItemDTO } from './order_item.type';
 // Auto-generated DTO file for Order
 
 export interface OrderDTO {
@@ -17,4 +18,5 @@ export interface OrderDTO {
   notes?: string;
   created_at: string | Date;
   updated_at: string | Date;
+  items?: OrderItemDTO[];
 }

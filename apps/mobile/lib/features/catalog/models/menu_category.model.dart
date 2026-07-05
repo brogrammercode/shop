@@ -7,6 +7,7 @@ class MenuCategoryModel {
   final String description;
   final int display_order;
   final String status;
+  final List<String> images;
   final String created_at;
   final String updated_at;
   final bool is_deleted;
@@ -16,6 +17,7 @@ class MenuCategoryModel {
     required this.branch_id,
     required this.name,
     required this.description,
+    this.images = const [],
     required this.display_order,
     required this.status,
     required this.created_at,
@@ -29,6 +31,7 @@ class MenuCategoryModel {
       branch_id: json['branch_id'] ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',
+      images: (json['images'] as List?)?.map((e) => e as String).toList() ?? const [],
       display_order: json['display_order'] ?? 0,
       status: json['status'] ?? '',
       created_at: json['created_at'] ?? '',
@@ -43,6 +46,7 @@ class MenuCategoryModel {
       'branch_id': branch_id,
       'name': name,
       'description': description,
+      'images': images,
       'display_order': display_order,
       'status': status,
       'created_at': created_at,
@@ -58,6 +62,7 @@ class MenuCategoryModel {
     String? description,
     int? display_order,
     String? status,
+    List<String>? images,
     String? created_at,
     String? updated_at,
     bool? is_deleted,
@@ -67,6 +72,7 @@ class MenuCategoryModel {
       branch_id: branch_id ?? this.branch_id,
       name: name ?? this.name,
       description: description ?? this.description,
+      images: images ?? this.images,
       display_order: display_order ?? this.display_order,
       status: status ?? this.status,
       created_at: created_at ?? this.created_at,

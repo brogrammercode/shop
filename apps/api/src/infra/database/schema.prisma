@@ -351,6 +351,7 @@ model MenuCategory {
   branch_id      String
   name           String
   description    String?
+  images         String[]       @default([])
   display_order  Int            @default(0)
   status         EntityStatus   @default(ACTIVE)
   
@@ -377,7 +378,8 @@ model MenuItem {
   display_name   String
   description    String?
   selling_price  Float
-  image_url      String?
+  images         String[]       @default([])
+  videos         String[]       @default([])
   status         EntityStatus   @default(ACTIVE)
   
   created_at     DateTime       @default(now())

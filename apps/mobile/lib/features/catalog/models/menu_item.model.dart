@@ -5,11 +5,13 @@ class MenuItemModel {
   final String branch_id;
   final String category_id;
   final String variant_id;
+  final String? item_id;
   final String display_name;
   final String description;
   final double selling_price;
-  final String image_url;
+  final List<String> videos;
   final String status;
+  final List<String> images;
   final String created_at;
   final String updated_at;
   final String created_by;
@@ -20,10 +22,12 @@ class MenuItemModel {
     required this.branch_id,
     required this.category_id,
     required this.variant_id,
+    this.item_id,
     required this.display_name,
     required this.description,
     required this.selling_price,
-    required this.image_url,
+    this.videos = const [],
+    this.images = const [],
     required this.status,
     required this.created_at,
     required this.updated_at,
@@ -37,10 +41,12 @@ class MenuItemModel {
       branch_id: json['branch_id'] ?? '',
       category_id: json['category_id'] ?? '',
       variant_id: json['variant_id'] ?? '',
+      item_id: json['variant']?['item_id'],
       display_name: json['display_name'] ?? '',
       description: json['description'] ?? '',
+      images: (json['images'] as List?)?.map((e) => e as String).toList() ?? const [],
       selling_price: (json['selling_price'] as num?)?.toDouble() ?? 0.0,
-      image_url: json['image_url'] ?? '',
+      videos: (json['videos'] as List?)?.map((e) => e as String).toList() ?? const [],
       status: json['status'] ?? '',
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
@@ -55,10 +61,12 @@ class MenuItemModel {
       'branch_id': branch_id,
       'category_id': category_id,
       'variant_id': variant_id,
+      'item_id': item_id,
       'display_name': display_name,
       'description': description,
       'selling_price': selling_price,
-      'image_url': image_url,
+      'videos': videos,
+      'images': images,
       'status': status,
       'created_at': created_at,
       'updated_at': updated_at,
@@ -72,11 +80,13 @@ class MenuItemModel {
     String? branch_id,
     String? category_id,
     String? variant_id,
+    String? item_id,
     String? display_name,
     String? description,
     double? selling_price,
-    String? image_url,
+    List<String>? videos,
     String? status,
+    List<String>? images,
     String? created_at,
     String? updated_at,
     String? created_by,
@@ -87,10 +97,12 @@ class MenuItemModel {
       branch_id: branch_id ?? this.branch_id,
       category_id: category_id ?? this.category_id,
       variant_id: variant_id ?? this.variant_id,
+      item_id: item_id ?? this.item_id,
       display_name: display_name ?? this.display_name,
       description: description ?? this.description,
       selling_price: selling_price ?? this.selling_price,
-      image_url: image_url ?? this.image_url,
+      videos: videos ?? this.videos,
+      images: images ?? this.images,
       status: status ?? this.status,
       created_at: created_at ?? this.created_at,
       updated_at: updated_at ?? this.updated_at,

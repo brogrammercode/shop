@@ -1,3 +1,9 @@
+import 'package:mobile/features/catalog/pages/menu.item.list.page.dart';
+import 'package:mobile/features/catalog/pages/menu.item.detail.page.dart';
+import 'package:mobile/features/catalog/pages/menu.category.list.page.dart';
+import 'package:mobile/features/catalog/pages/create.menu.category.page.dart';
+import 'package:mobile/features/catalog/pages/menu.category.detail.page.dart';
+import 'package:mobile/features/catalog/pages/create.menu.item.page.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/features/core_hr/pages/splash.page.dart';
 import 'package:mobile/features/core_hr/pages/auth.page.dart';
@@ -18,6 +24,10 @@ import 'package:mobile/features/inventory/pages/vendor.return.form.page.dart';
 
 import 'package:mobile/features/catalog/pages/item.list.page.dart';
 import 'package:mobile/features/catalog/pages/create.item.page.dart';
+
+
+
+
 import 'package:mobile/features/catalog/pages/item.detail.page.dart';
 import 'package:mobile/features/catalog/pages/create.variant.page.dart';
 import 'package:mobile/features/catalog/pages/variant.detail.page.dart';
@@ -106,6 +116,18 @@ class AppRoutes {
   static const String createItem = '/create-item';
   static const String itemDetail = '/item-detail';
   static const String createVariant = '/create-variant';
+
+  // Menu Routes
+
+  static const String menuCategoryList = '/menu-categories';
+  static const String createMenuCategory = '/create-menu-category';
+  static const String menuCategoryDetail = '/menu-category-detail';
+  static const String menuItemList = '/menu-items';
+  static const String createMenuItem = '/create-menu-item';
+  static const String menuItemDetail = '/menu-item-detail';
+
+
+  // Menu Routes
   static const String variantDetail = '/variant-detail';
   static const String categoryList = '/category-list';
   static const String createCategory = '/create-category';
@@ -196,7 +218,17 @@ class AppRoutes {
     createItem: (context) => const CreateItemPage(),
     itemDetail: (context) => const ItemDetailPage(),
     createVariant: (context) => const CreateVariantPage(),
+
+
     variantDetail: (context) => const VariantDetailPage(),
+
+    menuCategoryList: (context) => const MenuCategoryListPage(),
+    createMenuCategory: (context) => const CreateMenuCategoryPage(),
+    menuCategoryDetail: (context) => const MenuCategoryDetailPage(),
+    menuItemList: (context) => const MenuItemListPage(),
+    createMenuItem: (context) => const CreateMenuItemPage(),
+    menuItemDetail: (context) => const MenuItemDetailPage(),
+
     categoryList: (context) => const CategoryListPage(),
     createCategory: (context) => const CreateCategoryPage(),
     categoryDetail: (context) => const CategoryDetailPage(),

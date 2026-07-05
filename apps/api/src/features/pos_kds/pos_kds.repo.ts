@@ -7,11 +7,11 @@ export class PosKdsRepo {
   }
 
   async findOrdersByBranch(branchId: string) {
-    return prisma.order.findMany({ where: { branch_id: branchId }, include: { customer: true, table: true }, orderBy: { created_at: 'desc' } });
+    return prisma.order.findMany({ where: { branch_id: branchId }, include: { user: true, table: true, items: true }, orderBy: { created_at: 'desc' } });
   }
 
   async findOrderById(id: string) {
-    return prisma.order.findUnique({ where: { id }, include: { customer: true, table: true, items: true, kots: true, payments: true } });
+    return prisma.order.findUnique({ where: { id }, include: { user: true, table: true, items: true, kots: true, advance_payments: true } });
   }
 
   async updateOrderStatus(id: string, status: OrderStatus) {

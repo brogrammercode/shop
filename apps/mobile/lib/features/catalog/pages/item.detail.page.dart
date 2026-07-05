@@ -660,7 +660,7 @@ class _EditVariantSheetState extends State<_EditVariantSheet> {
                             border: Border.all(color: AppColors.borderGrey),
                           ),
                           child: _isUploading
-                              ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryGreen))
+                              ? Center(child: AppLoader())
                               : Icon(Icons.add_photo_alternate, color: AppColors.textTertiary),
                         ),
                       ),

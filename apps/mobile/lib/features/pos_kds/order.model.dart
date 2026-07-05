@@ -1,3 +1,4 @@
+import 'package:mobile/features/pos_kds/order_item.model.dart';
 // Auto-generated Model file for Order
 
 class OrderModel {
@@ -17,6 +18,7 @@ class OrderModel {
   final String notes;
   final String created_at;
   final String updated_at;
+  final List<OrderItemModel> items;
 
   const OrderModel({
     required this.id,
@@ -35,6 +37,7 @@ class OrderModel {
     required this.notes,
     required this.created_at,
     required this.updated_at,
+    this.items = const [],
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -55,6 +58,7 @@ class OrderModel {
       notes: json['notes'] ?? '',
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
+      items: (json['items'] as List?)?.map((e) => OrderItemModel.fromJson(e)).toList() ?? const [],
     );
   }
 
@@ -76,6 +80,7 @@ class OrderModel {
       'notes': notes,
       'created_at': created_at,
       'updated_at': updated_at,
+      'items': items.map((e) => e.toJson()).toList(),
     };
   }
 
@@ -96,6 +101,7 @@ class OrderModel {
     String? notes,
     String? created_at,
     String? updated_at,
+    List<OrderItemModel>? items,
   }) {
     return OrderModel(
       id: id ?? this.id,
@@ -114,6 +120,7 @@ class OrderModel {
       notes: notes ?? this.notes,
       created_at: created_at ?? this.created_at,
       updated_at: updated_at ?? this.updated_at,
+      items: items ?? this.items,
     );
   }
 }

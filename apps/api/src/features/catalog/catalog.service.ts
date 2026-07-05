@@ -4,17 +4,10 @@ import { AppError, NotFoundError, ConflictError } from "../../utils/error";
 import { HttpStatus } from "../../constants/status";
 
 export class CatalogService {
-  async createMenuCategory(
-    branchId: string,
-    name: string,
-    description?: string,
-    display_order?: number,
-  ) {
+  async createMenuCategory(branchId: string, data: any) {
     return catalogRepo.createMenuCategory({
+      ...data,
       branch_id: branchId,
-      name,
-      description,
-      display_order,
     });
   }
 
@@ -40,23 +33,10 @@ export class CatalogService {
     return catalogRepo.deleteMenuCategory(id);
   }
 
-  async createMenuItem(
-    branchId: string,
-    category_id: string,
-    variant_id: string,
-    display_name: string,
-    selling_price: number,
-    description?: string,
-    image_url?: string,
-  ) {
+  async createMenuItem(branchId: string, data: any) {
     return catalogRepo.createMenuItem({
+      ...data,
       branch_id: branchId,
-      category_id,
-      variant_id,
-      display_name,
-      selling_price,
-      description,
-      image_url,
     });
   }
 

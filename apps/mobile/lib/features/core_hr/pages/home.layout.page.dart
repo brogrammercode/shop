@@ -22,17 +22,17 @@ class EmployeesPage extends StatelessWidget {
   Widget build(BuildContext context) => const Center(child: Text("Employees"));
 }
 
-class ProductsPage extends StatelessWidget {
-  const ProductsPage({super.key});
+class RoleAndDeptPage extends StatelessWidget {
+  const RoleAndDeptPage({super.key});
   @override
-  Widget build(BuildContext context) => const Center(child: Text("Products"));
+  Widget build(BuildContext context) => const Center(child: Text("Role & Dept"));
 }
 
 
 
 enum MainTab { billing, orders, more }
 
-enum MoreTab { employees, products, settings }
+enum MoreTab { employees, roleAndDept, settings }
 
 enum ProcurementTab { suppliers, purchaseOrders, receipts }
 
@@ -90,8 +90,8 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
     } else if (_mainTab == MainTab.more) {
       if (_moreTab == MoreTab.employees) {
         return const EmployeesPage(); // Should this also be a nested route? The user request says "whatever page will be clicked from layout navbars, will be replacing the current page inside layout only not actually navigate"
-      } else if (_moreTab == MoreTab.products) {
-        return const ProductsPage();
+      } else if (_moreTab == MoreTab.roleAndDept) {
+        return const RoleAndDeptPage();
       }
     }
 
@@ -202,7 +202,7 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                         _currentRoute = '/employee-list';
                       } else {
                         if (_moreTab == MoreTab.employees) _currentRoute = '/employee-list';
-                        if (_moreTab == MoreTab.products) _currentRoute = '/item-list';
+                        if (_moreTab == MoreTab.roleAndDept) _currentRoute = '/role-list';
                         if (_moreTab == MoreTab.settings) _currentRoute = AppRoutes.settings;
                       }
                     }
@@ -210,6 +210,85 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                 },
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNonaryNavBar() {
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutBack,
+      bottom: _showMoreNav
+          ? (24.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h)
+          : -480.h,
+      left: 0,
+      right: 0,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: _showMoreNav ? 1.0 : 0.0,
+        child: Center(
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: AppColors.pureWhite,
+              borderRadius: BorderRadius.circular(40.r),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 24,
+                  spreadRadius: 0,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildNavItem(
+                  icon: Icons.restaurant_menu_outlined,
+                  label: 'Menu Categories',
+                  isActive: false,
+                  
+                  onTap: () {
+                    setState(() {
+                      _showMoreNav = false;
+                      _currentRoute = '/menu-categories';
+                    });
+                  },
+                ),
+                SizedBox(width: 4.w),
+                _buildNavItem(
+                  icon: Icons.fastfood_outlined,
+                  label: 'Menu Items',
+                  isActive: false,
+                  
+                  onTap: () {
+                    setState(() {
+                      _showMoreNav = false;
+                      _currentRoute = '/menu-items'; // this doesn't exist, wait, the user didn't even have an item list. But we will navigate to some placeholder or menu-items if available. Actually, I can just leave it as it was but change Navigator to _currentRoute.
+                    });
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -785,16 +864,16 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                   },
                 ),
                 _buildNavItem(
-                  icon: Icons.inventory_2,
-                  label: 'Products',
+                  icon: Icons.manage_accounts,
+                  label: 'Role & Dept',
                   isActive:
-                      _moreTab == MoreTab.products && _mainTab == MainTab.more,
+                      _moreTab == MoreTab.roleAndDept && _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
                       _mainTab = MainTab.more;
-                      _moreTab = MoreTab.products;
+                      _moreTab = MoreTab.roleAndDept;
                       _showMoreNav = false;
-                      _currentRoute = '/item-list';
+                      _currentRoute = '/role-list';
                     });
                   },
                 ),
@@ -837,6 +916,7 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                 child: Container(color: Colors.black.withOpacity(0.1)),
               ),
             ),
+          _buildNonaryNavBar(),
           _buildOctonaryNavBar(),
           _buildSeptenaryNavBar(),
           _buildSenaryNavBar(),

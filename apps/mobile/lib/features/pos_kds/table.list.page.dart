@@ -1,3 +1,4 @@
+import 'package:mobile/components/ui/loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
@@ -50,7 +51,7 @@ class _TableListPageState extends State<TableListPage> {
             child: BlocBuilder<PosKdsCubit, PosKdsState>(
               builder: (context, state) {
                 if (state.loadTablesInfo.status == OperationStatus.loading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: AppLoader());
                 }
                 final tables = state.tables;
                 if (tables.isEmpty) {

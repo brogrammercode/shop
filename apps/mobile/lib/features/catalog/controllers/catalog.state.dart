@@ -11,6 +11,15 @@ class CatalogState {
   final List<ModifierGroupModel> modifierGroups;
   final List<ModifierModel> modifiers;
   final List<ComboMealModel> comboMeals;
+
+  final List<MenuCategoryModel> menuCategories;
+  final List<MenuItemModel> menuItems;
+
+  final OperationInfo loadMenuCategoriesInfo;
+  final OperationInfo saveMenuCategoriesInfo;
+  final OperationInfo loadMenuItemsInfo;
+  final OperationInfo saveMenuItemsInfo;
+
   final dynamic publicMenu;
 
   final OperationInfo loadCategoriesInfo;
@@ -30,6 +39,14 @@ class CatalogState {
     this.modifiers = const [],
     this.comboMeals = const [],
     this.publicMenu,
+
+    this.menuCategories = const [],
+    this.menuItems = const [],
+    this.loadMenuCategoriesInfo = const OperationInfo(status: OperationStatus.initial),
+    this.saveMenuCategoriesInfo = const OperationInfo(status: OperationStatus.initial),
+    this.loadMenuItemsInfo = const OperationInfo(status: OperationStatus.initial),
+    this.saveMenuItemsInfo = const OperationInfo(status: OperationStatus.initial),
+
     this.loadCategoriesInfo = const OperationInfo(
       status: OperationStatus.initial,
     ),
@@ -56,6 +73,14 @@ class CatalogState {
     List<ModifierModel>? modifiers,
     List<ComboMealModel>? comboMeals,
     dynamic publicMenu,
+
+    List<MenuCategoryModel>? menuCategories,
+    List<MenuItemModel>? menuItems,
+    OperationInfo? loadMenuCategoriesInfo,
+    OperationInfo? saveMenuCategoriesInfo,
+    OperationInfo? loadMenuItemsInfo,
+    OperationInfo? saveMenuItemsInfo,
+
     OperationInfo? loadCategoriesInfo,
     OperationInfo? saveCategoriesInfo,
     OperationInfo? loadItemsInfo,
@@ -73,6 +98,14 @@ class CatalogState {
       modifiers: modifiers ?? this.modifiers,
       comboMeals: comboMeals ?? this.comboMeals,
       publicMenu: publicMenu ?? this.publicMenu,
+
+      menuCategories: menuCategories ?? this.menuCategories,
+      menuItems: menuItems ?? this.menuItems,
+      loadMenuCategoriesInfo: loadMenuCategoriesInfo ?? this.loadMenuCategoriesInfo,
+      saveMenuCategoriesInfo: saveMenuCategoriesInfo ?? this.saveMenuCategoriesInfo,
+      loadMenuItemsInfo: loadMenuItemsInfo ?? this.loadMenuItemsInfo,
+      saveMenuItemsInfo: saveMenuItemsInfo ?? this.saveMenuItemsInfo,
+
       loadCategoriesInfo: loadCategoriesInfo ?? this.loadCategoriesInfo,
       saveCategoriesInfo: saveCategoriesInfo ?? this.saveCategoriesInfo,
       loadItemsInfo: loadItemsInfo ?? this.loadItemsInfo,

@@ -56,6 +56,7 @@ export class CatalogRepo {
   async findMenuItemsByBranch(branch_id: string): Promise<MenuItemDTO[]> {
     return prisma.menuItem.findMany({
       where: { branch_id, is_deleted: false },
+      include: { variant: { select: { item_id: true } } },
       orderBy: { created_at: 'desc' },
     }) as unknown as MenuItemDTO[];
   }
@@ -63,6 +64,7 @@ export class CatalogRepo {
   async findMenuItemsByCategory(category_id: string): Promise<MenuItemDTO[]> {
     return prisma.menuItem.findMany({
       where: { category_id, is_deleted: false },
+      include: { variant: { select: { item_id: true } } },
       orderBy: { created_at: 'desc' },
     }) as unknown as MenuItemDTO[];
   }
@@ -70,6 +72,7 @@ export class CatalogRepo {
   async findMenuItemById(id: string): Promise<MenuItemDTO | null> {
     return prisma.menuItem.findFirst({
       where: { id, is_deleted: false },
+      include: { variant: { select: { item_id: true } } },
     }) as unknown as MenuItemDTO | null;
   }
 

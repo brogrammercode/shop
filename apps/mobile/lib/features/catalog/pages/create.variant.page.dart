@@ -1,3 +1,4 @@
+import 'package:mobile/components/ui/loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -239,7 +240,7 @@ class _CreateVariantPageState extends State<CreateVariantPage> {
                                   border: Border.all(color: AppColors.borderGrey),
                                 ),
                                 child: _isUploading
-                                    ? Center(child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryGreen))
+                                    ? Center(child: AppLoader())
                                     : Icon(Icons.add_photo_alternate, color: AppColors.textTertiary),
                               ),
                             ),

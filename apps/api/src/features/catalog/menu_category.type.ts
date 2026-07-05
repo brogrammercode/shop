@@ -5,6 +5,7 @@ export interface MenuCategoryDTO {
   branch_id: string;
   name: string;
   description?: string;
+  images?: string[];
   display_order: number;
   status: string;
   created_at: string | Date;

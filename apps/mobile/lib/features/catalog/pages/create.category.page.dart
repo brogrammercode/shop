@@ -1,3 +1,4 @@
+import 'package:mobile/components/ui/loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -187,10 +188,7 @@ class _CreateCategoryPageState extends State<CreateCategoryPage> {
                                 ),
                                 child: _isUploading
                                     ? Center(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: AppColors.primaryGreen,
-                                        ),
+                                        child: AppLoader(),
                                       )
                                     : Icon(
                                         Icons.add_photo_alternate,

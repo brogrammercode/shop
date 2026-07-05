@@ -1,3 +1,5 @@
+import 'package:mobile/features/catalog/models/menu_category.model.dart';
+import 'package:mobile/features/catalog/models/menu_item.model.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mobile/utils/error.dart';
@@ -167,6 +169,109 @@ class CatalogCubit extends Cubit<CatalogState> {
           ),
         );
         listItems();
+      },
+    );
+  }
+
+  
+  Future<void> listMenuCategories() async {
+    emit(state.copyWith(loadMenuCategoriesInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _repo.listMenuCategories();
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(state.copyWith(loadMenuCategoriesInfo: OperationInfo(status: OperationStatus.error, error: failure)));
+      },
+      (data) {
+        final parsed = (data as List).map((e) => MenuCategoryModel.fromJson(e)).toList();
+        emit(state.copyWith(
+          menuCategories: parsed,
+          loadMenuCategoriesInfo: const OperationInfo(status: OperationStatus.success),
+        ));
+      },
+    );
+  }
+
+  
+  Future<void> updateMenuCategory(String id, Map<String, dynamic> data) async {
+    emit(state.copyWith(saveMenuCategoriesInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _repo.updateMenuCategory(id, data);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(state.copyWith(saveMenuCategoriesInfo: OperationInfo(status: OperationStatus.error, error: failure)));
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Menu Category updated');
+        emit(state.copyWith(saveMenuCategoriesInfo: const OperationInfo(status: OperationStatus.success)));
+        listMenuCategories();
+      },
+    );
+  }
+
+  Future<void> createMenuCategory(Map<String, dynamic> data) async {
+    emit(state.copyWith(saveMenuCategoriesInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _repo.createMenuCategory(data);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(state.copyWith(saveMenuCategoriesInfo: OperationInfo(status: OperationStatus.error, error: failure)));
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Menu Category created');
+        emit(state.copyWith(saveMenuCategoriesInfo: const OperationInfo(status: OperationStatus.success)));
+        listMenuCategories();
+      },
+    );
+  }
+
+  Future<void> listMenuItems() async {
+    emit(state.copyWith(loadMenuItemsInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _repo.listMenuItems();
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(state.copyWith(loadMenuItemsInfo: OperationInfo(status: OperationStatus.error, error: failure)));
+      },
+      (data) {
+        final parsed = (data as List).map((e) => MenuItemModel.fromJson(e)).toList();
+        emit(state.copyWith(
+          menuItems: parsed,
+          loadMenuItemsInfo: const OperationInfo(status: OperationStatus.success),
+        ));
+      },
+    );
+  }
+
+  
+  Future<void> updateMenuItem(String id, Map<String, dynamic> data, String categoryId) async {
+    emit(state.copyWith(saveMenuItemsInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _repo.updateMenuItem(id, data);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(state.copyWith(saveMenuItemsInfo: OperationInfo(status: OperationStatus.error, error: failure)));
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Menu Item updated');
+        emit(state.copyWith(saveMenuItemsInfo: const OperationInfo(status: OperationStatus.success)));
+        listMenuItems();
+      },
+    );
+  }
+
+  Future<void> createMenuItem(Map<String, dynamic> data, String categoryId) async {
+    emit(state.copyWith(saveMenuItemsInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _repo.createMenuItem(data);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(state.copyWith(saveMenuItemsInfo: OperationInfo(status: OperationStatus.error, error: failure)));
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Menu Item created');
+        emit(state.copyWith(saveMenuItemsInfo: const OperationInfo(status: OperationStatus.success)));
+        listMenuItems();
       },
     );
   }

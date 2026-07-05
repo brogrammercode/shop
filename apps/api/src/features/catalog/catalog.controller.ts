@@ -11,8 +11,7 @@ export const listMenuCategories = asyncHandler(async (req: Request, res: Respons
 });
 
 export const createMenuCategory = asyncHandler(async (req: Request, res: Response) => {
-  const { name, description, display_order } = req.body;
-  const result = await catalogService.createMenuCategory(req.employee.branch_id, name, description, display_order);
+  const result = await catalogService.createMenuCategory(req.employee.branch_id, req.body);
   return sendSuccess(res, result, _CATALOG_CONSTANTS._M_E_S_S_A_G_E_S.MENU_CATEGORY_CREATED, HttpStatus.CREATED);
 });
 
@@ -40,8 +39,7 @@ export const listMenuItems = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const createMenuItem = asyncHandler(async (req: Request, res: Response) => {
-  const { category_id, variant_id, display_name, selling_price, description, image_url } = req.body;
-  const result = await catalogService.createMenuItem(req.employee.branch_id, category_id, variant_id, display_name, selling_price, description, image_url);
+  const result = await catalogService.createMenuItem(req.employee.branch_id, req.body);
   return sendSuccess(res, result, _CATALOG_CONSTANTS._M_E_S_S_A_G_E_S.MENU_ITEM_CREATED, HttpStatus.CREATED);
 });
 

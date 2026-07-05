@@ -17,6 +17,12 @@ class CatalogEndpoints {
   static String modifiersByGroup(String groupId) =>
       '/catalog/modifier-groups/$groupId/modifiers';
   static String modifier(String id) => '/catalog/modifiers/$id';
+
+  static const String menuCategories = '/catalog/menu-categories';
+  static String menuCategory(String id) => '/catalog/menu-categories/$id';
+  static const String menuItems = '/catalog/menu-items';
+  static String menuItem(String id) => '/catalog/menu-items/$id';
+
   static const String comboMeals = '/catalog/combo-meals';
   static String comboMeal(String id) => '/catalog/combo-meals/$id';
   static String comboItem(String comboId, String itemId) =>
@@ -224,6 +230,82 @@ class CatalogRepo {
         CatalogEndpoints.addComboItem(comboId),
         data: data,
       );
+      return response.data['data'];
+    });
+  }
+
+  TaskResult<dynamic> listMenuCategories() async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.get(CatalogEndpoints.menuCategories);
+      return response.data['data'];
+    });
+  }
+
+  TaskResult<dynamic> createMenuCategory(Map<String, dynamic> data) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.post(
+        CatalogEndpoints.menuCategories,
+        data: data,
+      );
+      return response.data['data'];
+    });
+  }
+
+  TaskResult<dynamic> updateMenuCategory(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.patch(
+        CatalogEndpoints.menuCategory(id),
+        data: data,
+      );
+      return response.data['data'];
+    });
+  }
+
+  TaskResult<dynamic> deleteMenuCategory(String id) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.delete(
+        CatalogEndpoints.menuCategory(id),
+      );
+      return response.data['data'];
+    });
+  }
+
+  TaskResult<dynamic> listMenuItems() async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.get(CatalogEndpoints.menuItems);
+      return response.data['data'];
+    });
+  }
+
+  TaskResult<dynamic> createMenuItem(Map<String, dynamic> data) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.post(
+        CatalogEndpoints.menuItems,
+        data: data,
+      );
+      return response.data['data'];
+    });
+  }
+
+  TaskResult<dynamic> updateMenuItem(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.patch(
+        CatalogEndpoints.menuItem(id),
+        data: data,
+      );
+      return response.data['data'];
+    });
+  }
+
+  TaskResult<dynamic> deleteMenuItem(String id) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.delete(CatalogEndpoints.menuItem(id));
       return response.data['data'];
     });
   }
