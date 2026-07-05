@@ -1,9 +1,22 @@
-import { OrderStatus, KOTStatus, OrderType, PayMethod } from '@prisma/client';
+import { AddressType, OrderStatus, KOTStatus, OrderType, PayMethod } from '@prisma/client';
 import prisma from '../../infra/database/client';
 
 export class PosKdsRepo {
-  async createOrder(data: { branch_id: string; customer_id?: string; order_type: OrderType; table_id?: string; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number }) {
+  async createOrder(data: { branch_id: string; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; price_addition_amount?: number; price_reduction_amount?: number; final_paying_price?: number }) {
     return prisma.order.create({ data });
+  }
+
+  async findUserByPhone(phone: string) {
+    const users = await prisma.user.findMany({ where: { phone: { contains: phone }, is_deleted: false }, take: 10 });
+    const userIds = users.map((user) => user.id);
+    if (userIds.length === 0) {
+      return [];
+    }
+    const addresses = await prisma.address.findMany({ where: { entity_type: AddressType.USER, entity_id: { in: userIds } } });
+    return users.map((user) => ({
+      ...user,
+      addresses: addresses.filter((address) => address.entity_id === user.id),
+    }));
   }
 
   async findOrdersByBranch(branchId: string) {
@@ -75,7 +88,6 @@ export class PosKdsRepo {
   }
 
   async updatePaymentStatus(id: string, status: any) {
-    // No-op or log since AdvancePayment has no status field
     return this.findPaymentById(id);
   }
 }

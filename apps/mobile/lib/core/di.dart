@@ -7,8 +7,8 @@ import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';
 import 'package:mobile/features/inventory/controllers/inventory.repo.dart';
 import 'package:mobile/features/inventory/controllers/inventory.cubit.dart';
 import 'package:mobile/features/catalog/controllers/catalog.repo.dart';
-import 'package:mobile/features/pos_kds/pos_kds.repo.dart';
-import 'package:mobile/features/pos_kds/pos_kds.cubit.dart';
+import 'package:mobile/features/pos_kds/controllers/pos_kds.repo.dart';
+import 'package:mobile/features/pos_kds/controllers/pos_kds.cubit.dart';
 import 'package:mobile/features/manufacturing/manufacturing.repo.dart';
 import 'package:mobile/features/manufacturing/manufacturing.cubit.dart';
 import 'package:mobile/features/finance/finance.repo.dart';
@@ -92,5 +92,4 @@ class AppDependencies {
   static CrmCubit crmCubit() {
     return CrmCubit(repo: crmRepo());
   }
-
 }

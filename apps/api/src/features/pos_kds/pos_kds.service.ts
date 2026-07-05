@@ -5,7 +5,7 @@ import { HttpStatus } from '../../constants/status';
 import { OrderType, PayMethod, KOTStatus } from '@prisma/client';
 
 export class PosKdsService {
-  async createOrder(branchId: string, data: { customer_id?: string; order_type: OrderType; table_id?: string; items: { menu_item_id: string; variant_id?: string; quantity: number; unit_price: number; notes?: string }[] }) {
+  async createOrder(branchId: string, data: { uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; price_addition_amount?: number; price_reduction_amount?: number; final_paying_price?: number; items: { menu_item_id: string; variant_id?: string; quantity: number; unit_price: number; notes?: string }[] }) {
     let subtotal = 0;
     const orderItems = data.items.map(item => {
       const itemSubtotal = item.quantity * item.unit_price;
@@ -13,36 +13,49 @@ export class PosKdsService {
       return { ...item, subtotal: itemSubtotal };
     });
 
-    // Mock calculations for tax/discount
-    const tax_amount = subtotal * 0.1; 
+    const tax_amount = subtotal * 0.1;
     const discount_amount = 0;
-    const total_amount = subtotal + tax_amount - discount_amount;
+    const price_addition_amount = Number(data.price_addition_amount || 0);
+    const price_reduction_amount = Number(data.price_reduction_amount || 0);
+    const total_amount = subtotal + tax_amount - discount_amount + price_addition_amount - price_reduction_amount;
+    const final_paying_price = Number(data.final_paying_price ?? total_amount);
 
     const order = await posKdsRepo.createOrder({
       branch_id: branchId,
-      customer_id: data.customer_id,
+      uid: data.uid,
+      delivery_address_id: data.delivery_address_id,
       order_type: data.order_type,
       table_id: data.table_id,
       total_amount,
       subtotal,
       tax_amount,
       discount_amount,
+      price_addition_amount,
+      price_reduction_amount,
+      final_paying_price,
     });
 
     await posKdsRepo.createOrderItems(orderItems.map(item => ({ 
       branch_id: branchId,
       order_id: order.id,
       menu_item_id: item.menu_item_id,
-      qty: item.quantity,
+      qty: item.quantity ?? (item as any).qty,
       unit_price: item.unit_price,
       total_price: item.subtotal,
       notes: item.notes
     })));
 
-    // Generate KOT
+    if (data.order_type === 'DINE_IN' && data.table_id) {
+      await posKdsRepo.updateTable(data.table_id, { status: 'OCCUPIED' });
+    }
+
     const kot = await posKdsRepo.createKOT({ branch_id: branchId, order_id: order.id, station: 'HOT_FOOD', status: 'PREPARING' });
 
     return this.getOrderById(order.id, branchId);
+  }
+
+  async getCustomerByPhone(phone: string) {
+    return posKdsRepo.findUserByPhone(phone);
   }
 
   async listOrders(branchId: string) {
@@ -72,7 +85,6 @@ export class PosKdsService {
 
     await posKdsRepo.updateOrderStatus(id, 'PAID');
 
-    // Free the table if it was a DINE_IN order
     if (order.table_id) {
       await posKdsRepo.updateTable(order.table_id, { status: 'AVAILABLE' });
     }
@@ -86,9 +98,6 @@ export class PosKdsService {
       throw new BadRequestError(_POS_KDS_CONSTANTS._E_R_R_O_R_S.INVALID_STATUS);
     }
 
-    // Refund logic here (e.g. updating payments)
-    // AdvancePayment has no status field
-
     return posKdsRepo.updateOrderStatus(id, 'REFUNDED');
   }
 
@@ -98,7 +107,6 @@ export class PosKdsService {
       throw new BadRequestError(_POS_KDS_CONSTANTS._E_R_R_O_R_S.INVALID_STATUS);
     }
 
-    // Cancel related KOTs
     for (const kot of (order as any).kots || []) {
       if (kot.status === 'PREPARING') {
         await posKdsRepo.updateKOTStatus(kot.id, 'CANCELLED');

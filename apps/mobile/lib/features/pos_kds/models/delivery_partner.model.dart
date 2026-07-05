@@ -1,7 +1,7 @@
 // Auto-generated Model file for DeliveryPartner
 
-import '../core_hr/models/address.model.dart';
-import '../finance/bank_detail.model.dart';
+import '../../core_hr/models/address.model.dart';
+import '../../finance/bank_detail.model.dart';
 
 class DeliveryPartnerModel {
   final String id;

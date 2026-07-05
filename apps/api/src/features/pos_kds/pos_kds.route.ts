@@ -7,6 +7,7 @@ const router = Router();
 
 router.use(authenticate, requirePosKdsAccess);
 
+router.get(_POS_KDS_CONSTANTS._R_O_U_T_E_S.CUSTOMER_BY_PHONE, posKdsController.getCustomerByPhone);
 router.get(_POS_KDS_CONSTANTS._R_O_U_T_E_S._O_R_D_E_R_S, posKdsController.listOrders);
 router.post(_POS_KDS_CONSTANTS._R_O_U_T_E_S._O_R_D_E_R_S, posKdsController.createOrder);
 router.get(_POS_KDS_CONSTANTS._R_O_U_T_E_S.ORDER_BY_ID, posKdsController.getOrderById);

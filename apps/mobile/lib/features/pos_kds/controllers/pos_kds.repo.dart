@@ -1,9 +1,10 @@
 import 'package:mobile/services/api_client.dart';
 import 'package:mobile/utils/try_catch.dart';
-import 'package:mobile/features/pos_kds/order.model.dart';
-import 'package:mobile/features/pos_kds/table.model.dart';
-import 'package:mobile/features/pos_kds/kitchen_order_ticket.model.dart';
-import 'package:mobile/features/pos_kds/advance_payment.model.dart';
+import 'package:mobile/features/core_hr/models/user.model.dart';
+import 'package:mobile/features/pos_kds/models/order.model.dart';
+import 'package:mobile/features/pos_kds/models/table.model.dart';
+import 'package:mobile/features/pos_kds/models/kitchen_order_ticket.model.dart';
+import 'package:mobile/features/pos_kds/models/advance_payment.model.dart';
 
 class PosKdsEndpoints {
   static const String orders = '/pos-kds/orders';
@@ -11,14 +12,16 @@ class PosKdsEndpoints {
   static String payOrder(String id) => '/pos-kds/orders/$id/pay';
   static String refundOrder(String id) => '/pos-kds/orders/$id/refund';
   static String cancelOrder(String id) => '/pos-kds/orders/$id/cancel';
-  
+  static String customersByPhone(String phone) =>
+      '/pos-kds/customers/${Uri.encodeComponent(phone)}';
+
   static const String tables = '/pos-kds/tables';
   static String table(String id) => '/pos-kds/tables/$id';
-  
+
   static const String kots = '/pos-kds/kots';
   static String kot(String id) => '/pos-kds/kots/$id';
   static String kotStatus(String id) => '/pos-kds/kots/$id/status';
-  
+
   static const String payments = '/pos-kds/payments';
   static String payment(String id) => '/pos-kds/payments/$id';
 }
@@ -38,8 +41,21 @@ class PosKdsRepo {
 
   TaskResult<OrderModel> createOrder(Map<String, dynamic> data) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(PosKdsEndpoints.orders, data: data);
+      final response = await _apiClient.post(
+        PosKdsEndpoints.orders,
+        data: data,
+      );
       return OrderModel.fromJson(response.data['data']);
+    });
+  }
+
+  TaskResult<List<UserModel>> searchCustomersByPhone(String phone) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.get(
+        PosKdsEndpoints.customersByPhone(phone),
+      );
+      final data = response.data['data'] as List;
+      return data.map((e) => UserModel.fromJson(e)).toList();
     });
   }
 
@@ -52,7 +68,10 @@ class PosKdsRepo {
 
   TaskResult<dynamic> payOrder(String id, Map<String, dynamic> data) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.patch(PosKdsEndpoints.payOrder(id), data: data);
+      final response = await _apiClient.patch(
+        PosKdsEndpoints.payOrder(id),
+        data: data,
+      );
       return response.data['data'];
     });
   }
@@ -81,14 +100,23 @@ class PosKdsRepo {
 
   TaskResult<TableModel> createTable(Map<String, dynamic> data) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.post(PosKdsEndpoints.tables, data: data);
+      final response = await _apiClient.post(
+        PosKdsEndpoints.tables,
+        data: data,
+      );
       return TableModel.fromJson(response.data['data']);
     });
   }
 
-  TaskResult<TableModel> updateTable(String id, Map<String, dynamic> data) async {
+  TaskResult<TableModel> updateTable(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.patch(PosKdsEndpoints.table(id), data: data);
+      final response = await _apiClient.patch(
+        PosKdsEndpoints.table(id),
+        data: data,
+      );
       return TableModel.fromJson(response.data['data']);
     });
   }
@@ -115,9 +143,15 @@ class PosKdsRepo {
     });
   }
 
-  TaskResult<KitchenOrderTicketModel> updateKOTStatus(String id, String status) async {
+  TaskResult<KitchenOrderTicketModel> updateKOTStatus(
+    String id,
+    String status,
+  ) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.patch(PosKdsEndpoints.kotStatus(id), data: {'status': status});
+      final response = await _apiClient.patch(
+        PosKdsEndpoints.kotStatus(id),
+        data: {'status': status},
+      );
       return KitchenOrderTicketModel.fromJson(response.data['data']);
     });
   }

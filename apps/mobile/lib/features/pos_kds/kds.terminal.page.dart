@@ -3,9 +3,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile/features/pos_kds/pos_kds.cubit.dart';
-import 'package:mobile/features/pos_kds/pos_kds.state.dart';
-import 'package:mobile/features/pos_kds/kitchen_order_ticket.model.dart';
+import 'package:mobile/features/pos_kds/controllers/pos_kds.cubit.dart';
+import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
+import 'package:mobile/features/pos_kds/models/kitchen_order_ticket.model.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/components/ui/loader.dart';
 

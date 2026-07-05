@@ -2,6 +2,7 @@ export const _POS_KDS_CONSTANTS = {
   _R_O_U_T_E_S: {
     _B_A_S_E: '/pos-kds',
     _O_R_D_E_R_S: '/orders',
+    CUSTOMER_BY_PHONE: '/customers/:phone',
     ORDER_BY_ID: '/orders/:id',
     ORDER_PAY: '/orders/:id/pay',
     ORDER_REFUND: '/orders/:id/refund',

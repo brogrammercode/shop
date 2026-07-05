@@ -4,8 +4,8 @@ import 'package:mobile/core/color.dart';
 import 'package:mobile/components/ui/app_refresher.dart';
 import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mobile/features/pos_kds/pos_kds.cubit.dart';
-import 'package:mobile/features/pos_kds/pos_kds.state.dart';
+import 'package:mobile/features/pos_kds/controllers/pos_kds.cubit.dart';
+import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/components/ui/loader.dart';
 
@@ -55,7 +55,8 @@ class _OrderListPageState extends State<OrderListPage> {
               ),
             );
           }
-          return AppRefresher(            onRefresh: () async {
+          return AppRefresher(
+            onRefresh: () async {
               context.read<PosKdsCubit>().listOrders();
             },
             child: ListView.separated(
@@ -93,7 +94,8 @@ class _OrderListPageState extends State<OrderListPage> {
                               '\$${order.total_amount}',
                               style: TextStyle(
                                 fontSize: 15.sp,
-                                fontWeight: FontWeight.w900,                              ),
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                           ],
                         ),

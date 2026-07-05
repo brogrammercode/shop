@@ -97,3 +97,9 @@ export const getPaymentById = asyncHandler(async (req: Request, res: Response) =
   const result = await posKdsService.getPaymentById(id, req.employee.branch_id);
   return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.PAYMENTS_LISTED, HttpStatus.OK);
 });
+
+export const getCustomerByPhone = asyncHandler(async (req: Request, res: Response) => {
+  const { phone } = req.params as Record<string, string>;
+  const result = await posKdsService.getCustomerByPhone(phone);
+  return sendSuccess(res, result, 'Customer retrieved successfully', HttpStatus.OK);
+});
