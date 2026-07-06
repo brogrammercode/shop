@@ -118,3 +118,39 @@ class CreateOrderItemRequest {
         if (notes != null) 'notes': notes,
       };
 }
+
+class OrderModel {
+  final String id;
+  final String code; // New field as requested
+  final String status;
+  final String date;
+  final double totalAmount;
+  final String restaurantName;
+  final String restaurantImageUrl;
+  final List<String> itemSummaries;
+
+  const OrderModel({
+    required this.id,
+    required this.code,
+    required this.status,
+    required this.date,
+    required this.totalAmount,
+    required this.restaurantName,
+    required this.restaurantImageUrl,
+    required this.itemSummaries,
+  });
+
+  factory OrderModel.fromJson(Map<String, dynamic> json) {
+    return OrderModel(
+      id: json['id'] ?? '',
+      code: json['code'] ?? '',
+      status: json['status'] ?? 'pending',
+      date: json['date'] ?? '',
+      totalAmount: (json['total_amount'] ?? 0).toDouble(),
+      restaurantName: json['restaurant_name'] ?? '',
+      restaurantImageUrl: json['restaurant_image_url'] ?? '',
+      itemSummaries: List<String>.from(json['item_summaries'] ?? []),
+    );
+  }
+}
+

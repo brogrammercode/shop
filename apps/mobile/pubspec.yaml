@@ -30,6 +30,9 @@ dependencies:
   shimmer: ^3.0.0
   image_picker: ^1.2.2
   pinput: ^6.0.2
+  qr_flutter: ^4.1.0
+  share_plus: ^13.2.0
+  mobile_scanner: ^7.2.0
 
 dev_dependencies:
   flutter_test:
@@ -54,4 +57,5 @@ flutter:
   uses-material-design: true
   assets:
     - .env
+    - assets/
     - assets/logo.png

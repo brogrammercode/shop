@@ -135,7 +135,7 @@ class _MenuItemDetailPageState extends State<MenuItemDetailPage> {
                               ],
                             ),
                             child: Text(
-                              'Rs${item.selling_price}',
+                              '₹ ${item.selling_price}',
                               style: TextStyle(
                                 fontSize: 11.sp,
                                 fontWeight: FontWeight.w900,

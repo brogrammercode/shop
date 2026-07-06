@@ -13,7 +13,14 @@ class DeliveryPartnerListPage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.pureWhite,
         elevation: 0,
-        title: Text(PosConstant.PARTNER_LIST_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(
+          PosConstant.PARTNER_LIST_TITLE,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w900,
+            color: AppColors.textPrimary,
+          ),
+        ),
         centerTitle: true,
       ),
       body: ListView.separated(
@@ -24,11 +31,21 @@ class DeliveryPartnerListPage extends StatelessWidget {
           final partners = ['Swiggy', 'Zomato'];
           return Container(
             padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(border: Border.all(color: AppColors.borderGrey), borderRadius: BorderRadius.circular(12.r)),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.borderGrey),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(partners[index], style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+                Text(
+                  partners[index],
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
                 Icon(Icons.check_circle, color: AppColors.primaryGreen),
               ],
             ),

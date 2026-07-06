@@ -10,6 +10,8 @@ import 'package:user/features/setting/setting_page.dart';
 import 'package:user/features/auth/login_page.dart';
 import 'package:user/features/auth/session_page.dart';
 import 'package:user/features/home/food_page.dart';
+import 'package:user/features/order/order_list_page.dart';
+import 'package:user/features/order/order_detail_page.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -23,6 +25,8 @@ class AppRoutes {
   static const String login = '/login';
   static const String session = '/session';
   static const String food = '/food';
+  static const String orders = '/orders';
+  static const String orderDetail = '/order-detail';
 
   static Map<String, WidgetBuilder> get routes => {
     splash: (context) => const SplashPage(),
@@ -36,6 +40,8 @@ class AppRoutes {
     login: (context) => const LoginPage(),
     session: (context) => const SessionPage(),
     food: (context) => const FoodPage(),
+    orders: (context) => const OrderListPage(),
+    orderDetail: (context) => const OrderDetailPage(),
   };
 }
 

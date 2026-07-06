@@ -2,6 +2,7 @@ import { OrderItemDTO } from './order_item.type';
 
 export interface OrderDTO {
   id: string;
+  order_no: number;
   branch_id: string;
   table_id?: string;
   uid?: string;
@@ -13,8 +14,6 @@ export interface OrderDTO {
   subtotal: number;
   tax_amount: number;
   discount_amount: number;
-  price_addition_amount?: number;
-  price_reduction_amount?: number;
   total_amount: number;
   final_paying_price?: number;
   fulfillment_date?: string | Date;

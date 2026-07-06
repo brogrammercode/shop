@@ -1,20 +1,22 @@
 import 'package:mobile/features/pos_kds/models/order_item.model.dart';
+import 'package:mobile/features/core_hr/models/user.model.dart';
 
 class OrderModel {
   final String id;
+  final int order_no;
   final String branch_id;
   final String table_id;
+  final String code;
   final String uid;
   final String delivery_address_id;
   final String employee_id;
   final String partner_id;
+  final UserModel? user;
   final String order_type;
   final String status;
   final double subtotal;
   final double tax_amount;
   final double discount_amount;
-  final double price_addition_amount;
-  final double price_reduction_amount;
   final double total_amount;
   final double final_paying_price;
   final String fulfillment_date;
@@ -25,19 +27,20 @@ class OrderModel {
 
   const OrderModel({
     required this.id,
+    required this.order_no,
     required this.branch_id,
     required this.table_id,
+    required this.code,
     required this.uid,
     required this.delivery_address_id,
     required this.employee_id,
     required this.partner_id,
+    this.user,
     required this.order_type,
     required this.status,
     required this.subtotal,
     required this.tax_amount,
     required this.discount_amount,
-    required this.price_addition_amount,
-    required this.price_reduction_amount,
     required this.total_amount,
     required this.final_paying_price,
     required this.fulfillment_date,
@@ -50,21 +53,20 @@ class OrderModel {
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     return OrderModel(
       id: json['id'] ?? '',
+      order_no: json['order_no'] ?? 0,
       branch_id: json['branch_id'] ?? '',
       table_id: json['table_id'] ?? '',
+      code: json['code'] ?? '',
       uid: json['uid'] ?? '',
       delivery_address_id: json['delivery_address_id'] ?? '',
       employee_id: json['employee_id'] ?? '',
       partner_id: json['partner_id'] ?? '',
+      user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
       order_type: json['order_type'] ?? '',
       status: json['status'] ?? '',
       subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
       tax_amount: (json['tax_amount'] as num?)?.toDouble() ?? 0.0,
       discount_amount: (json['discount_amount'] as num?)?.toDouble() ?? 0.0,
-      price_addition_amount:
-          (json['price_addition_amount'] as num?)?.toDouble() ?? 0.0,
-      price_reduction_amount:
-          (json['price_reduction_amount'] as num?)?.toDouble() ?? 0.0,
       total_amount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
       final_paying_price:
           (json['final_paying_price'] as num?)?.toDouble() ?? 0.0,
@@ -83,19 +85,20 @@ class OrderModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'order_no': order_no,
       'branch_id': branch_id,
       'table_id': table_id,
+      'code': code,
       'uid': uid,
       'delivery_address_id': delivery_address_id,
       'employee_id': employee_id,
       'partner_id': partner_id,
+      'user': user?.toJson(),
       'order_type': order_type,
       'status': status,
       'subtotal': subtotal,
       'tax_amount': tax_amount,
       'discount_amount': discount_amount,
-      'price_addition_amount': price_addition_amount,
-      'price_reduction_amount': price_reduction_amount,
       'total_amount': total_amount,
       'final_paying_price': final_paying_price,
       'fulfillment_date': fulfillment_date,
@@ -108,19 +111,20 @@ class OrderModel {
 
   OrderModel copyWith({
     String? id,
+    int? order_no,
     String? branch_id,
     String? table_id,
+    String? code,
     String? uid,
     String? delivery_address_id,
     String? employee_id,
     String? partner_id,
+    UserModel? user,
     String? order_type,
     String? status,
     double? subtotal,
     double? tax_amount,
     double? discount_amount,
-    double? price_addition_amount,
-    double? price_reduction_amount,
     double? total_amount,
     double? final_paying_price,
     String? fulfillment_date,
@@ -131,21 +135,20 @@ class OrderModel {
   }) {
     return OrderModel(
       id: id ?? this.id,
+      order_no: order_no ?? this.order_no,
       branch_id: branch_id ?? this.branch_id,
       table_id: table_id ?? this.table_id,
+      code: code ?? this.code,
       uid: uid ?? this.uid,
       delivery_address_id: delivery_address_id ?? this.delivery_address_id,
       employee_id: employee_id ?? this.employee_id,
       partner_id: partner_id ?? this.partner_id,
+      user: user ?? this.user,
       order_type: order_type ?? this.order_type,
       status: status ?? this.status,
       subtotal: subtotal ?? this.subtotal,
       tax_amount: tax_amount ?? this.tax_amount,
       discount_amount: discount_amount ?? this.discount_amount,
-      price_addition_amount:
-          price_addition_amount ?? this.price_addition_amount,
-      price_reduction_amount:
-          price_reduction_amount ?? this.price_reduction_amount,
       total_amount: total_amount ?? this.total_amount,
       final_paying_price: final_paying_price ?? this.final_paying_price,
       fulfillment_date: fulfillment_date ?? this.fulfillment_date,

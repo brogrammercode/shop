@@ -5,7 +5,7 @@ import { HttpStatus } from '../../constants/status';
 import { OrderType, PayMethod, KOTStatus } from '@prisma/client';
 
 export class PosKdsService {
-  async createOrder(branchId: string, data: { uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; price_addition_amount?: number; price_reduction_amount?: number; final_paying_price?: number; items: { menu_item_id: string; variant_id?: string; quantity: number; unit_price: number; notes?: string }[] }) {
+  async createOrder(branchId: string, data: { uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; final_paying_price?: number; employee_id?: string; partner_id?: string; items: { menu_item_id: string; variant_id?: string; quantity: number; unit_price: number; notes?: string }[] }) {
     let subtotal = 0;
     const orderItems = data.items.map(item => {
       const itemSubtotal = item.quantity * item.unit_price;
@@ -15,13 +15,14 @@ export class PosKdsService {
 
     const tax_amount = subtotal * 0.1;
     const discount_amount = 0;
-    const price_addition_amount = Number(data.price_addition_amount || 0);
-    const price_reduction_amount = Number(data.price_reduction_amount || 0);
-    const total_amount = subtotal + tax_amount - discount_amount + price_addition_amount - price_reduction_amount;
+    const total_amount = subtotal + tax_amount - discount_amount;
     const final_paying_price = Number(data.final_paying_price ?? total_amount);
+    const orderWindow = this.getOrderWindowAfterFour();
+    const order_no = (await posKdsRepo.countOrdersByCreatedRange(branchId, orderWindow.start, orderWindow.end)) + 1;
 
     const order = await posKdsRepo.createOrder({
       branch_id: branchId,
+      order_no,
       uid: data.uid,
       delivery_address_id: data.delivery_address_id,
       order_type: data.order_type,
@@ -30,9 +31,10 @@ export class PosKdsService {
       subtotal,
       tax_amount,
       discount_amount,
-      price_addition_amount,
-      price_reduction_amount,
       final_paying_price,
+      employee_id: data.employee_id,
+      partner_id: data.order_type === OrderType.DELIVERY ? data.partner_id : undefined,
+      code: `ORD-${Date.now()}-${order_no.toString().padStart(3, '0')}`,
     });
 
     await posKdsRepo.createOrderItems(orderItems.map(item => ({ 
@@ -52,6 +54,18 @@ export class PosKdsService {
     const kot = await posKdsRepo.createKOT({ branch_id: branchId, order_id: order.id, station: 'HOT_FOOD', status: 'PREPARING' });
 
     return this.getOrderById(order.id, branchId);
+  }
+
+  private getOrderWindowAfterFour() {
+    const now = new Date();
+    const start = new Date(now);
+    start.setHours(4, 0, 0, 0);
+    if (now < start) {
+      start.setDate(start.getDate() - 1);
+    }
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    return { start, end };
   }
 
   async getCustomerByPhone(phone: string) {

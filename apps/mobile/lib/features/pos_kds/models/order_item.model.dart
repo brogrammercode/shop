@@ -1,5 +1,7 @@
 // Auto-generated Model file for OrderItem
 
+import 'package:mobile/features/catalog/models/menu_item.model.dart';
+
 class OrderItemModel {
   final String id;
   final String branch_id;
@@ -11,6 +13,7 @@ class OrderItemModel {
   final String notes;
   final String created_at;
   final String updated_at;
+  final MenuItemModel? menu_item;
 
   const OrderItemModel({
     required this.id,
@@ -23,6 +26,7 @@ class OrderItemModel {
     required this.notes,
     required this.created_at,
     required this.updated_at,
+    this.menu_item,
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
@@ -37,6 +41,9 @@ class OrderItemModel {
       notes: json['notes'] ?? '',
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
+      menu_item: json['menu_item'] != null
+          ? MenuItemModel.fromJson(json['menu_item'])
+          : null,
     );
   }
 
@@ -52,6 +59,7 @@ class OrderItemModel {
       'notes': notes,
       'created_at': created_at,
       'updated_at': updated_at,
+      'menu_item': menu_item?.toJson(),
     };
   }
 
@@ -66,6 +74,7 @@ class OrderItemModel {
     String? notes,
     String? created_at,
     String? updated_at,
+    MenuItemModel? menu_item,
   }) {
     return OrderItemModel(
       id: id ?? this.id,
@@ -78,6 +87,7 @@ class OrderItemModel {
       notes: notes ?? this.notes,
       created_at: created_at ?? this.created_at,
       updated_at: updated_at ?? this.updated_at,
+      menu_item: menu_item ?? this.menu_item,
     );
   }
 }

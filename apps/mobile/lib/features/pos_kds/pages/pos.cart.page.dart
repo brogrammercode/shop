@@ -10,10 +10,10 @@ import 'package:mobile/features/catalog/controllers/catalog.state.dart';
 import 'package:mobile/features/core_hr/models/address.model.dart';
 import 'package:mobile/features/crm/crm.cubit.dart';
 import 'package:mobile/features/crm/crm.state.dart';
-import 'controllers/pos_kds.cubit.dart';
-import 'controllers/pos_kds.state.dart';
+import '../controllers/pos_kds.cubit.dart';
+import '../controllers/pos_kds.state.dart';
 import 'dart:async';
-import 'package:mobile/features/pos_kds/pos.receipt.page.dart';
+import 'package:mobile/features/pos_kds/pages/order.detail.page.dart';
 
 class PosCartPage extends StatefulWidget {
   const PosCartPage({super.key});
@@ -29,10 +29,6 @@ class _PosCartPageState extends State<PosCartPage> {
   String? _selectedAddressId;
 
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _priceAdditionController =
-      TextEditingController();
-  final TextEditingController _priceReductionController =
-      TextEditingController();
   final TextEditingController _finalPayingPriceController =
       TextEditingController();
   Timer? _debounce;
@@ -49,8 +45,6 @@ class _PosCartPageState extends State<PosCartPage> {
   @override
   void dispose() {
     _phoneController.dispose();
-    _priceAdditionController.dispose();
-    _priceReductionController.dispose();
     _finalPayingPriceController.dispose();
     _debounce?.cancel();
     super.dispose();
@@ -82,7 +76,7 @@ class _PosCartPageState extends State<PosCartPage> {
         if (state.saveOrdersInfo.status == OperationStatus.success) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => const PosReceiptPage()),
+            MaterialPageRoute(builder: (_) => const OrderDetailPage()),
           );
         }
       },
@@ -188,7 +182,7 @@ class _PosCartPageState extends State<PosCartPage> {
                                       ),
                                       SizedBox(width: 8.w),
                                       Text(
-                                        'Rs${(item.selling_price * qty).toStringAsFixed(0)}',
+                                        '₹ ${(item.selling_price * qty).toStringAsFixed(0)}',
                                         style: TextStyle(
                                           fontSize: 13.sp,
                                           fontWeight: FontWeight.w900,
@@ -199,7 +193,7 @@ class _PosCartPageState extends State<PosCartPage> {
                                   ),
                                   SizedBox(height: 4.h),
                                   Text(
-                                    'Rs${item.selling_price.toStringAsFixed(0)}',
+                                    '₹ ${item.selling_price.toStringAsFixed(0)}',
                                     style: TextStyle(
                                       fontSize: 12.sp,
                                       fontWeight: FontWeight.w800,
@@ -275,13 +269,9 @@ class _PosCartPageState extends State<PosCartPage> {
                   } catch (_) {}
                 });
 
-                final priceAddition = _readAmount(_priceAdditionController);
-                final priceReduction = _readAmount(_priceReductionController);
-                final adjustedTotal =
-                    cartTotal + priceAddition - priceReduction;
                 final finalPayingPrice =
                     double.tryParse(_finalPayingPriceController.text.trim()) ??
-                    adjustedTotal;
+                    cartTotal;
                 final selectedCustomer = posState.selectedCustomer;
 
                 return Column(
@@ -462,9 +452,6 @@ class _PosCartPageState extends State<PosCartPage> {
                                 ],
                               ),
                             ),
-                            _buildCustomerContext(posState, crmState),
-                            if (_selectedCustomerId != null)
-                              SizedBox(height: 16.h),
                             Container(
                               margin: EdgeInsets.symmetric(horizontal: 16.w),
                               padding: EdgeInsets.all(16.w),
@@ -638,6 +625,7 @@ class _PosCartPageState extends State<PosCartPage> {
                                 ],
                               ),
                             ),
+                            _buildCustomerContext(posState, crmState),
                           ],
                         ),
                       ),
@@ -660,26 +648,6 @@ class _PosCartPageState extends State<PosCartPage> {
                       child: SafeArea(
                         child: Column(
                           children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildAmountInput(
-                                    _priceAdditionController,
-                                    'Add price',
-                                    () => setState(() {}),
-                                  ),
-                                ),
-                                SizedBox(width: 8.w),
-                                Expanded(
-                                  child: _buildAmountInput(
-                                    _priceReductionController,
-                                    'Reduce price',
-                                    () => setState(() {}),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 8.h),
                             _buildAmountInput(
                               _finalPayingPriceController,
                               'Final paying price',
@@ -698,7 +666,7 @@ class _PosCartPageState extends State<PosCartPage> {
                                   ),
                                 ),
                                 Text(
-                                  'Rs${adjustedTotal.toStringAsFixed(0)}',
+                                  '₹ ${cartTotal.toStringAsFixed(0)}',
                                   style: TextStyle(
                                     fontSize: 13.sp,
                                     fontWeight: FontWeight.w800,
@@ -716,7 +684,7 @@ class _PosCartPageState extends State<PosCartPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Rs${finalPayingPrice.toStringAsFixed(0)}',
+                                        '₹ ${finalPayingPrice.toStringAsFixed(0)}',
                                         style: TextStyle(
                                           fontSize: 18.sp,
                                           fontWeight: FontWeight.w900,
@@ -798,9 +766,6 @@ class _PosCartPageState extends State<PosCartPage> {
                                             _selectedCustomerId,
                                             deliveryAddressId:
                                                 _selectedAddressId,
-                                            priceAdditionAmount: priceAddition,
-                                            priceReductionAmount:
-                                                priceReduction,
                                             finalPayingPrice: finalPayingPrice,
                                           );
                                     },
@@ -886,10 +851,6 @@ class _PosCartPageState extends State<PosCartPage> {
         ),
       ),
     );
-  }
-
-  double _readAmount(TextEditingController controller) {
-    return double.tryParse(controller.text.trim()) ?? 0.0;
   }
 
   String _addressLabel(AddressModel address) {
@@ -998,25 +959,38 @@ class _PosCartPageState extends State<PosCartPage> {
       return const SizedBox.shrink();
     }
 
+    final selectedCustomer = posState.selectedCustomer;
     final previousOrders = posState.orders
         .where((order) => order.uid == _selectedCustomerId)
-        .take(3)
         .toList();
     final activeCoupons = crmState.coupons
         .where((coupon) => !coupon.is_deleted && coupon.status == 'ACTIVE')
-        .take(3)
         .toList();
     final loyalty = crmState.customerLoyalty;
     final points = loyalty is Map
         ? (loyalty['balance'] ?? loyalty['points'] ?? 0).toString()
         : '0';
+    final loyaltyTransactions =
+        loyalty is Map && loyalty['transactions'] is List
+        ? loyalty['transactions'] as List
+        : const [];
+    final totalSpend = previousOrders.fold<double>(
+      0,
+      (sum, order) => sum + order.total_amount,
+    );
+    final paidOrders = previousOrders
+        .where((order) => order.status.toUpperCase() == 'PAID')
+        .length;
+    final latestOrder = previousOrders.isEmpty ? null : previousOrders.first;
+    final addresses = selectedCustomer?.addresses ?? const [];
 
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16.w),
+      width: double.infinity,
+      margin: EdgeInsets.only(top: 4.h, bottom: 16.h),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: AppColors.pureWhite,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(0.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -1037,8 +1011,64 @@ class _PosCartPageState extends State<PosCartPage> {
             ),
           ),
           SizedBox(height: 12.h),
+          if (selectedCustomer != null) ...[
+            Text(
+              selectedCustomer.name.isEmpty
+                  ? 'Selected customer'
+                  : selectedCustomer.name,
+              style: TextStyle(
+                fontSize: 15.sp,
+                fontWeight: FontWeight.w900,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              [
+                selectedCustomer.phone,
+                selectedCustomer.email,
+              ].where((item) => item.trim().isNotEmpty).join('  |  '),
+              style: TextStyle(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textSecondary,
+              ),
+            ),
+            SizedBox(height: 10.h),
+            Text(
+              'Saved addresses: ${addresses.length}',
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            SizedBox(height: 4.h),
+            if (addresses.isEmpty)
+              Text(
+                'No saved delivery address',
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              )
+            else
+              ...addresses.take(2).map((address) {
+                final label = _addressLabel(address);
+                return Text(
+                  label.isEmpty ? address.id : label,
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                  ),
+                );
+              }),
+            SizedBox(height: 12.h),
+          ],
           Text(
-            'Previous orders: ${previousOrders.length}',
+            'Previous orders: ${previousOrders.length}  |  Paid: $paidOrders  |  Spend: ₹ ${totalSpend.toStringAsFixed(0)}',
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w800,
@@ -1046,9 +1076,19 @@ class _PosCartPageState extends State<PosCartPage> {
             ),
           ),
           SizedBox(height: 6.h),
-          ...previousOrders.map((order) {
+          if (latestOrder != null)
+            Text(
+              'Latest: #${latestOrder.order_no} - ${latestOrder.order_type} - ₹ ${latestOrder.total_amount.toStringAsFixed(0)} - ${latestOrder.status}',
+              style: TextStyle(
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          SizedBox(height: latestOrder == null ? 0 : 4.h),
+          ...previousOrders.take(4).map((order) {
             return Text(
-              '${order.order_type} - Rs${order.total_amount.toStringAsFixed(0)} - ${order.status}',
+              '#${order.order_no} - ${order.order_type} - ₹ ${order.total_amount.toStringAsFixed(0)} - ${order.status}',
               style: TextStyle(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w600,
@@ -1067,7 +1107,7 @@ class _PosCartPageState extends State<PosCartPage> {
             ),
           SizedBox(height: 12.h),
           Text(
-            'Coupons/offers: ${activeCoupons.length}',
+            'Coupons/offers: ${activeCoupons.length} available',
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w800,
@@ -1075,9 +1115,9 @@ class _PosCartPageState extends State<PosCartPage> {
             ),
           ),
           SizedBox(height: 6.h),
-          ...activeCoupons.map((coupon) {
+          ...activeCoupons.take(4).map((coupon) {
             return Text(
-              '${coupon.code} - ${coupon.discount_pct.toStringAsFixed(0)}% off',
+              '${coupon.code} - ${coupon.discount_pct.toStringAsFixed(0)}% off - min ₹ ${coupon.min_order_val.toStringAsFixed(0)} - max ₹ ${coupon.max_discount.toStringAsFixed(0)}',
               style: TextStyle(
                 fontSize: 11.sp,
                 fontWeight: FontWeight.w600,
@@ -1096,7 +1136,7 @@ class _PosCartPageState extends State<PosCartPage> {
             ),
           SizedBox(height: 12.h),
           Text(
-            'Loyalty points: $points',
+            'Loyalty points: $points  |  Transactions: ${loyaltyTransactions.length}',
             style: TextStyle(
               fontSize: 12.sp,
               fontWeight: FontWeight.w800,

@@ -37,16 +37,15 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
             _buildAppBar(context),
             _buildPageTitle(),
             _buildCategoryTabs(),
-            Expanded(
-              child: _buildItemList(),
-            ),
+            Expanded(child: _buildItemList()),
           ],
         ),
       ),
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: 62.h),
         child: FloatingActionButton(
-          onPressed: () => Navigator.pushNamed(context, AppRoutes.createMenuItem),
+          onPressed: () =>
+              Navigator.pushNamed(context, AppRoutes.createMenuItem),
           backgroundColor: AppColors.primaryGreen,
           shape: const CircleBorder(),
           child: const Icon(Icons.add, color: AppColors.pureWhite),
@@ -62,11 +61,7 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
       alignment: Alignment.centerLeft,
       child: GestureDetector(
         onTap: () => Navigator.pop(context),
-        child: Icon(
-          Icons.arrow_back,
-          color: AppColors.textPrimary,
-          size: 24.w,
-        ),
+        child: Icon(Icons.arrow_back, color: AppColors.textPrimary, size: 24.w),
       ),
     );
   }
@@ -96,8 +91,10 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
     return BlocBuilder<CatalogCubit, CatalogState>(
       builder: (context, state) {
         if (state.menuCategories.isEmpty) return const SizedBox.shrink();
-        final categories = state.menuCategories.where((c) => !c.is_deleted).toList();
-        
+        final categories = state.menuCategories
+            .where((c) => !c.is_deleted)
+            .toList();
+
         return Container(
           height: 40.h,
           margin: EdgeInsets.only(bottom: 8.h),
@@ -109,12 +106,18 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
                 setState(() => _selectedCategoryId = 'all');
               }),
               SizedBox(width: 8.w),
-              ...categories.map((cat) => Padding(
-                padding: EdgeInsets.only(right: 8.w),
-                child: _buildFilterPill(cat.name, _selectedCategoryId == cat.id, () {
-                  setState(() => _selectedCategoryId = cat.id);
-                }),
-              )),
+              ...categories.map(
+                (cat) => Padding(
+                  padding: EdgeInsets.only(right: 8.w),
+                  child: _buildFilterPill(
+                    cat.name,
+                    _selectedCategoryId == cat.id,
+                    () {
+                      setState(() => _selectedCategoryId = cat.id);
+                    },
+                  ),
+                ),
+              ),
             ],
           ),
         );
@@ -130,7 +133,10 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? AppColors.deepOnyx : AppColors.pureWhite,
-          border: Border.all(color: isSelected ? AppColors.deepOnyx : AppColors.borderGrey, width: 1.w),
+          border: Border.all(
+            color: isSelected ? AppColors.deepOnyx : AppColors.borderGrey,
+            width: 1.w,
+          ),
           borderRadius: BorderRadius.circular(20.r),
         ),
         child: Text(
@@ -155,7 +161,9 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
 
         var items = state.menuItems.where((i) => !i.is_deleted).toList();
         if (_selectedCategoryId != 'all') {
-          items = items.where((i) => i.category_id == _selectedCategoryId).toList();
+          items = items
+              .where((i) => i.category_id == _selectedCategoryId)
+              .toList();
         }
 
         if (items.isEmpty) {
@@ -183,9 +191,16 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
               final item = items[index];
 
               return GestureDetector(
-                onTap: () => Navigator.pushNamed(context, AppRoutes.menuItemDetail, arguments: item),
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.menuItemDetail,
+                  arguments: item,
+                ),
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 18.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 18.h,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.pureWhite,
                     borderRadius: BorderRadius.circular(12.r),
@@ -202,11 +217,17 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
                     children: [
                       CircleAvatar(
                         radius: 24.r,
-                        backgroundColor: AppColors.primaryGreen.withOpacity(0.2),
-                        backgroundImage: item.images.isNotEmpty ? NetworkImage(item.images.first) : null,
+                        backgroundColor: AppColors.primaryGreen.withOpacity(
+                          0.2,
+                        ),
+                        backgroundImage: item.images.isNotEmpty
+                            ? NetworkImage(item.images.first)
+                            : null,
                         child: item.images.isEmpty
                             ? Text(
-                                item.display_name.isNotEmpty ? item.display_name[0].toUpperCase() : 'I',
+                                item.display_name.isNotEmpty
+                                    ? item.display_name[0].toUpperCase()
+                                    : 'I',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18.sp,
@@ -233,9 +254,16 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
                             Row(
                               children: [
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 6.w,
+                                    vertical: 2.h,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: item.status == 'ACTIVE' ? AppColors.primaryGreen.withOpacity(0.1) : AppColors.error.withOpacity(0.1),
+                                    color: item.status == 'ACTIVE'
+                                        ? AppColors.primaryGreen.withOpacity(
+                                            0.1,
+                                          )
+                                        : AppColors.error.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(4.r),
                                   ),
                                   child: Text(
@@ -243,14 +271,16 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
                                     style: TextStyle(
                                       fontSize: 10.sp,
                                       fontWeight: FontWeight.w600,
-                                      color: item.status == 'ACTIVE' ? AppColors.primaryGreen : AppColors.error,
+                                      color: item.status == 'ACTIVE'
+                                          ? AppColors.primaryGreen
+                                          : AppColors.error,
                                     ),
                                   ),
                                 ),
                                 SizedBox(width: 8.w),
                                 Expanded(
                                   child: Text(
-                                    'Rs${item.selling_price.toStringAsFixed(0)}',
+                                    '₹ ${item.selling_price.toStringAsFixed(0)}',
                                     style: TextStyle(
                                       fontSize: 12.sp,
                                       color: AppColors.textSecondary,

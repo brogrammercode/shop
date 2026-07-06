@@ -5,6 +5,9 @@ import 'package:user/components/ui/button.dart';
 import 'package:user/core/color.dart';
 import 'package:user/core/di.dart';
 import 'package:user/utils/error.dart';
+import 'package:user/features/order/order.cubit.dart';
+import 'package:user/features/order/order.state.dart';
+import 'package:user/features/order/order.model.dart';
 import 'store.cubit.dart';
 import 'store.state.dart';
 import 'menu.model.dart';
@@ -22,17 +25,8 @@ class StorePage extends StatelessWidget {
   }
 }
 
-class _StorePageView extends StatefulWidget {
+class _StorePageView extends StatelessWidget {
   const _StorePageView();
-
-  @override
-  State<_StorePageView> createState() => _StorePageViewState();
-}
-
-class _StorePageViewState extends State<_StorePageView> {
-  int cartItemCount = 0;
-  double cartTotalPrice = 0.0;
-  String? addedDishImageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -40,71 +34,70 @@ class _StorePageViewState extends State<_StorePageView> {
     
     return Scaffold(
       backgroundColor: AppColors.pureWhite,
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: statusBarHeight + 10.h),
-                const StoreDetailsHeader(),
-                BlocBuilder<StoreCubit, StoreState>(
-                  builder: (context, state) {
-                    if (state.loadMenuInfo.status == OperationStatus.loading) {
-                      return Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(32.h),
-                          child: const CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-                    if (state.loadMenuInfo.status == OperationStatus.error) {
-                      return Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(32.h),
-                          child: const Text('Failed to load menu'),
-                        ),
-                      );
-                    }
-                    
-                    if (state.menuCategories.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(32.h),
-                          child: const Text('Menu is empty'),
-                        ),
-                      );
-                    }
+      body: BlocBuilder<OrderCubit, OrderState>(
+        builder: (context, orderState) {
+          final int cartItemCount = orderState.totalItems;
+          final double cartTotalPrice = orderState.calculateItemTotal;
+          final String? addedDishImageUrl = orderState.cartItems.isNotEmpty ? orderState.cartItems.last.imageUrl : null;
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: state.menuCategories.map((category) {
-                        return _MenuCategorySection(
-                          category: category,
-                          onItemAdded: (qty, price, imageUrl) {
-                            setState(() {
-                              cartItemCount = qty;
-                              cartTotalPrice = price;
-                              addedDishImageUrl = imageUrl;
-                            });
-                          },
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: statusBarHeight + 10.h),
+                    const StoreDetailsHeader(),
+                    BlocBuilder<StoreCubit, StoreState>(
+                      builder: (context, storeState) {
+                        if (storeState.loadMenuInfo.status == OperationStatus.loading) {
+                          return Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(32.h),
+                              child: const CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+                        if (storeState.loadMenuInfo.status == OperationStatus.error) {
+                          return Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(32.h),
+                              child: const Text('Failed to load menu'),
+                            ),
+                          );
+                        }
+                        
+                        if (storeState.menuCategories.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(32.h),
+                              child: const Text('Menu is empty'),
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: storeState.menuCategories.map((category) {
+                            return _MenuCategorySection(category: category);
+                          }).toList(),
                         );
-                      }).toList(),
-                    );
-                  },
+                      },
+                    ),
+                    SizedBox(height: cartItemCount > 0 ? 160.h : 100.h),
+                  ],
                 ),
-                SizedBox(height: cartItemCount > 0 ? 160.h : 100.h),
-              ],
-            ),
-          ),
-          _buildFloatingMenuButton(),
-          if (cartItemCount > 0) _buildBottomCartBar(),
-        ],
+              ),
+              _buildFloatingMenuButton(cartItemCount),
+              if (cartItemCount > 0) _buildBottomCartBar(context, cartItemCount, cartTotalPrice, addedDishImageUrl),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildFloatingMenuButton() {
+  Widget _buildFloatingMenuButton(int cartItemCount) {
     return Positioned(
       bottom: cartItemCount > 0 ? 130.h : 24.h,
       left: 0,
@@ -139,7 +132,7 @@ class _StorePageViewState extends State<_StorePageView> {
     );
   }
 
-  Widget _buildBottomCartBar() {
+  Widget _buildBottomCartBar(BuildContext context, int cartItemCount, double cartTotalPrice, String? addedDishImageUrl) {
     return Positioned(
       bottom: 16.h,
       left: 16.w,
@@ -207,14 +200,14 @@ class _StorePageViewState extends State<_StorePageView> {
                 children: [
                   Row(
                     children: [
-                      if (addedDishImageUrl != null)
+                      if (addedDishImageUrl != null && addedDishImageUrl.isNotEmpty)
                         Container(
                           width: 32.w,
                           height: 32.w,
                           margin: EdgeInsets.only(right: 10.w),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(6.r),
-                            image: DecorationImage(image: NetworkImage(addedDishImageUrl!), fit: BoxFit.cover),
+                            image: DecorationImage(image: NetworkImage(addedDishImageUrl), fit: BoxFit.cover),
                           ),
                         ),
                       Text(
@@ -245,9 +238,8 @@ class _StorePageViewState extends State<_StorePageView> {
 
 class _MenuCategorySection extends StatefulWidget {
   final MenuCategory category;
-  final void Function(int qty, double price, String? imageUrl) onItemAdded;
 
-  const _MenuCategorySection({required this.category, required this.onItemAdded});
+  const _MenuCategorySection({required this.category});
 
   @override
   State<_MenuCategorySection> createState() => _MenuCategorySectionState();
@@ -295,7 +287,7 @@ class _MenuCategorySectionState extends State<_MenuCategorySection> {
             itemCount: widget.category.items.length,
             itemBuilder: (context, index) {
               final item = widget.category.items[index];
-              return _MenuItemListItem(item: item, onItemAdded: widget.onItemAdded);
+              return _MenuItemListItem(item: item);
             },
           ),
       ],
@@ -305,131 +297,203 @@ class _MenuCategorySectionState extends State<_MenuCategorySection> {
 
 class _MenuItemListItem extends StatelessWidget {
   final MenuItem item;
-  final void Function(int qty, double price, String? imageUrl) onItemAdded;
 
-  const _MenuItemListItem({required this.item, required this.onItemAdded});
+  const _MenuItemListItem({required this.item});
 
   void _showAddDialog(BuildContext context) {
-    // Simple add mock for the refactored code without customization modal.
-    onItemAdded(1, item.selling_price.toDouble(), item.image_url);
+    final cartItem = CartItemModel(
+      id: item.id,
+      name: item.display_name,
+      price: item.selling_price.toDouble(),
+      imageUrl: item.image_url ?? '',
+      sizeInfo: 'Regular',
+      isVeg: true,
+      quantity: 1,
+      subItems: [],
+    );
+    context.read<OrderCubit>().addItem(cartItem);
+  }
+
+  void _updateQuantity(BuildContext context, int newQty, CartItemModel? cartItem) {
+    if (newQty <= 0) {
+      context.read<OrderCubit>().removeItem(item.id);
+    } else if (cartItem != null) {
+      context.read<OrderCubit>().updateItemQuantity(item.id, newQty, cartItem.subItems);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: AppColors.borderGrey, width: 1.h)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 14.w,
-                  height: 14.w,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Colors.green, width: 1.5),
-                    color: AppColors.pureWhite,
-                    borderRadius: BorderRadius.circular(2.r),
-                  ),
-                  alignment: Alignment.center,
-                  child: Container(
-                    width: 6.w,
-                    height: 6.w,
-                    decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
-                  ),
-                ),
-                SizedBox(height: 6.h),
-                Text(
-                  item.display_name,
-                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                ),
-                SizedBox(height: 8.h),
-                Text(
-                  '₹${item.selling_price}',
-                  style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-                ),
-                if (item.description != null && item.description!.isNotEmpty) ...[
-                  SizedBox(height: 6.h),
-                  Text(
-                    item.description!,
-                    style: TextStyle(fontSize: 11.sp, color: AppColors.textSecondary, height: 1.4),
-                  ),
-                ],
-              ],
-            ),
+    return BlocBuilder<OrderCubit, OrderState>(
+      builder: (context, orderState) {
+        final existingItemIndex = orderState.cartItems.indexWhere((i) => i.id == item.id);
+        final CartItemModel? cartItem = existingItemIndex >= 0 ? orderState.cartItems[existingItemIndex] : null;
+        final int quantity = cartItem?.quantity ?? 0;
+
+        return Container(
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: AppColors.borderGrey, width: 1.h)),
           ),
-          SizedBox(width: 16.w),
-          Column(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Stack(
-                alignment: Alignment.bottomCenter,
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 120.w,
-                    height: 120.w,
-                    decoration: BoxDecoration(
-                      color: AppColors.softGrey,
-                      borderRadius: BorderRadius.circular(16.r),
-                      image: item.image_url != null
-                          ? DecorationImage(image: NetworkImage(item.image_url!), fit: BoxFit.cover)
-                          : null,
-                    ),
-                    child: item.image_url == null
-                        ? Icon(Icons.fastfood, color: AppColors.textSecondary, size: 40.w)
-                        : null,
-                  ),
-                  Positioned(
-                    bottom: -15.h,
-                    child: Container(
-                      width: 90.w,
-                      height: 36.h,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 14.w,
+                      height: 14.w,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8F5E9),
-                        borderRadius: BorderRadius.circular(8.r),
-                        border: Border.all(color: AppColors.primaryGreen, width: 1.w),
-                        boxShadow: const [
-                          BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)),
-                        ],
+                        border: Border.all(color: Colors.green, width: 1.5),
+                        color: AppColors.pureWhite,
+                        borderRadius: BorderRadius.circular(2.r),
                       ),
-                      child: AppButton(
-                        onPressed: () => _showAddDialog(context),
-                        backgroundColor: const Color(0xFFE8F5E9),
-                        textColor: AppColors.primaryGreen,
-                        text: 'ADD',
-                        padding: EdgeInsets.zero,
-                        isFullWidth: false,
-                        height: 36.h,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'ADD',
+                      alignment: Alignment.center,
+                      child: Container(
+                        width: 6.w,
+                        height: 6.w,
+                        decoration: const BoxDecoration(color: Colors.green, shape: BoxShape.circle),
+                      ),
+                    ),
+                    SizedBox(height: 6.h),
+                    Text(
+                      item.display_name,
+                      style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      '₹${item.selling_price}',
+                      style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                    ),
+                    if (item.description != null && item.description!.isNotEmpty) ...[
+                      SizedBox(height: 6.h),
+                      Text(
+                        item.description!,
+                        style: TextStyle(fontSize: 11.sp, color: AppColors.textSecondary, height: 1.4),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              SizedBox(width: 16.w),
+              Column(
+                children: [
+                  Stack(
+                    alignment: Alignment.bottomCenter,
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 120.w,
+                        height: 120.w,
+                        decoration: BoxDecoration(
+                          color: AppColors.softGrey,
+                          borderRadius: BorderRadius.circular(16.r),
+                          image: item.image_url != null
+                              ? DecorationImage(image: NetworkImage(item.image_url!), fit: BoxFit.cover)
+                              : null,
+                        ),
+                        child: item.image_url == null
+                            ? Icon(Icons.fastfood, color: AppColors.textSecondary, size: 40.w)
+                            : null,
+                      ),
+                      if (quantity > 0)
+                        Positioned(
+                          top: -6.h,
+                          right: -6.w,
+                          child: Container(
+                            padding: EdgeInsets.all(6.w),
+                            decoration: const BoxDecoration(
+                              color: AppColors.primaryGreen,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              quantity.toString(),
                               style: TextStyle(
-                                fontSize: 13.sp,
+                                color: AppColors.pureWhite,
+                                fontSize: 10.sp,
                                 fontWeight: FontWeight.w900,
-                                color: AppColors.primaryGreen,
                               ),
                             ),
-                            SizedBox(width: 4.w),
-                            Icon(Icons.add, color: AppColors.primaryGreen, size: 14.w),
-                          ],
+                          ),
+                        ),
+                      Positioned(
+                        bottom: -15.h,
+                        child: Container(
+                          width: 90.w,
+                          height: 36.h,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE8F5E9),
+                            borderRadius: BorderRadius.circular(8.r),
+                            border: Border.all(color: AppColors.primaryGreen, width: 1.w),
+                            boxShadow: const [
+                              BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2)),
+                            ],
+                          ),
+                          child: quantity == 0
+                              ? AppButton(
+                                  onPressed: () => _showAddDialog(context),
+                                  backgroundColor: const Color(0xFFE8F5E9),
+                                  textColor: AppColors.primaryGreen,
+                                  text: 'ADD',
+                                  padding: EdgeInsets.zero,
+                                  isFullWidth: false,
+                                  height: 36.h,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'ADD',
+                                        style: TextStyle(
+                                          fontSize: 13.sp,
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.primaryGreen,
+                                        ),
+                                      ),
+                                      SizedBox(width: 4.w),
+                                      Icon(Icons.add, color: AppColors.primaryGreen, size: 14.w),
+                                    ],
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () => _updateQuantity(context, quantity - 1, cartItem),
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+                                        child: Icon(Icons.remove, color: AppColors.primaryGreen, size: 18.w),
+                                      ),
+                                    ),
+                                    Text(
+                                      quantity.toString(),
+                                      style: TextStyle(
+                                        fontSize: 14.sp,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.primaryGreen,
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () => _updateQuantity(context, quantity + 1, cartItem),
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+                                        child: Icon(Icons.add, color: AppColors.primaryGreen, size: 18.w),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
+                  SizedBox(height: 20.h),
                 ],
               ),
-              SizedBox(height: 20.h),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

@@ -51,8 +51,6 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     String? tableId,
     String? customerId, {
     String? deliveryAddressId,
-    double priceAdditionAmount = 0,
-    double priceReductionAmount = 0,
     double? finalPayingPrice,
   }) async {
     if (items.isEmpty) return;
@@ -64,8 +62,6 @@ class PosKdsCubit extends Cubit<PosKdsState> {
       'delivery_address_id': deliveryAddressId,
       'status': 'PLACED',
       'total_amount': totalAmount,
-      'price_addition_amount': priceAdditionAmount,
-      'price_reduction_amount': priceReductionAmount,
       'items': items,
     };
     if (finalPayingPrice != null) {
@@ -192,6 +188,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
         emit(
           state.copyWith(
             lastPlacedOrder: order,
+            selectedOrder: order,
             saveOrdersInfo: const OperationInfo(
               status: OperationStatus.success,
             ),

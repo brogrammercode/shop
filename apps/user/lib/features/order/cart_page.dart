@@ -32,14 +32,22 @@ class _CartPageState extends State<CartPage> {
           Expanded(
             child: SingleChildScrollView(
               child: Column(
-                children: [                  _buildJioSaavnPromo(state),                  _buildCartItemsList(state),
-                  _buildHorizontalOptions(),                  _buildDiscountChip(state),                  _buildSuggestionsCarousel(state),                  _buildGoldBanner(state),
+                children: [                  
+                  _buildCartItemsList(state),
+                  _buildHorizontalOptions(),                  
+                  _buildDiscountChip(state),                  
+                  _buildSuggestionsCarousel(state),                  
                   _buildZomatoMoney(),
+                  _buildJioSaavnPromo(state),
+                  _buildGoldBanner(state),
+                  SizedBox(height: 16.h),
+                  _buildCustomerBenefit(),
                   SizedBox(height: 32.h),
                 ],
               ),
             ),
-          ),          _buildStickyFooter(state),
+          ),          
+          _buildStickyFooter(state),
         ],
       ),
     );
@@ -114,12 +122,18 @@ class _CartPageState extends State<CartPage> {
     final double neededAmount = 99 - itemTotal;
 
     return Container(
-      margin: EdgeInsets.all(16.w),
+      margin: EdgeInsets.symmetric(horizontal: 0.w, vertical: 8.h),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: const Color(0xFFFFF5F5),
-        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: const Color(0xFFFFD1D1)),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowColor,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,6 +291,33 @@ class _CartPageState extends State<CartPage> {
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Column(
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'ITEMS IN CART',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  context.read<OrderCubit>().clearCart();
+                },
+                child: Text(
+                  'Clear All',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFFD32F2F),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.h),
           Column(
             children: List.generate(state.cartItems.length, (index) {
               final item = state.cartItems[index];
@@ -704,12 +745,18 @@ class _CartPageState extends State<CartPage> {
 
   Widget _buildGoldBanner(OrderState state) {
     return Container(
-      margin: EdgeInsets.all(16.w),
+      margin: EdgeInsets.symmetric(horizontal: 0.w, vertical: 8.h),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: const Color(0xFFFFFBEB),
-        borderRadius: BorderRadius.circular(16.r),
         border: Border.all(color: const Color(0xFFFEF3C7)),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowColor,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1180,6 +1227,68 @@ class _CartPageState extends State<CartPage> {
           }).toList(),
         ),
       ],
+    );
+  }
+
+  Widget _buildCustomerBenefit() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: const Border(
+          top: BorderSide(color: Color(0xFFFDBA74), width: 1),
+          bottom: BorderSide(color: Color(0xFFFDBA74), width: 1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.workspace_premium, color: const Color(0xFFEA580C), size: 24.w),
+              SizedBox(width: 8.w),
+              Text(
+                'Exclusive Customer Benefits',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF9A3412),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'As a valued customer, you get special access to VIP rewards, priority support, and exclusive partner discounts on every order.',
+            style: TextStyle(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFFC2410C),
+              height: 1.4,
+            ),
+          ),
+          SizedBox(height: 12.h),
+          Row(
+            children: [
+              Text(
+                'Explore all benefits',
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w800,
+                  color: const Color(0xFFEA580C),
+                ),
+              ),
+              SizedBox(width: 4.w),
+              Icon(Icons.arrow_forward_ios, color: const Color(0xFFEA580C), size: 12.w),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

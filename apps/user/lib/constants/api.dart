@@ -3,8 +3,8 @@
 import 'package:user/core/config.dart';
 
 class ApiConstants {
-  static const int CONNECT_TIMEOUT = 10000;
-  static const int RECEIVE_TIMEOUT = 10000;
+  static const int CONNECT_TIMEOUT = 300000;
+  static const int RECEIVE_TIMEOUT = 300000;
   static const int NOT_FOUND_STATUS_CODE = 404;
 
   static final String BASE_URL = AppConfig.apiBaseUrl;

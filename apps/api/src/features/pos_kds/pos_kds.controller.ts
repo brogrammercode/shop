@@ -11,7 +11,10 @@ export const listOrders = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
-  const result = await posKdsService.createOrder(req.employee.branch_id, req.body);
+  const result = await posKdsService.createOrder(req.employee.branch_id, {
+    ...req.body,
+    employee_id: req.employee?.id,
+  });
   return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_CREATED, HttpStatus.CREATED);
 });
 

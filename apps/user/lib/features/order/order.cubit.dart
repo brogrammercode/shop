@@ -56,10 +56,20 @@ class OrderCubit extends Cubit<OrderState> {
     }
   }
 
+  void removeItem(String id) {
+    final newItems = List<CartItemModel>.from(state.cartItems);
+    newItems.removeWhere((e) => e.id == id);
+    emit(state.copyWith(cartItems: newItems));
+  }
+
   void removeCartItem(int index) {
     final newItems = List<CartItemModel>.from(state.cartItems);
     newItems.removeAt(index);
     emit(state.copyWith(cartItems: newItems));
+  }
+
+  void clearCart() {
+    emit(state.copyWith(cartItems: []));
   }
 
   void toggleJioSaavn() {

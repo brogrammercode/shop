@@ -15,7 +15,14 @@ class TableZoneListPage extends StatelessWidget {
         elevation: 0,
         scrolledUnderElevation: 0,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(PosConstant.TABLE_ZONE_TITLE, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+        title: Text(
+          PosConstant.TABLE_ZONE_TITLE,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w900,
+            color: AppColors.textPrimary,
+          ),
+        ),
         centerTitle: true,
       ),
       body: ListView.separated(
@@ -26,8 +33,18 @@ class TableZoneListPage extends StatelessWidget {
           final zones = ['Indoor Seating (AC)', 'Patio / Outdoor'];
           return Container(
             padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(border: Border.all(color: AppColors.borderGrey), borderRadius: BorderRadius.circular(12.r)),
-            child: Text(zones[index], style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.borderGrey),
+              borderRadius: BorderRadius.circular(12.r),
+            ),
+            child: Text(
+              zones[index],
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+            ),
           );
         },
       ),
@@ -35,7 +52,13 @@ class TableZoneListPage extends StatelessWidget {
         onPressed: () {},
         backgroundColor: AppColors.primaryGreen,
         icon: const Icon(Icons.add, color: AppColors.pureWhite),
-        label: Text(PosConstant.CREATE_ZONE, style: TextStyle(color: AppColors.pureWhite, fontWeight: FontWeight.w800)),
+        label: Text(
+          PosConstant.CREATE_ZONE,
+          style: TextStyle(
+            color: AppColors.pureWhite,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
     );
   }

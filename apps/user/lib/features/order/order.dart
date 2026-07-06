@@ -8,6 +8,7 @@
  * Schema representation:
  * {
  *   "order_id": "String (Formatted transaction ID, e.g. #ZMT-9812491)",
+ *   "code": "String (Order confirmation code/token)",
  *   "timestamp": "String (ISO 8601 DateTime of placement)",
  *   "cart_snapshot": "Object (Full snapshot of Cart Schema at checkout)",
  *   "bill_snapshot": "Object (Full snapshot of Bill Schema at checkout)",

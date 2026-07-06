@@ -2,8 +2,20 @@ import { AddressType, OrderStatus, KOTStatus, OrderType, PayMethod } from '@pris
 import prisma from '../../infra/database/client';
 
 export class PosKdsRepo {
-  async createOrder(data: { branch_id: string; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; price_addition_amount?: number; price_reduction_amount?: number; final_paying_price?: number }) {
+  async createOrder(data: { branch_id: string; order_no: number; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; final_paying_price?: number; employee_id?: string; partner_id?: string; code: string }) {
     return prisma.order.create({ data });
+  }
+
+  async countOrdersByCreatedRange(branchId: string, start: Date, end: Date) {
+    return prisma.order.count({
+      where: {
+        branch_id: branchId,
+        created_at: {
+          gte: start,
+          lt: end,
+        },
+      },
+    });
   }
 
   async findUserByPhone(phone: string) {
@@ -20,11 +32,34 @@ export class PosKdsRepo {
   }
 
   async findOrdersByBranch(branchId: string) {
-    return prisma.order.findMany({ where: { branch_id: branchId }, include: { user: true, table: true, items: true }, orderBy: { created_at: 'desc' } });
+    const orders = await prisma.order.findMany({ where: { branch_id: branchId }, include: { user: true, table: true, items: { include: { menu_item: true } } }, orderBy: { created_at: 'desc' } });
+    return this.withUserAddresses(orders);
   }
 
   async findOrderById(id: string) {
-    return prisma.order.findUnique({ where: { id }, include: { user: true, table: true, items: true, kots: true, advance_payments: true } });
+    const order = await prisma.order.findUnique({ where: { id }, include: { user: true, table: true, items: { include: { menu_item: true } }, kots: true, advance_payments: true } });
+    if (!order) {
+      return order;
+    }
+    const orders = await this.withUserAddresses([order]);
+    return orders[0];
+  }
+
+  private async withUserAddresses<T extends { uid: string | null; user?: any }>(orders: T[]) {
+    const userIds = orders.map((order) => order.uid).filter((uid): uid is string => Boolean(uid));
+    if (userIds.length === 0) {
+      return orders;
+    }
+    const addresses = await prisma.address.findMany({ where: { entity_type: AddressType.USER, entity_id: { in: userIds } } });
+    return orders.map((order) => ({
+      ...order,
+      user: order.user
+        ? {
+            ...order.user,
+            addresses: addresses.filter((address) => address.entity_id === order.uid),
+          }
+        : order.user,
+    }));
   }
 
   async updateOrderStatus(id: string, status: OrderStatus) {

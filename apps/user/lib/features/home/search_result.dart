@@ -411,6 +411,26 @@ class _SearchResultPageState extends State<SearchResultPage> {
                   ),
                 ),
               ),
+              if (qty > 0)
+                Positioned(
+                  top: -6.h,
+                  right: -6.w,
+                  child: Container(
+                    padding: EdgeInsets.all(6.w),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primaryGreen,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      qty.toString(),
+                      style: TextStyle(
+                        color: AppColors.pureWhite,
+                        fontSize: 10.sp,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
               Positioned(
                 top: 6.h,
                 left: 6.w,
@@ -664,6 +684,26 @@ class _SearchResultPageState extends State<SearchResultPage> {
                   ),
                 ),
               ),
+              if (qty > 0)
+                Positioned(
+                  top: -6.h,
+                  right: -6.w,
+                  child: Container(
+                    padding: EdgeInsets.all(8.w),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primaryGreen,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      qty.toString(),
+                      style: TextStyle(
+                        color: AppColors.pureWhite,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
               Positioned(
                 top: 12.h,
                 left: 12.w,

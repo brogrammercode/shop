@@ -5,7 +5,7 @@ import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.cubit.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
-import 'package:mobile/features/pos_kds/pos.cart.page.dart';
+import 'package:mobile/features/pos_kds/pages/pos.cart.page.dart';
 import 'package:mobile/features/catalog/controllers/catalog.cubit.dart';
 import 'package:mobile/features/catalog/controllers/catalog.state.dart';
 import 'package:mobile/utils/error.dart';
@@ -230,7 +230,7 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  'Rs${item.selling_price.toStringAsFixed(0)}',
+                  '₹ ${item.selling_price.toStringAsFixed(0)}',
                   style: TextStyle(
                     fontSize: 11.sp,
                     fontWeight: FontWeight.w900,
@@ -256,7 +256,7 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
             if (state.saveOrdersInfo.status == OperationStatus.success) {
               if (Navigator.canPop(context)) {
                 Navigator.pop(context);
-              } // Close bottom sheet
+              }
             }
           },
         ),
@@ -371,7 +371,7 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
                                       ),
                                     ),
                                     Text(
-                                      'Rs${cartTotal.toStringAsFixed(0)}',
+                                      '₹ ${cartTotal.toStringAsFixed(0)}',
                                       style: TextStyle(
                                         color: AppColors.pureWhite,
                                         fontSize: 14.sp,
@@ -455,6 +455,35 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
                 ),
               ),
             ],
+          ),
+          BlocBuilder<PosKdsCubit, PosKdsState>(
+            builder: (context, state) {
+              if (state.cart.isEmpty) {
+                return SizedBox(width: 40.w);
+              }
+              return GestureDetector(
+                onTap: () => context.read<PosKdsCubit>().clearCart(),
+                child: Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: const BoxDecoration(
+                    color: AppColors.pureWhite,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadowColor,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.clear,
+                    color: AppColors.textPrimary,
+                    size: 20.w,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

@@ -140,7 +140,7 @@ class _TableListPageState extends State<TableListPage> {
                                 ),
                               ),
                             ),
-                            // Chair Indicators (Top, Right, Bottom, Left) depending on capacity
+                            // Chair Indicator (Top, Right, Bottom, Left) depending on capacity
                             if (table.capacity >= 1)
                               _buildChair(Alignment.topCenter, false, -10.h),
                             if (table.capacity >= 2)

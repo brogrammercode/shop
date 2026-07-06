@@ -25,9 +25,6 @@ import 'package:mobile/features/inventory/pages/vendor.return.form.page.dart';
 import 'package:mobile/features/catalog/pages/item.list.page.dart';
 import 'package:mobile/features/catalog/pages/create.item.page.dart';
 
-
-
-
 import 'package:mobile/features/catalog/pages/item.detail.page.dart';
 import 'package:mobile/features/catalog/pages/create.variant.page.dart';
 import 'package:mobile/features/catalog/pages/variant.detail.page.dart';
@@ -52,14 +49,13 @@ import 'package:mobile/features/manufacturing/production_batch.detail.page.dart'
 import 'package:mobile/features/manufacturing/qc_audit.form.page.dart';
 import 'package:mobile/features/manufacturing/wastage_log.form.page.dart';
 
-import 'package:mobile/features/pos_kds/table_zone.list.page.dart';
-import 'package:mobile/features/pos_kds/table.list.page.dart';
-import 'package:mobile/features/pos_kds/pos.terminal.page.dart';
-import 'package:mobile/features/pos_kds/order.list.page.dart';
-import 'package:mobile/features/pos_kds/order.detail.page.dart';
-import 'package:mobile/features/pos_kds/advance_payment.form.page.dart';
-import 'package:mobile/features/pos_kds/delivery_partner.list.page.dart';
-import 'package:mobile/features/pos_kds/kds.terminal.page.dart';
+import 'package:mobile/features/pos_kds/pages/table_zone.list.page.dart';
+import 'package:mobile/features/pos_kds/pages/table.list.page.dart';
+import 'package:mobile/features/pos_kds/pages/pos.terminal.page.dart';
+import 'package:mobile/features/pos_kds/pages/order.list.page.dart';
+import 'package:mobile/features/pos_kds/pages/order.detail.page.dart';
+import 'package:mobile/features/pos_kds/pages/delivery_partner.list.page.dart';
+import 'package:mobile/features/pos_kds/pages/kds.terminal.page.dart';
 
 import 'package:mobile/features/core_hr/pages/employee.list.page.dart';
 import 'package:mobile/features/core_hr/pages/employee.detail.page.dart';
@@ -126,7 +122,6 @@ class AppRoutes {
   static const String createMenuItem = '/create-menu-item';
   static const String menuItemDetail = '/menu-item-detail';
 
-
   // Menu Routes
   static const String variantDetail = '/variant-detail';
   static const String categoryList = '/category-list';
@@ -156,7 +151,6 @@ class AppRoutes {
   static const String posTerminal = '/pos-terminal';
   static const String orderList = '/order-list';
   static const String orderDetail = '/order-detail';
-  static const String advancePayment = '/advance-payment';
   static const String deliveryPartnerList = '/delivery-partner-list';
   static const String kdsTerminal = '/kds-terminal';
 
@@ -219,7 +213,6 @@ class AppRoutes {
     itemDetail: (context) => const ItemDetailPage(),
     createVariant: (context) => const CreateVariantPage(),
 
-
     variantDetail: (context) => const VariantDetailPage(),
 
     menuCategoryList: (context) => const MenuCategoryListPage(),
@@ -256,7 +249,6 @@ class AppRoutes {
     posTerminal: (context) => const PosTerminalPage(),
     orderList: (context) => const OrderListPage(),
     orderDetail: (context) => const OrderDetailPage(),
-    advancePayment: (context) => const AdvancePaymentFormPage(),
     deliveryPartnerList: (context) => const DeliveryPartnerListPage(),
     kdsTerminal: (context) => const KdsTerminalPage(),
 

@@ -46,6 +46,14 @@ class OrderState {
     return total;
   }
 
+  int get totalItems {
+    int count = 0;
+    for (var item in cartItems) {
+      count += item.quantity;
+    }
+    return count;
+  }
+
   double get taxesAndCharges {
     final double total = calculateItemTotal;
     if (total >= 300) {

@@ -425,6 +425,8 @@ class _SettingPageState extends State<SettingPage> {
                   SettingConstant.LOGIN_ROUTE,
                   (route) => false,
                 );
+              } else if (item.label == 'Your orders') {
+                Navigator.pushNamed(context, '/orders');
               }
             },
     );
