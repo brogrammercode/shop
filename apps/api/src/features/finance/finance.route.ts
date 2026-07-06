@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { _FINANCE_CONSTANTS } from './finance.constant';
 import * as financeController from './finance.controller';
-import { authenticate, requireFinanceAccess } from './finance.middleware';
 
 const router = Router();
 

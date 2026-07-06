@@ -423,29 +423,6 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
         children: [
           Row(
             children: [
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  padding: EdgeInsets.all(8.w),
-                  decoration: const BoxDecoration(
-                    color: AppColors.pureWhite,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.shadowColor,
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.chevron_left,
-                    color: AppColors.textPrimary,
-                    size: 24.w,
-                  ),
-                ),
-              ),
-              SizedBox(width: 12.w),
               Text(
                 PosConstant.POS_TITLE,
                 style: TextStyle(
