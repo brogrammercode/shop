@@ -1,0 +1,14 @@
+export const _MENU_CONSTANTS = {
+  _L_A_B_E_L_S: {
+    RECOMMENDED_FOR_YOU: 'RECOMMENDED FOR YOU',
+    VEG_MODE: 'VEG MODE',
+    ALL_RESTAURANTS: 'ALL RESTAURANTS',
+    BREADCRUMB_DISTANCE: 'distance • locality',
+    BREADCRUMB_TIME: 'time • schedule',
+    ADD: 'ADD',
+    TOTAL_OFFERS: 'total offers',
+    PLACE_ORDER: 'PLACE ORDER',
+    CART_EMPTY: 'CART IS EMPTY',
+    ORDER_SUCCESS: 'ORDER PLACED SUCCESSFULLY'
+  }
+} as const;

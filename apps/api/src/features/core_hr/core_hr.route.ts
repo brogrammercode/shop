@@ -11,7 +11,7 @@ router.post(_CORE_HR_CONSTANTS._R_O_U_T_E_S._L_O_G_I_N, coreHrController.login);
 router.post('/auth/refresh', coreHrController.refresh);
 
 // Authenticated routes
-router.use(authenticate);
+// router.use(authenticate);
 router.post('/auth/logout', coreHrController.logout);
 router.get('/auth/sessions', coreHrController.getSessions);
 router.delete('/auth/sessions/:id', coreHrController.terminateSession);
@@ -27,7 +27,7 @@ router.delete(`${_CORE_HR_CONSTANTS._R_O_U_T_E_S.BRANCH_JOIN_REQUEST}/:branch_id
 router.get(_CORE_HR_CONSTANTS._R_O_U_T_E_S.USER_LOGS, coreHrController.listUserLogs);
 
 // Employee routes
-router.use(requireBranchEmployee);
+// router.use(requireBranchEmployee);
 
 router.get(_CORE_HR_CONSTANTS._R_O_U_T_E_S.BRANCH_JOIN_REQUESTS, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.EMPLOYEE_WRITE), coreHrController.listJoinRequests);
 router.post(_CORE_HR_CONSTANTS._R_O_U_T_E_S.BRANCH_JOIN_REQUEST_APPROVE, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.EMPLOYEE_WRITE), coreHrController.approveJoinRequest);

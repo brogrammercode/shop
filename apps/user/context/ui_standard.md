@@ -1299,3 +1299,51 @@ if (confirm == true) {
 - [ ] Never write comments
 
 - [ ] Make sure every singular icon floating widget is circular (e.g., using shape: CircleBorder() or a circular container).
+
+---
+
+## 11. Web App UI Standard (POS Terminal Perspective)
+
+This section defines the strict visual layout for the web app based on the POS Terminal design reference. The web app must match this EXACT 100% pixel-perfect layout using Tailwind CSS.
+
+### 11.1 App Bar
+- **Left Icon**: A back chevron `<` icon.
+  - Container: Circular `w-10 h-10` (or `40px`), white background `bg-white`, very subtle shadow, placed on the left.
+- **Title**: "POS Terminal"
+  - Alignment: Placed directly next to the back button (flex row, items-center, gap-4).
+  - Typography: `20px`, bold/black (`font-bold` or `font-black`), dark grey text (`textPrimary`).
+- **Container**: Minimal top padding, white background. No bottom border.
+
+### 11.2 Category Horizontal Scroll (Filter Tabs)
+- A horizontally scrollable row of circular categories.
+- **Item Container**: Flex column, centered items. Gap between items: ~16px.
+- **Active Item ("All Items")**:
+  - Icon Bubble: `w-14 h-14` (approx 56px), light grey background (`#F4F4F4`), containing a generic shape icon (triangle/squares).
+  - Label: "All Items", `12px`, `font-bold`, dark text.
+  - Active Indicator: A thick green underline directly below the text (`border-b-[3px] border-primary-green` or a `h-1` green container).
+- **Inactive Items ("Sweets", "Fast Food", "Restaurant")**:
+  - Icon Bubble: `w-14 h-14` circular image.
+  - Label: `12px`, `font-medium` or `font-normal`, grey text (`textSecondary`).
+
+### 11.3 Divider
+- A full-width subtle horizontal divider (`h-[8px]` background block) separating the header/categories from the product list. Use `bg-soft-grey`.
+
+### 11.4 Product Grid / List
+- **Product Card**:
+  - Image: Square aspect ratio (1:1), rounded corners (`rounded-2xl` or `16px`), width is full for the column.
+  - Title: Placed below image, 2-line max, dark grey text (`textPrimary`), `12px`, `font-bold`, `leading-tight`. Example: "Double Panneer Roll - Double Panneer".
+  - Price: Placed below title, green text (`text-primary-green`), `font-bold`, `12px`. Format: "₹ 105".
+  - Layout: Grid with 2 columns (`grid-cols-2`) and gap `16px`.
+
+### 11.5 Floating Bottom Navigation
+- **Container**: Floating pill at bottom center, `rounded-full` (e.g. `rounded-[30px]`), white background, deep shadow (`shadow-deep`). It contains a row of 3 tabs, distributed evenly (`justify-evenly` or `gap-4`). Padding around the container is ~`8px`.
+- **Active Tab ("Billing")**:
+  - Background: Light green pill (`bg-[#E8F5E9]`), `rounded-full` (`rounded-3xl`).
+  - Content: Flex row, `gap-2`, `px-4 py-2`.
+  - Icon: Receipt icon, green (`text-primary-green`).
+  - Text: "Billing", `12px`, `font-bold`, green (`text-primary-green`).
+- **Inactive Tabs ("Orders", "More")**:
+  - Background: None.
+  - Content: Flex row, `gap-2`, `px-4 py-2`.
+  - Icon: Orders/List icon and More (`...`) icon, grey (`text-text-secondary`).
+  - Text: "Orders" / "More", `12px`, grey (`text-text-secondary`).

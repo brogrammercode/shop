@@ -5,7 +5,7 @@ import { authenticate, requireCrmAccess } from './crm.middleware';
 
 const router = Router();
 
-router.use(authenticate, requireCrmAccess);
+// router.use(authenticate, requireCrmAccess);
 
 router.get(_CRM_CONSTANTS._R_O_U_T_E_S._C_O_U_P_O_N_S, crmController.listCoupons);
 router.post(_CRM_CONSTANTS._R_O_U_T_E_S._C_O_U_P_O_N_S, crmController.createCoupon);

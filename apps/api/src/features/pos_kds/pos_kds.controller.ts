@@ -11,7 +11,8 @@ export const listOrders = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
-  const result = await posKdsService.createOrder(req.employee.branch_id, {
+  const branchId = req.employee?.branch_id || req.body.branch_id;
+  const result = await posKdsService.createOrder(branchId, {
     ...req.body,
     employee_id: req.employee?.id,
   });

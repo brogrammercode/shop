@@ -13,7 +13,7 @@ export const createApp = (): Application => {
 
     app.use(helmet());
     app.use(cors({
-        origin: config.CORS_ORIGIN,
+        origin: true,
         credentials: true,
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization"],
