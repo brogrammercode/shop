@@ -29,8 +29,6 @@ class _PosCartPageState extends State<PosCartPage> {
   String? _selectedAddressId;
 
   final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _finalPayingPriceController =
-      TextEditingController();
   Timer? _debounce;
   String? _customerName;
 
@@ -45,7 +43,6 @@ class _PosCartPageState extends State<PosCartPage> {
   @override
   void dispose() {
     _phoneController.dispose();
-    _finalPayingPriceController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
@@ -269,9 +266,6 @@ class _PosCartPageState extends State<PosCartPage> {
                   } catch (_) {}
                 });
 
-                final finalPayingPrice =
-                    double.tryParse(_finalPayingPriceController.text.trim()) ??
-                    cartTotal;
                 final selectedCustomer = posState.selectedCustomer;
 
                 return Column(
@@ -648,12 +642,6 @@ class _PosCartPageState extends State<PosCartPage> {
                       child: SafeArea(
                         child: Column(
                           children: [
-                            _buildAmountInput(
-                              _finalPayingPriceController,
-                              'Final paying price',
-                              () => setState(() {}),
-                            ),
-                            SizedBox(height: 16.h),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -678,30 +666,29 @@ class _PosCartPageState extends State<PosCartPage> {
                             SizedBox(height: 16.h),
                             Row(
                               children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '₹ ${finalPayingPrice.toStringAsFixed(0)}',
-                                        style: TextStyle(
-                                          fontSize: 18.sp,
-                                          fontWeight: FontWeight.w900,
-                                          color: AppColors.textPrimary,
-                                        ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '₹ ${cartTotal.toStringAsFixed(0)}',
+                                      style: TextStyle(
+                                        fontSize: 18.sp,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.textPrimary,
                                       ),
-                                      Text(
-                                        'TOTAL',
-                                        style: TextStyle(
-                                          fontSize: 10.sp,
-                                          fontWeight: FontWeight.w800,
-                                          color: AppColors.textSecondary,
-                                        ),
+                                    ),
+                                    Text(
+                                      'TOTAL',
+                                      style: TextStyle(
+                                        fontSize: 10.sp,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppColors.textSecondary,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
+                              ),
                                 SizedBox(
                                   width: 160.w,
                                   child: AppButton(
@@ -766,7 +753,6 @@ class _PosCartPageState extends State<PosCartPage> {
                                             _selectedCustomerId,
                                             deliveryAddressId:
                                                 _selectedAddressId,
-                                            finalPayingPrice: finalPayingPrice,
                                           );
                                     },
                                   ),
@@ -862,36 +848,7 @@ class _PosCartPageState extends State<PosCartPage> {
     ].where((part) => part.trim().isNotEmpty).join(', ');
   }
 
-  Widget _buildAmountInput(
-    TextEditingController controller,
-    String hint,
-    VoidCallback onChanged,
-  ) {
-    return TextField(
-      controller: controller,
-      onChanged: (_) => onChanged(),
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(
-          fontSize: 12.sp,
-          color: AppColors.textTertiary,
-          fontWeight: FontWeight.w600,
-        ),
-        filled: true,
-        fillColor: const Color(0xFFF9FAFB),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      style: TextStyle(
-        fontSize: 13.sp,
-        fontWeight: FontWeight.w800,
-        color: AppColors.textPrimary,
-      ),
-    );
-  }
+
 
   Widget _buildSelectableTile({
     required String label,

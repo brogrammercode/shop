@@ -206,6 +206,47 @@ class _OrderListPageState extends State<OrderListPage> {
             ),
           ),
           GestureDetector(
+            onTap: () => _showFilterSheet(),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: const BoxDecoration(
+                    color: AppColors.pureWhite,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadowColor,
+                        blurRadius: 4,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.tune_rounded,
+                    color: _hasActiveFilters ? AppColors.primaryGreen : AppColors.textPrimary,
+                    size: 20.w,
+                  ),
+                ),
+                if (_hasActiveFilters)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: Container(
+                      width: 8.w,
+                      height: 8.w,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primaryGreen,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          SizedBox(width: 8.w),
+          GestureDetector(
             onTap: _showQrScanner,
             child: Container(
               padding: EdgeInsets.all(8.w),
@@ -307,81 +348,246 @@ class _OrderListPageState extends State<OrderListPage> {
     );
   }
 
-  Widget _buildFilters(List<OrderModel> orders) {
-    final statuses = ['ALL', ...orders.map((order) => order.status).toSet()];
-    final types = ['ALL', ...orders.map((order) => order.order_type).toSet()];
-    return Padding(
-      padding: EdgeInsets.only(left: 16.w, right: 16.w, bottom: 12.h),
-      child: Column(
-        children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                ...statuses.map(
-                  (status) => _buildFilterChip(
-                    status,
-                    _statusFilter == status.toUpperCase(),
-                    () => setState(() => _statusFilter = status.toUpperCase()),
-                    Icons.flag_outlined,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 8.h),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                ...types.map(
-                  (type) => _buildFilterChip(
-                    type,
-                    _typeFilter == type.toUpperCase(),
-                    () => setState(() => _typeFilter = type.toUpperCase()),
-                    Icons.shopping_bag_outlined,
-                  ),
-                ),
-                _buildFilterChip(
-                  _sortLabel(),
-                  true,
-                  _showSortSheet,
-                  Icons.sort,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  bool get _hasActiveFilters =>
+      _statusFilter != 'ALL' || _typeFilter != 'ALL' || _sortMode != 'NEWEST';
 
-  String _sortLabel() {
-    switch (_sortMode) {
-      case 'OLDEST':
-        return 'Oldest';
-      case 'AMOUNT_HIGH':
-        return 'High total';
-      case 'AMOUNT_LOW':
-        return 'Low total';
-      case 'ORDER_NO':
-        return 'Order no';
+  IconData _orderTypeIcon(String orderType) {
+    switch (orderType.toUpperCase()) {
+      case 'DINE_IN':
+        return Icons.table_restaurant_outlined;
+      case 'TAKEAWAY':
+        return Icons.takeout_dining_outlined;
+      case 'DELIVERY':
+        return Icons.delivery_dining_outlined;
+      case 'AGGREGATOR':
+        return Icons.app_shortcut_outlined;
+      case 'PRE_ORDER':
+        return Icons.schedule_outlined;
       default:
-        return 'Newest';
+        return Icons.shopping_bag_outlined;
     }
   }
 
-  Widget _buildFilterChip(
+
+  void _showFilterSheet() {
+    final orders = context.read<PosKdsCubit>().state.orders;
+    final statuses = ['ALL', ...orders.map((o) => o.status).toSet()];
+    final types = ['ALL', ...orders.map((o) => o.order_type).toSet()];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return Container(
+              decoration: BoxDecoration(
+                color: AppColors.pureWhite,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+              ),
+              padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 32.h),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40.w,
+                      height: 4.h,
+                      decoration: BoxDecoration(
+                        color: AppColors.borderGrey,
+                        borderRadius: BorderRadius.circular(2.r),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Filters & Sort',
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      if (_hasActiveFilters)
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _statusFilter = 'ALL';
+                              _typeFilter = 'ALL';
+                              _sortMode = 'NEWEST';
+                            });
+                            setSheetState(() {});
+                          },
+                          child: Text(
+                            'Reset',
+                            style: TextStyle(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.primaryGreen,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: 20.h),
+                  // Status filter
+                  Text(
+                    'ORDER STATUS',
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textTertiary,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  Wrap(
+                    spacing: 8.w,
+                    runSpacing: 8.h,
+                    children: statuses.map((status) {
+                      final isSelected = _statusFilter == status.toUpperCase();
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() => _statusFilter = status.toUpperCase());
+                          setSheetState(() {});
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFFE8F5E9) : AppColors.pureWhite,
+                            borderRadius: BorderRadius.circular(10.r),
+                            border: Border.all(
+                              color: isSelected ? AppColors.primaryGreen : AppColors.borderGrey,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.flag_outlined,
+                                size: 13.w,
+                                color: isSelected ? AppColors.primaryGreen : AppColors.textSecondary,
+                              ),
+                              SizedBox(width: 5.w),
+                              Text(
+                                status,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w800,
+                                  color: isSelected ? AppColors.primaryGreen : AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  SizedBox(height: 20.h),
+                  // Order type filter
+                  Text(
+                    'ORDER TYPE',
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textTertiary,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  Wrap(
+                    spacing: 8.w,
+                    runSpacing: 8.h,
+                    children: types.map((type) {
+                      final isSelected = _typeFilter == type.toUpperCase();
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() => _typeFilter = type.toUpperCase());
+                          setSheetState(() {});
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFFE8F5E9) : AppColors.pureWhite,
+                            borderRadius: BorderRadius.circular(10.r),
+                            border: Border.all(
+                              color: isSelected ? AppColors.primaryGreen : AppColors.borderGrey,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _orderTypeIcon(type),
+                                size: 13.w,
+                                color: isSelected ? AppColors.primaryGreen : AppColors.textSecondary,
+                              ),
+                              SizedBox(width: 5.w),
+                              Text(
+                                type,
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w800,
+                                  color: isSelected ? AppColors.primaryGreen : AppColors.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                  SizedBox(height: 20.h),
+                  // Sort
+                  Text(
+                    'SORT BY',
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textTertiary,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  Wrap(
+                    spacing: 8.w,
+                    runSpacing: 8.h,
+                    children: [
+                      _buildSortChip(ctx, setSheetState, 'Newest first', 'NEWEST', Icons.arrow_downward_rounded),
+                      _buildSortChip(ctx, setSheetState, 'Oldest first', 'OLDEST', Icons.arrow_upward_rounded),
+                      _buildSortChip(ctx, setSheetState, 'Highest total', 'AMOUNT_HIGH', Icons.trending_up),
+                      _buildSortChip(ctx, setSheetState, 'Lowest total', 'AMOUNT_LOW', Icons.trending_down),
+                      _buildSortChip(ctx, setSheetState, 'Order number', 'ORDER_NO', Icons.tag),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSortChip(
+    BuildContext ctx,
+    StateSetter setSheetState,
     String label,
-    bool isSelected,
-    VoidCallback onTap,
+    String value,
     IconData icon,
   ) {
+    final isSelected = _sortMode == value;
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        setState(() => _sortMode = value);
+        setSheetState(() {});
+      },
       child: Container(
-        margin: EdgeInsets.only(right: 8.w),
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFE8F5E9) : AppColors.pureWhite,
           borderRadius: BorderRadius.circular(10.r),
@@ -390,23 +596,20 @@ class _OrderListPageState extends State<OrderListPage> {
           ),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
-              size: 14.w,
-              color: isSelected
-                  ? AppColors.primaryGreen
-                  : AppColors.textSecondary,
+              size: 13.w,
+              color: isSelected ? AppColors.primaryGreen : AppColors.textSecondary,
             ),
-            SizedBox(width: 4.w),
+            SizedBox(width: 5.w),
             Text(
               label,
               style: TextStyle(
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w800,
-                color: isSelected
-                    ? AppColors.primaryGreen
-                    : AppColors.textPrimary,
+                color: isSelected ? AppColors.primaryGreen : AppColors.textPrimary,
               ),
             ),
           ],
@@ -465,13 +668,23 @@ class _OrderListPageState extends State<OrderListPage> {
                         ],
                       ),
                       SizedBox(height: 4.h),
-                      Text(
-                        '${order.order_type}  •  ${_formatTime(order.created_at)}',
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textSecondary,
-                        ),
+                      Row(
+                        children: [
+                          Icon(
+                            _orderTypeIcon(order.order_type),
+                            size: 13.w,
+                            color: AppColors.textSecondary,
+                          ),
+                          SizedBox(width: 4.w),
+                          Text(
+                            '${order.order_type}  •  ${_formatTime(order.created_at)}',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -677,33 +890,9 @@ class _OrderListPageState extends State<OrderListPage> {
     Navigator.pushNamed(context, AppRoutes.orderDetail);
   }
 
-  void _showSortSheet() {
-    ActionBottomSheet.show(
-      context,
-      groups: [
-        BottomSheetActionGroup(
-          actions: [
-            _sortAction('Newest first', 'NEWEST'),
-            _sortAction('Oldest first', 'OLDEST'),
-            _sortAction('Highest total', 'AMOUNT_HIGH'),
-            _sortAction('Lowest total', 'AMOUNT_LOW'),
-            _sortAction('Order number', 'ORDER_NO'),
-          ],
-        ),
-      ],
-    );
-  }
+  // _showSortSheet replaced by _showFilterSheet (accessed from filter icon)
 
-  BottomSheetAction _sortAction(String label, String value) {
-    return BottomSheetAction(
-      label: label,
-      icon: _sortMode == value ? Icons.check_circle : Icons.circle_outlined,
-      iconColor: _sortMode == value
-          ? AppColors.primaryGreen
-          : AppColors.textSecondary,
-      onTap: () => setState(() => _sortMode = value),
-    );
-  }
+
 
   void _showOrderActions(OrderModel order) {
     ActionBottomSheet.show(
@@ -951,7 +1140,7 @@ class _OrderListPageState extends State<OrderListPage> {
                           return _buildSummary(orders);
                         }
                         if (index == 1) {
-                          return _buildFilters(orders);
+                          return const SizedBox.shrink();
                         }
                         final order = visibleOrders[index - 2];
                         return Padding(

@@ -28,6 +28,23 @@ class OrderDetailPage extends StatefulWidget {
 
 class _OrderDetailPageState extends State<OrderDetailPage> {
   final GlobalKey _receiptKey = GlobalKey();
+  final TextEditingController _finalPayingPriceController =
+      TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final order = context.read<PosKdsCubit>().state.selectedOrder;
+    if (order != null) {
+      _finalPayingPriceController.text = order.total_amount.toStringAsFixed(2);
+    }
+  }
+
+  @override
+  void dispose() {
+    _finalPayingPriceController.dispose();
+    super.dispose();
+  }
 
   Future<void> _shareReceipt(OrderModel order) async {
     final context = _receiptKey.currentContext;
@@ -297,9 +314,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     return const Center(child: Text('Order not found'));
                   }
 
-                  final finalPayingPrice = order.final_paying_price > 0
-                      ? order.final_paying_price
-                      : order.total_amount;
+                  final finalPayingPrice =
+                      double.tryParse(_finalPayingPriceController.text.trim()) ??
+                      order.total_amount;
 
                   return Column(
                     children: [
@@ -312,7 +329,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              Container(
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(12.r),
+                                child: Stack(
+                                  children: [
+                                    Container(
                                 padding: EdgeInsets.all(16.w),
                                 decoration: BoxDecoration(
                                   color: AppColors.pureWhite,
@@ -566,19 +587,66 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                       'Subtotal: ${_formatAmount(order.subtotal)}',
                                       style: TextStyle(fontSize: 12.sp),
                                     ),
-                                    if (order.tax_amount > 0)
-                                      Text(
-                                        'Tax: ${_formatAmount(order.tax_amount)}',
-                                        style: TextStyle(fontSize: 12.sp),
-                                      ),
                                     if (order.discount_amount > 0)
                                       Text(
                                         'Discount: -${_formatAmount(order.discount_amount)}',
                                         style: TextStyle(fontSize: 12.sp),
                                       ),
-                                  ],
+                                   ],
+                                 ),
+                               ),
+                              // PAID STAMP
+                              if (order.status.toUpperCase() == 'PAID')
+                                Positioned.fill(
+                                  child: IgnorePointer(
+                                    child: Center(
+                                      child: Transform.rotate(
+                                        angle: -0.42,
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 20.w,
+                                            vertical: 10.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF1B7A3E).withOpacity(0.08),
+                                            border: Border.all(
+                                              color: const Color(0xFF1B7A3E).withOpacity(0.75),
+                                              width: 4.5,
+                                            ),
+                                            borderRadius: BorderRadius.circular(8.r),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFF1B7A3E).withOpacity(0.25),
+                                                blurRadius: 12,
+                                                spreadRadius: 2,
+                                              ),
+                                            ],
+                                          ),
+                                          child: Text(
+                                            'PAID',
+                                            style: TextStyle(
+                                              fontSize: 48.sp,
+                                              fontWeight: FontWeight.w900,
+                                              color: const Color(0xFF1B7A3E).withOpacity(0.72),
+                                              letterSpacing: 12,
+                                              height: 1,
+                                              shadows: [
+                                                Shadow(
+                                                  color: const Color(0xFF1B7A3E).withOpacity(0.35),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(2, 2),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                            ],
+                          ),
+                        ),
 
                               if (order.notes.isNotEmpty) ...[
                                 SizedBox(height: 16.h),
@@ -906,16 +974,148 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           ),
                         ),
                       ),
+                      // Mark Paid section (only if not already paid)
+                      if (order.status.toUpperCase() != 'PAID')
+                        Container(
+                          margin: EdgeInsets.fromLTRB(24.w, 0, 24.w, 16.h),
+                          padding: EdgeInsets.all(16.w),
+                          decoration: BoxDecoration(
+                            color: AppColors.pureWhite,
+                            borderRadius: BorderRadius.circular(16.r),
+                            border: Border.all(color: AppColors.borderGrey),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: AppColors.shadowColor,
+                                blurRadius: 8,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'MARK AS PAID',
+                                style: TextStyle(
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.textTertiary,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                              SizedBox(height: 10.h),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _finalPayingPriceController,
+                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                      onChanged: (_) => setState(() {}),
+                                      decoration: InputDecoration(
+                                        prefixText: '₹ ',
+                                        prefixStyle: TextStyle(
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                        hintText: order.total_amount.toStringAsFixed(2),
+                                        hintStyle: TextStyle(
+                                          color: AppColors.textTertiary,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: 14.w,
+                                          vertical: 12.h,
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10.r),
+                                          borderSide: BorderSide(color: AppColors.borderGrey),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10.r),
+                                          borderSide: BorderSide(color: AppColors.primaryGreen, width: 1.5),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10.r),
+                                          borderSide: BorderSide(color: AppColors.borderGrey),
+                                        ),
+                                      ),
+                                      style: TextStyle(
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.w900,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(width: 12.w),
+                                  SizedBox(
+                                    width: 130.w,
+                                    child: BlocBuilder<PosKdsCubit, PosKdsState>(
+                                      builder: (context, payState) {
+                                        return ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppColors.primaryGreen,
+                                            foregroundColor: AppColors.pureWhite,
+                                            padding: EdgeInsets.symmetric(vertical: 14.h),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10.r),
+                                            ),
+                                            elevation: 0,
+                                          ),
+                                          onPressed: payState.saveOrdersInfo.status == OperationStatus.loading
+                                              ? null
+                                              : () async {
+                                                  final amount = double.tryParse(
+                                                    _finalPayingPriceController.text.trim(),
+                                                  ) ?? order.total_amount;
+                                                  final cubit = context.read<PosKdsCubit>();
+                                                  await cubit.payOrder(
+                                                    order.id,
+                                                    {
+                                                      'payment_method': 'CASH',
+                                                      'amount': amount,
+                                                    },
+                                                  );
+                                                  if (mounted) {
+                                                    cubit.getOrder(order.id);
+                                                  }
+                                                },
+                                          child: payState.saveOrdersInfo.status == OperationStatus.loading
+                                              ? SizedBox(
+                                                  width: 18.w,
+                                                  height: 18.w,
+                                                  child: const CircularProgressIndicator(
+                                                    strokeWidth: 2,
+                                                    color: AppColors.pureWhite,
+                                                  ),
+                                                )
+                                              : Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(Icons.check_circle_outline, size: 16.w),
+                                                    SizedBox(width: 6.w),
+                                                    Text(
+                                                      'Mark Paid',
+                                                      style: TextStyle(
+                                                        fontSize: 13.sp,
+                                                        fontWeight: FontWeight.w900,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
                       AppBottomAction(
                         child: AppButton(
                           text: PosConstant.PRINT_BILL,
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Printing receipt...'),
-                              ),
-                            );
-                          },
+                          onPressed: () => _shareReceipt(order),
                         ),
                       ),
                     ],
