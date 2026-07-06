@@ -1,10 +1,11 @@
 import { Router } from "express";
+import { authenticate, requireInventoryAccess } from './inventory.middleware';
 import { _INVENTORY_CONSTANTS } from "./inventory.constant";
 import * as inventoryController from "./inventory.controller";
 
 const router = Router();
 
-// router.use(authenticate, requireInventoryAccess);
+router.use(authenticate, requireInventoryAccess);
 
 router.get(
   _INVENTORY_CONSTANTS._R_O_U_T_E_S._S_U_P_P_L_I_E_R_S,

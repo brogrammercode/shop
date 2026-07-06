@@ -1,10 +1,11 @@
 import { Router } from "express";
+import { authenticate, requireManufacturingAccess } from './manufacturing.middleware';
 import { _MANUFACTURING_CONSTANTS } from "./manufacturing.constant";
 import * as manufacturingController from "./manufacturing.controller";
 
 const router = Router();
 
-// router.use(authenticate, requireManufacturingAccess);
+router.use(authenticate, requireManufacturingAccess);
 
 router.get(
   _MANUFACTURING_CONSTANTS._R_O_U_T_E_S._B_O_M_S,

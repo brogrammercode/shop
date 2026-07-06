@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authenticate, requireCatalogAccess } from './catalog.middleware';
 import { _CATALOG_CONSTANTS } from "./catalog.constant";
 import * as catalogController from "./catalog.controller";
 
@@ -11,7 +12,7 @@ router.get(
 );
 
 // Protected routes
-// router.use(authenticate, requireCatalogAccess);
+router.use(authenticate, requireCatalogAccess);
 
 router.get(
   _CATALOG_CONSTANTS._R_O_U_T_E_S.MENU_CATEGORIES,

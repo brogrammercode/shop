@@ -1,11 +1,11 @@
 import { Router } from "express";
 import { _POS_KDS_CONSTANTS } from "./pos_kds.constant";
 import * as posKdsController from "./pos_kds.controller";
-// import { authenticate, requirePosKdsAccess } from './pos_kds.middleware';
+import { authenticate, requirePosKdsAccess } from './pos_kds.middleware';
 
 const router = Router();
 
-// router.use(authenticate, requirePosKdsAccess);
+router.use(authenticate, requirePosKdsAccess);
 
 router.get(
   _POS_KDS_CONSTANTS._R_O_U_T_E_S.CUSTOMER_BY_PHONE,
