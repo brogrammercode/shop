@@ -135,6 +135,13 @@ export const updateKOTStatus = asyncHandler(async (req: Request, res: Response) 
   return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.KOT_STATUS_UPDATED, HttpStatus.OK);
 });
 
+export const updateOrderStatus = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as Record<string, string>;
+  const { status } = req.body;
+  const result = await posKdsService.updateOrderStatus(id, req.employee.branch_id, status);
+  return sendSuccess(res, result, 'Order status updated successfully', HttpStatus.OK);
+});
+
 export const listPayments = asyncHandler(async (req: Request, res: Response) => {
   const result = await posKdsService.listPayments(req.employee.branch_id);
   return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.PAYMENTS_LISTED, HttpStatus.OK);

@@ -53,6 +53,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     String? deliveryAddressId,
     double? finalPayingPrice,
     List<String>? tableSideIds,
+    String? notes,
   }) async {
     if (items.isEmpty) return;
 
@@ -65,6 +66,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
       'status': 'PLACED',
       'total_amount': totalAmount,
       'items': items,
+      if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
     };
     if (finalPayingPrice != null) {
       payload['final_paying_price'] = finalPayingPrice;
@@ -617,6 +619,19 @@ class PosKdsCubit extends Cubit<PosKdsState> {
           ),
         );
         listKOTs();
+      },
+    );
+  }
+
+  Future<void> updateOrderStatus(String id, String status) async {
+    final result = await _repo.updateOrderStatus(id, status);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Order marked as $status');
+        listOrders();
       },
     );
   }

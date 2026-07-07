@@ -2,7 +2,7 @@ import { AddressType, OrderStatus, KOTStatus, OrderType, PayMethod } from '@pris
 import prisma from '../../infra/database/client';
 
 export class PosKdsRepo {
-  async createOrder(data: { branch_id: string; order_no: number; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; table_side_ids?: string[]; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; final_paying_price?: number; employee_id?: string; partner_id?: string; code: string }) {
+  async createOrder(data: { branch_id: string; order_no: number; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; table_side_ids?: string[]; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; final_paying_price?: number; employee_id?: string; partner_id?: string; code: string; notes?: string }) {
     return prisma.order.create({ data: data as any });
   }
 

@@ -75,6 +75,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     switch (status.toUpperCase()) {
       case 'NEW':
       case 'PLACED':
+      case 'OPEN':
         bgColor = Colors.blue.shade50;
         textColor = Colors.blue.shade700;
         break;
@@ -84,13 +85,36 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         break;
       case 'READY':
       case 'COMPLETED':
+        bgColor = const Color(0xFFE8F5E9);
+        textColor = AppColors.primaryGreen;
+        break;
+      case 'OUT_FOR_DELIVERY':
+        bgColor = Colors.purple.shade50;
+        textColor = Colors.purple.shade700;
+        break;
       case 'DELIVERED':
+        bgColor = const Color(0xFFE8F5E9);
+        textColor = AppColors.primaryGreen;
+        break;
+      case 'FAILED_DELIVERY':
+        bgColor = const Color(0xFFFFF8E1);
+        textColor = Colors.orange.shade900;
+        break;
+      case 'BILLED':
+        bgColor = Colors.blue.shade50;
+        textColor = Colors.blue.shade700;
+        break;
+      case 'PAID':
         bgColor = const Color(0xFFE8F5E9);
         textColor = AppColors.primaryGreen;
         break;
       case 'CANCELLED':
         bgColor = const Color(0xFFFFF5F5);
         textColor = const Color(0xFFEF4F5F);
+        break;
+      case 'REFUNDED':
+        bgColor = const Color(0xFFFFF5F5);
+        textColor = Colors.orange.shade700;
         break;
       default:
         bgColor = AppColors.softGrey;

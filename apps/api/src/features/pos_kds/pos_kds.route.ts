@@ -92,6 +92,11 @@ router.patch(
   posKdsController.updateKOTStatus,
 );
 
+router.patch(
+  '/orders/:id/status',
+  posKdsController.updateOrderStatus,
+);
+
 router.get(
   _POS_KDS_CONSTANTS._R_O_U_T_E_S._P_A_Y_M_E_N_T_S,
   posKdsController.listPayments,

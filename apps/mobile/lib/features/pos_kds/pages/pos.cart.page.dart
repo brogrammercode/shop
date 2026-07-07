@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/components/ui/button.dart';
+import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/utils/error.dart';
 
 import 'package:mobile/features/catalog/controllers/catalog.cubit.dart';
@@ -31,6 +32,7 @@ class _PosCartPageState extends State<PosCartPage> {
   String? _selectedAddressId;
 
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _orderNotesController = TextEditingController();
   Timer? _debounce;
   String? _customerName;
 
@@ -45,6 +47,7 @@ class _PosCartPageState extends State<PosCartPage> {
   @override
   void dispose() {
     _phoneController.dispose();
+    _orderNotesController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
@@ -752,6 +755,46 @@ class _PosCartPageState extends State<PosCartPage> {
                       child: SafeArea(
                         child: Column(
                           children: [
+                            // ── Order Notes ─────────────────────────────
+                            Container(
+                              margin: EdgeInsets.only(bottom: 12.h),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.sticky_note_2_outlined,
+                                        size: 14.w,
+                                        color: AppColors.textSecondary,
+                                      ),
+                                      SizedBox(width: 6.w),
+                                      Text(
+                                        'ORDER NOTES',
+                                        style: TextStyle(
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.textTertiary,
+                                          letterSpacing: 0.8,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  AppInput(
+                                    hintText:
+                                        'Add special instructions, allergies, preferences…',
+                                    controller: _orderNotesController,
+                                    maxLines: 3,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              height: 1.h,
+                              color: AppColors.borderGrey,
+                              margin: EdgeInsets.only(bottom: 12.h),
+                            ),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -875,6 +918,12 @@ class _PosCartPageState extends State<PosCartPage> {
                                             deliveryAddressId:
                                                 _selectedAddressId,
                                             tableSideIds: _selectedTableSideIds,
+                                            notes: _orderNotesController.text
+                                                .trim()
+                                                .isEmpty
+                                            ? null
+                                            : _orderNotesController.text
+                                                .trim(),
                                           );
                                     },
                                   ),

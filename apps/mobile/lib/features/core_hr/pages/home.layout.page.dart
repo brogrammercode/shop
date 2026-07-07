@@ -30,7 +30,7 @@ class RoleAndDeptPage extends StatelessWidget {
 
 
 
-enum MainTab { billing, orders, more }
+enum MainTab { billing, orders, kds, more }
 
 enum MoreTab { employees, roleAndDept, settings }
 
@@ -185,6 +185,18 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                     _mainTab = MainTab.orders;
                     _showMoreNav = false;
                     _currentRoute = '/order-list';
+                  });
+                },
+              ),
+              _buildNavItem(
+                icon: Icons.kitchen,
+                label: 'KDS',
+                isActive: _mainTab == MainTab.kds,
+                onTap: () {
+                  setState(() {
+                    _mainTab = MainTab.kds;
+                    _showMoreNav = false;
+                    _currentRoute = AppRoutes.kdsTerminal;
                   });
                 },
               ),

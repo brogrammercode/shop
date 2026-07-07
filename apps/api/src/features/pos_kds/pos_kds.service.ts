@@ -2,10 +2,10 @@ import { posKdsRepo } from './pos_kds.repo';
 import { _POS_KDS_CONSTANTS } from './pos_kds.constant';
 import { AppError, NotFoundError, BadRequestError } from '../../utils/error';
 import { HttpStatus } from '../../constants/status';
-import { OrderType, PayMethod, KOTStatus } from '@prisma/client';
+import { OrderType, PayMethod, KOTStatus, OrderStatus } from '@prisma/client';
 
 export class PosKdsService {
-  async createOrder(branchId: string, data: { uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; table_side_ids?: string[]; final_paying_price?: number; employee_id?: string; partner_id?: string; items: { menu_item_id: string; variant_id?: string; quantity: number; unit_price: number; notes?: string }[] }) {
+  async createOrder(branchId: string, data: { uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; table_side_ids?: string[]; final_paying_price?: number; employee_id?: string; partner_id?: string; notes?: string; items: { menu_item_id: string; variant_id?: string; quantity: number; unit_price: number; notes?: string }[] }) {
     let subtotal = 0;
     const orderItems = data.items.map(item => {
       const itemSubtotal = item.quantity * item.unit_price;
@@ -36,6 +36,7 @@ export class PosKdsService {
       employee_id: data.employee_id,
       partner_id: data.order_type === OrderType.DELIVERY ? data.partner_id : undefined,
       code: `ORD-${Date.now()}-${order_no.toString().padStart(3, '0')}`,
+      notes: data.notes,
     });
 
     await posKdsRepo.createOrderItems(orderItems.map(item => ({ 
@@ -224,6 +225,13 @@ export class PosKdsService {
     const kot = await this.getKOTById(id, branchId);
     const updatedKot = await posKdsRepo.updateKOTStatus(id, status);
     return updatedKot;
+  }
+
+  async updateOrderStatus(id: string, branchId: string, status: OrderStatus) {
+    const order = await this.getOrderById(id, branchId);
+    if (!order) throw new NotFoundError('Order not found');
+    const updatedOrder = await posKdsRepo.updateOrderStatus(id, status);
+    return updatedOrder;
   }
 
   async listPayments(branchId: string) {

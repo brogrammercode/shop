@@ -28,6 +28,7 @@ class PosKdsEndpoints {
 
   static const String payments = '/pos-kds/payments';
   static String payment(String id) => '/pos-kds/payments/$id';
+  static String orderStatus(String id) => '/pos-kds/orders/$id/status';
 }
 
 class PosKdsRepo {
@@ -202,6 +203,19 @@ class PosKdsRepo {
         data: {'status': status},
       );
       return KitchenOrderTicketModel.fromJson(response.data['data']);
+    });
+  }
+
+  TaskResult<OrderModel> updateOrderStatus(
+    String id,
+    String status,
+  ) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.patch(
+        PosKdsEndpoints.orderStatus(id),
+        data: {'status': status},
+      );
+      return OrderModel.fromJson(response.data['data']);
     });
   }
 
