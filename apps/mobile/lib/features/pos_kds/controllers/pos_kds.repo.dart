@@ -3,6 +3,7 @@ import 'package:mobile/utils/try_catch.dart';
 import 'package:mobile/features/core_hr/models/user.model.dart';
 import 'package:mobile/features/pos_kds/models/order.model.dart';
 import 'package:mobile/features/pos_kds/models/table.model.dart';
+import 'package:mobile/features/pos_kds/models/table_zone.model.dart';
 import 'package:mobile/features/pos_kds/models/kitchen_order_ticket.model.dart';
 import 'package:mobile/features/pos_kds/models/advance_payment.model.dart';
 
@@ -17,6 +18,9 @@ class PosKdsEndpoints {
 
   static const String tables = '/pos-kds/tables';
   static String table(String id) => '/pos-kds/tables/$id';
+
+  static const String tableZones = '/pos-kds/table-zones';
+  static String tableZone(String id) => '/pos-kds/table-zones/$id';
 
   static const String kots = '/pos-kds/kots';
   static String kot(String id) => '/pos-kds/kots/$id';
@@ -90,6 +94,13 @@ class PosKdsRepo {
     });
   }
 
+  TaskResult<dynamic> deleteOrder(String id) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.delete(PosKdsEndpoints.order(id));
+      return response.data['data'];
+    });
+  }
+
   TaskResult<List<TableModel>> listTables() async {
     return tryCatchAsync(() async {
       final response = await _apiClient.get(PosKdsEndpoints.tables);
@@ -124,6 +135,44 @@ class PosKdsRepo {
   TaskResult<dynamic> deleteTable(String id) async {
     return tryCatchAsync(() async {
       final response = await _apiClient.delete(PosKdsEndpoints.table(id));
+      return response.data['data'];
+    });
+  }
+
+  TaskResult<List<TableZoneModel>> listTableZones() async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.get(PosKdsEndpoints.tableZones);
+      final data = response.data['data'] as List;
+      return data.map((e) => TableZoneModel.fromJson(e)).toList();
+    });
+  }
+
+  TaskResult<TableZoneModel> createTableZone(Map<String, dynamic> data) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.post(
+        PosKdsEndpoints.tableZones,
+        data: data,
+      );
+      return TableZoneModel.fromJson(response.data['data']);
+    });
+  }
+
+  TaskResult<TableZoneModel> updateTableZone(
+    String id,
+    Map<String, dynamic> data,
+  ) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.patch(
+        PosKdsEndpoints.tableZone(id),
+        data: data,
+      );
+      return TableZoneModel.fromJson(response.data['data']);
+    });
+  }
+
+  TaskResult<dynamic> deleteTableZone(String id) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.delete(PosKdsEndpoints.tableZone(id));
       return response.data['data'];
     });
   }

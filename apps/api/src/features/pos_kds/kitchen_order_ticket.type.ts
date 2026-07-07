@@ -1,5 +1,3 @@
-// Auto-generated DTO file for KitchenOrderTicket
-
 export interface KitchenOrderTicketDTO {
   id: string;
   branch_id: string;

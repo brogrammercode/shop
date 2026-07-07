@@ -1,5 +1,3 @@
-// Auto-generated Model file for DeliveryPartner
-
 import '../../core_hr/models/address.model.dart';
 import '../../finance/bank_detail.model.dart';
 

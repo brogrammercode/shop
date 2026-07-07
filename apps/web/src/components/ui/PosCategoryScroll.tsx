@@ -25,7 +25,6 @@ export const PosCategoryScroll = ({ categories, activeId, onSelect }: PosCategor
             onClick={() => onSelect(cat.id)}
             className="flex flex-col items-center gap-2 shrink-0 group active:scale-95 transition-transform"
           >
-            {/* Bubble */}
             <div className="w-[56px] h-[56px] rounded-full overflow-hidden flex items-center justify-center bg-soft-grey relative shadow-none">
               {cat.isAllItems ? (
                 <div className="flex flex-col items-center justify-center text-text-secondary">
@@ -42,7 +41,6 @@ export const PosCategoryScroll = ({ categories, activeId, onSelect }: PosCategor
               )}
             </div>
 
-            {/* Label */}
             <div className="flex flex-col items-center">
               <span
                 className={`text-[12px] tracking-tight ${
@@ -52,7 +50,6 @@ export const PosCategoryScroll = ({ categories, activeId, onSelect }: PosCategor
                 {cat.label}
               </span>
               
-              {/* Active Indicator Underline */}
               <div className={`h-[2.5px] mt-[3px] rounded-full w-full ${isActive ? 'bg-[#0F8244]' : 'bg-transparent'}`} />
             </div>
           </button>

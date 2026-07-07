@@ -24,6 +24,7 @@ class _OrderListPageState extends State<OrderListPage> {
   final MobileScannerController _scannerController = MobileScannerController();
   String _statusFilter = 'ALL';
   String _typeFilter = 'ALL';
+  String _dateFilter = 'TODAY';
   String _sortMode = 'NEWEST';
   bool _isHandlingScan = false;
 
@@ -66,7 +67,29 @@ class _OrderListPageState extends State<OrderListPage> {
           _statusFilter == 'ALL' || order.status.toUpperCase() == _statusFilter;
       final typeMatches =
           _typeFilter == 'ALL' || order.order_type.toUpperCase() == _typeFilter;
-      return statusMatches && typeMatches;
+      
+      bool dateMatches = true;
+      if (_dateFilter == 'TODAY') {
+        final orderDate = DateTime.tryParse(order.created_at)?.toLocal();
+        if (orderDate != null) {
+          final now = DateTime.now();
+          dateMatches = orderDate.year == now.year && orderDate.month == now.month && orderDate.day == now.day;
+        }
+      } else if (_dateFilter == 'THIS_WEEK') {
+        final orderDate = DateTime.tryParse(order.created_at)?.toLocal();
+        if (orderDate != null) {
+          final now = DateTime.now();
+          final startOfWeek = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+          dateMatches = orderDate.isAfter(startOfWeek.subtract(const Duration(seconds: 1)));
+        }
+      } else if (_dateFilter == 'THIS_MONTH') {
+        final orderDate = DateTime.tryParse(order.created_at)?.toLocal();
+        if (orderDate != null) {
+          final now = DateTime.now();
+          dateMatches = orderDate.year == now.year && orderDate.month == now.month;
+        }
+      }
+      return statusMatches && typeMatches && dateMatches;
     }).toList();
 
     filtered.sort((a, b) {
@@ -253,7 +276,7 @@ class _OrderListPageState extends State<OrderListPage> {
   Widget _buildSummary(List<OrderModel> orders) {
     final paid = orders.where((order) => order.status == 'PAID').length;
     final open = orders.where((order) => order.status == 'OPEN').length;
-    final total = orders.fold<double>(
+    final total = orders.where((order) => order.status == 'PAID').fold<double>(
       0,
       (sum, order) => sum + order.total_amount,
     );
@@ -326,7 +349,7 @@ class _OrderListPageState extends State<OrderListPage> {
   }
 
   bool get _hasActiveFilters =>
-      _statusFilter != 'ALL' || _typeFilter != 'ALL' || _sortMode != 'NEWEST';
+      _statusFilter != 'ALL' || _typeFilter != 'ALL' || _dateFilter != 'TODAY' || _sortMode != 'NEWEST';
 
   IconData _orderTypeIcon(String orderType) {
     switch (orderType.toUpperCase()) {
@@ -395,6 +418,7 @@ class _OrderListPageState extends State<OrderListPage> {
                             setState(() {
                               _statusFilter = 'ALL';
                               _typeFilter = 'ALL';
+                              _dateFilter = 'TODAY';
                               _sortMode = 'NEWEST';
                             });
                             setSheetState(() {});
@@ -463,6 +487,28 @@ class _OrderListPageState extends State<OrderListPage> {
                         ),
                       );
                     }).toList(),
+                  ),
+                  SizedBox(height: 20.h),
+                  // Date filter
+                  Text(
+                    'DATE',
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textTertiary,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  Wrap(
+                    spacing: 8.w,
+                    runSpacing: 8.h,
+                    children: [
+                      _buildSortChip(ctx, setSheetState, 'Today', 'TODAY', Icons.today_outlined, isDate: true),
+                      _buildSortChip(ctx, setSheetState, 'This week', 'THIS_WEEK', Icons.view_week_outlined, isDate: true),
+                      _buildSortChip(ctx, setSheetState, 'This month', 'THIS_MONTH', Icons.calendar_month_outlined, isDate: true),
+                      _buildSortChip(ctx, setSheetState, 'All time', 'ALL', Icons.history_outlined, isDate: true),
+                    ],
                   ),
                   SizedBox(height: 20.h),
                   // Order type filter
@@ -555,12 +601,19 @@ class _OrderListPageState extends State<OrderListPage> {
     StateSetter setSheetState,
     String label,
     String value,
-    IconData icon,
-  ) {
-    final isSelected = _sortMode == value;
+    IconData icon, {
+    bool isDate = false,
+  }) {
+    final isSelected = isDate ? _dateFilter == value : _sortMode == value;
     return GestureDetector(
       onTap: () {
-        setState(() => _sortMode = value);
+        setState(() {
+          if (isDate) {
+            _dateFilter = value;
+          } else {
+            _sortMode = value;
+          }
+        });
         setSheetState(() {});
       },
       child: Container(
@@ -735,8 +788,12 @@ class _OrderListPageState extends State<OrderListPage> {
                     order.order_type == 'DINE_IN'
                         ? Icons.table_restaurant_outlined
                         : Icons.location_on_outlined,
-                    order.table_id.isNotEmpty
-                        ? 'Table ${order.table_id}'
+                    order.table_id.isNotEmpty || order.table_side_ids.isNotEmpty
+                        ? (order.table_side_ids.isNotEmpty 
+                            ? (order.table_id.isNotEmpty 
+                                ? 'Table ${order.table_id} (${order.table_side_ids.join(', ')})'
+                                : 'Table Sides: ${order.table_side_ids.join(', ')}')
+                            : 'Table ${order.table_id}')
                         : 'Fulfillment',
                     order.delivery_address_id.isNotEmpty
                         ? order.delivery_address_id
@@ -916,6 +973,37 @@ class _OrderListPageState extends State<OrderListPage> {
                 await context.read<PosKdsCubit>().cancelOrder(order.id);
                 if (mounted) {
                   context.read<PosKdsCubit>().listOrders();
+                }
+              },
+            ),
+            BottomSheetAction(
+              label: 'Delete order',
+              icon: Icons.delete_outline,
+              iconColor: const Color(0xFFEF4F5F),
+              labelColor: const Color(0xFFEF4F5F),
+              onTap: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Delete Order'),
+                    content: const Text('Are you sure you want to completely delete this order? This action cannot be undone.'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true && mounted) {
+                  await context.read<PosKdsCubit>().deleteOrder(order.id);
+                  if (mounted) {
+                    context.read<PosKdsCubit>().listOrders();
+                  }
                 }
               },
             ),
@@ -1114,7 +1202,7 @@ class _OrderListPageState extends State<OrderListPage> {
                           SizedBox(height: index < 2 ? 0 : 12.h),
                       itemBuilder: (context, index) {
                         if (index == 0) {
-                          return _buildSummary(orders);
+                          return _buildSummary(visibleOrders);
                         }
                         if (index == 1) {
                           return const SizedBox.shrink();

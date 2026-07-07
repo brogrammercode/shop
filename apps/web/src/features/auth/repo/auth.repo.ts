@@ -4,10 +4,9 @@ import { useUserStore, UserModel } from '@/core/store/user.store';
 export interface VerifyOtpResponse {
   user: UserModel;
   tokens: { accessToken: string; refreshToken: string };
-  // The backend might return employee data if they belong to a branch/business
-  employeeContext?: any; 
-  addresses?: any[];
-  bankDetails?: any[];
+  employeeContext?: unknown;
+  addresses?: unknown[];
+  bankDetails?: unknown[];
 }
 
 export class AuthRepo {

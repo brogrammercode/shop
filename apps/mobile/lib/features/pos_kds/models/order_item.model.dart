@@ -1,5 +1,3 @@
-// Auto-generated Model file for OrderItem
-
 import 'package:mobile/features/catalog/models/menu_item.model.dart';
 
 class OrderItemModel {

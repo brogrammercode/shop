@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../../utils/async';
-import { sendSuccess } from '../../utils/error';
+import { sendSuccess, BadRequestError } from '../../utils/error';
 import { HttpStatus } from '../../constants/status';
 import { posKdsService } from './pos_kds.service';
 import { _POS_KDS_CONSTANTS } from './pos_kds.constant';
@@ -44,14 +44,58 @@ export const cancelOrder = asyncHandler(async (req: Request, res: Response) => {
   return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_CANCELLED, HttpStatus.OK);
 });
 
+export const deleteOrder = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as Record<string, string>;
+  const result = await posKdsService.deleteOrder(id, req.employee.branch_id);
+  return sendSuccess(res, result, 'Order deleted successfully', HttpStatus.OK);
+});
+
+export const listTableZones = asyncHandler(async (req: Request, res: Response) => {
+  const result = await posKdsService.listTableZones(req.employee.branch_id);
+  return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.TABLE_ZONES_LISTED || 'Table zones listed', HttpStatus.OK);
+});
+
+export const createTableZone = asyncHandler(async (req: Request, res: Response) => {
+  const { name } = req.body;
+  const result = await posKdsService.createTableZone(req.employee.branch_id, name);
+  return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.TABLE_ZONE_CREATED || 'Table zone created', HttpStatus.CREATED);
+});
+
+export const getTableZoneById = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as Record<string, string>;
+  const result = await posKdsService.getTableZoneById(id, req.employee.branch_id);
+  return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.TABLE_ZONES_LISTED || 'Table zone retrieved', HttpStatus.OK);
+});
+
+export const updateTableZone = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as Record<string, string>;
+  const result = await posKdsService.updateTableZone(id, req.employee.branch_id, req.body);
+  return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.TABLE_ZONE_UPDATED || 'Table zone updated', HttpStatus.OK);
+});
+
+export const deleteTableZone = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as Record<string, string>;
+  const result = await posKdsService.deleteTableZone(id, req.employee.branch_id);
+  return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.TABLE_ZONE_DELETED || 'Table zone deleted', HttpStatus.OK);
+});
+
 export const listTables = asyncHandler(async (req: Request, res: Response) => {
   const result = await posKdsService.listTables(req.employee.branch_id);
   return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.TABLES_LISTED, HttpStatus.OK);
 });
 
+export const listPublicTables = asyncHandler(async (req: Request, res: Response) => {
+  const branchId = req.query.branch_id as string;
+  if (!branchId) {
+    throw new BadRequestError(_POS_KDS_CONSTANTS._E_R_R_O_R_S.BRANCH_REQUIRED);
+  }
+  const result = await posKdsService.listTables(branchId);
+  return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.TABLES_LISTED, HttpStatus.OK);
+});
+
 export const createTable = asyncHandler(async (req: Request, res: Response) => {
-  const { name, capacity, location } = req.body;
-  const result = await posKdsService.createTable(req.employee.branch_id, name, capacity, location);
+  const { zone_id, table_number, capacity, side_count, side_labels } = req.body;
+  const result = await posKdsService.createTable(req.employee.branch_id, zone_id, table_number, capacity, side_count, side_labels);
   return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.TABLE_CREATED, HttpStatus.CREATED);
 });
 

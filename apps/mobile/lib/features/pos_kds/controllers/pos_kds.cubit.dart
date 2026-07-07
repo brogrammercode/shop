@@ -52,12 +52,14 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     String? customerId, {
     String? deliveryAddressId,
     double? finalPayingPrice,
+    List<String>? tableSideIds,
   }) async {
     if (items.isEmpty) return;
 
     final payload = <String, dynamic>{
       'order_type': orderType,
       'table_id': tableId,
+      'table_side_ids': tableSideIds,
       'uid': customerId,
       'delivery_address_id': deliveryAddressId,
       'status': 'PLACED',
@@ -297,6 +299,39 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     );
   }
 
+  Future<void> deleteOrder(String id) async {
+    emit(
+      state.copyWith(
+        saveOrdersInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.deleteOrder(id);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            saveOrdersInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Order deleted');
+        emit(
+          state.copyWith(
+            saveOrdersInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
+          ),
+        );
+        listOrders();
+      },
+    );
+  }
+
   Future<void> listTables() async {
     emit(
       state.copyWith(
@@ -357,6 +392,170 @@ class PosKdsCubit extends Cubit<PosKdsState> {
             ),
           ),
         );
+      },
+    );
+  }
+
+  Future<void> updateTable(String id, Map<String, dynamic> data) async {
+    emit(
+      state.copyWith(
+        saveTablesInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.updateTable(id, data);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            saveTablesInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Table updated');
+        emit(
+          state.copyWith(
+            saveTablesInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
+          ),
+        );
+        listTables();
+      },
+    );
+  }
+
+  Future<void> listTableZones() async {
+    emit(
+      state.copyWith(
+        loadTablesInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.listTableZones();
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            loadTablesInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (zones) {
+        emit(
+          state.copyWith(
+            tableZones: zones,
+            loadTablesInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> createTableZone(Map<String, dynamic> data) async {
+    emit(
+      state.copyWith(
+        saveTablesInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.createTableZone(data);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            saveTablesInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Table zone created');
+        emit(
+          state.copyWith(
+            saveTablesInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
+          ),
+        );
+        listTableZones();
+      },
+    );
+  }
+
+  Future<void> updateTableZone(String id, Map<String, dynamic> data) async {
+    emit(
+      state.copyWith(
+        saveTablesInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.updateTableZone(id, data);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            saveTablesInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Table zone updated');
+        emit(
+          state.copyWith(
+            saveTablesInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
+          ),
+        );
+        listTableZones();
+      },
+    );
+  }
+
+  Future<void> deleteTableZone(String id) async {
+    emit(
+      state.copyWith(
+        saveTablesInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.deleteTableZone(id);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            saveTablesInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Table zone deleted');
+        emit(
+          state.copyWith(
+            saveTablesInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
+          ),
+        );
+        listTableZones();
       },
     );
   }

@@ -1,5 +1,3 @@
-// Auto-generated DTO file for DeliveryPartner
-
 import { AddressDTO } from '../core_hr/address.type';
 import { BankDetailDTO } from '../finance/bank_detail.type';
 

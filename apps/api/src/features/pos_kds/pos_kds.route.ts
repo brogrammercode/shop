@@ -35,6 +35,31 @@ router.patch(
   _POS_KDS_CONSTANTS._R_O_U_T_E_S.ORDER_CANCEL,
   posKdsController.cancelOrder,
 );
+router.delete(
+  '/orders/:id',
+  posKdsController.deleteOrder,
+);
+
+router.get(
+  _POS_KDS_CONSTANTS._R_O_U_T_E_S._T_A_B_L_E_Z_O_N_E_S || '/table-zones',
+  posKdsController.listTableZones,
+);
+router.post(
+  _POS_KDS_CONSTANTS._R_O_U_T_E_S._T_A_B_L_E_Z_O_N_E_S || '/table-zones',
+  posKdsController.createTableZone,
+);
+router.get(
+  _POS_KDS_CONSTANTS._R_O_U_T_E_S.TABLE_ZONE_BY_ID || '/table-zones/:id',
+  posKdsController.getTableZoneById,
+);
+router.patch(
+  _POS_KDS_CONSTANTS._R_O_U_T_E_S.TABLE_ZONE_BY_ID || '/table-zones/:id',
+  posKdsController.updateTableZone,
+);
+router.delete(
+  _POS_KDS_CONSTANTS._R_O_U_T_E_S.TABLE_ZONE_BY_ID || '/table-zones/:id',
+  posKdsController.deleteTableZone,
+);
 
 router.get(
   _POS_KDS_CONSTANTS._R_O_U_T_E_S._T_A_B_L_E_S,

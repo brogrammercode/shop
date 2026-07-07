@@ -20,9 +20,7 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // We can map this to domain specific exceptions if needed.
     if (error.response?.status === 401 || error.response?.status === 403) {
-      // Clear token on auth error
       useUserStore.getState().clearContext();
     }
     return Promise.reject(error);

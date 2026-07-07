@@ -1,5 +1,3 @@
-// Auto-generated Model file for KitchenOrderTicket
-
 class KitchenOrderTicketModel {
   final String id;
   final String branch_id;

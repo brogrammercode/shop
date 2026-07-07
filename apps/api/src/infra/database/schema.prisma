@@ -893,6 +893,8 @@ model Table {
   zone_id      String
   table_number String
   capacity     Int
+  side_count   Int         @default(4)
+  side_labels  Json?
   status       TableStatus @default(AVAILABLE)
 
   created_at DateTime @default(now())
@@ -935,6 +937,7 @@ model Order {
   order_no            Int         @default(0)
   branch_id           String
   table_id            String?
+  table_side_ids      Json?
   uid                 String?
   delivery_address_id String?
   employee_id         String?

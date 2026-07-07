@@ -1,6 +1,7 @@
 export const _POS_KDS_CONSTANTS = {
   _R_O_U_T_E_S: {
     _B_A_S_E: '/pos-kds',
+    PUBLIC_TABLES: '/public/tables',
     _O_R_D_E_R_S: '/orders',
     CUSTOMER_BY_PHONE: '/customers/:phone',
     ORDER_BY_ID: '/orders/:id',
@@ -9,6 +10,8 @@ export const _POS_KDS_CONSTANTS = {
     ORDER_CANCEL: '/orders/:id/cancel',
     _T_A_B_L_E_S: '/tables',
     TABLE_BY_ID: '/tables/:id',
+    _T_A_B_L_E_Z_O_N_E_S: '/table-zones',
+    TABLE_ZONE_BY_ID: '/table-zones/:id',
     _K_O_T_S: '/kots',
     KOT_BY_ID: '/kots/:id',
     KOT_STATUS: '/kots/:id/status',
@@ -27,6 +30,10 @@ export const _POS_KDS_CONSTANTS = {
     TABLES_LISTED: 'Tables fetched successfully',
     TABLE_UPDATED: 'Table updated successfully',
     TABLE_DELETED: 'Table deleted successfully',
+    TABLE_ZONE_CREATED: 'Table zone created successfully',
+    TABLE_ZONES_LISTED: 'Table zones fetched successfully',
+    TABLE_ZONE_UPDATED: 'Table zone updated successfully',
+    TABLE_ZONE_DELETED: 'Table zone deleted successfully',
     KOT_CREATED: 'KOT created successfully',
     KOTS_LISTED: 'KOTs fetched successfully',
     KOT_STATUS_UPDATED: 'KOT status updated successfully',
@@ -34,13 +41,16 @@ export const _POS_KDS_CONSTANTS = {
     PAYMENT_CREATED: 'Payment recorded successfully',
     PAYMENTS_LISTED: 'Payments fetched successfully',
     PAYMENT_UPDATED: 'Payment updated successfully',
+    CUSTOMER_RETRIEVED: 'Customer retrieved successfully',
   },
   _E_R_R_O_R_S: {
     ORDER_NOT_FOUND: 'Order not found',
     TABLE_NOT_FOUND: 'Table not found',
+    TABLE_ZONE_NOT_FOUND: 'Table zone not found',
     KOT_NOT_FOUND: 'KOT not found',
     PAYMENT_NOT_FOUND: 'Payment not found',
     INVALID_STATUS: 'Invalid status transition',
+    BRANCH_REQUIRED: 'Branch ID is required',
   },
   _S_T_A_T_U_S: {
     _O_R_D_E_R: {

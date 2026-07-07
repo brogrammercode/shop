@@ -2,8 +2,8 @@ import { AddressType, OrderStatus, KOTStatus, OrderType, PayMethod } from '@pris
 import prisma from '../../infra/database/client';
 
 export class PosKdsRepo {
-  async createOrder(data: { branch_id: string; order_no: number; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; final_paying_price?: number; employee_id?: string; partner_id?: string; code: string }) {
-    return prisma.order.create({ data });
+  async createOrder(data: { branch_id: string; order_no: number; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; table_side_ids?: string[]; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; final_paying_price?: number; employee_id?: string; partner_id?: string; code: string }) {
+    return prisma.order.create({ data: data as any });
   }
 
   async countOrdersByCreatedRange(branchId: string, start: Date, end: Date) {
@@ -74,7 +74,7 @@ export class PosKdsRepo {
     return prisma.orderItem.createMany({ data: items });
   }
 
-  async createTable(data: { branch_id: string; zone_id: string; table_number: string; capacity: number }) {
+  async createTable(data: { branch_id: string; zone_id: string; table_number: string; capacity: number; side_count?: number; side_labels?: string[] }) {
     return prisma.table.create({ data });
   }
 
@@ -92,6 +92,26 @@ export class PosKdsRepo {
 
   async deleteTable(id: string) {
     return prisma.table.update({ where: { id }, data: { is_deleted: true } });
+  }
+
+  async createTableZone(data: { branch_id: string; name: string }) {
+    return prisma.tableZone.create({ data });
+  }
+
+  async findTableZonesByBranch(branchId: string) {
+    return prisma.tableZone.findMany({ where: { branch_id: branchId, is_deleted: false } });
+  }
+
+  async findTableZoneById(id: string) {
+    return prisma.tableZone.findUnique({ where: { id } });
+  }
+
+  async updateTableZone(id: string, data: Partial<{ name: string; is_deleted: boolean }>) {
+    return prisma.tableZone.update({ where: { id }, data });
+  }
+
+  async deleteTableZone(id: string) {
+    return prisma.tableZone.update({ where: { id }, data: { is_deleted: true } });
   }
 
   async createKOT(data: { branch_id: string; order_id: string; station: any; status: KOTStatus; print_count?: number }) {
@@ -116,6 +136,15 @@ export class PosKdsRepo {
 
   async findPaymentsByBranch(branchId: string) {
     return prisma.advancePayment.findMany({ where: { branch_id: branchId }, include: { order: true }, orderBy: { created_at: 'desc' } });
+  }
+
+  async deleteOrder(id: string) {
+    return prisma.$transaction([
+      prisma.orderItem.deleteMany({ where: { order_id: id } }),
+      prisma.kitchenOrderTicket.deleteMany({ where: { order_id: id } }),
+      prisma.advancePayment.deleteMany({ where: { order_id: id } }),
+      prisma.order.delete({ where: { id } })
+    ]);
   }
 
   async findPaymentById(id: string) {

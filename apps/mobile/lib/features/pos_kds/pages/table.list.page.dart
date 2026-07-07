@@ -17,152 +17,231 @@ class TableListPage extends StatefulWidget {
 }
 
 class _TableListPageState extends State<TableListPage> {
+  String? _selectedZoneId;
+
   @override
   void initState() {
     super.initState();
     context.read<PosKdsCubit>().listTables();
+    context.read<PosKdsCubit>().listOrders();
+    context.read<PosKdsCubit>().listTableZones();
+  }
+
+  Widget _buildAppBar(BuildContext context) {
+    return Container(
+      color: AppColors.pureWhite,
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            PosConstant.TABLE_LIST_TITLE,
+            style: TextStyle(
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          SizedBox(width: 40.w), // Balance
+        ],
+      ),
+    );
+  }
+
+  Widget _buildZoneFilter(PosKdsState state) {
+    final zones = state.tableZones;
+    if (zones.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      color: AppColors.pureWhite,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _buildFilterChip('All', null),
+            ...zones.map((z) => _buildFilterChip(z.name, z.id)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterChip(String label, String? zoneId) {
+    final isSelected = _selectedZoneId == zoneId;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedZoneId = zoneId;
+        });
+      },
+      child: Container(
+        margin: EdgeInsets.only(right: 8.w),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primaryGreen : AppColors.pureWhite,
+          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(
+            color: isSelected ? AppColors.primaryGreen : AppColors.borderGrey,
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.w800,
+            color: isSelected ? AppColors.pureWhite : AppColors.textPrimary,
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.softGrey,
-      appBar: AppBar(
-        backgroundColor: AppColors.pureWhite,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        title: Text(
-          PosConstant.TABLE_LIST_TITLE,
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.w900,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Column(
-        children: [
-          Container(
-            color: AppColors.pureWhite,
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-            child: Row(
-              children: [
-                _buildStatusLegend('Available', AppColors.primaryGreen),
-                SizedBox(width: 16.w),
-                _buildStatusLegend('Occupied', Colors.redAccent),
-              ],
-            ),
-          ),
-          Expanded(
-            child: BlocBuilder<PosKdsCubit, PosKdsState>(
+      backgroundColor: const Color(0xFFFAFAFA),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildAppBar(context),
+            BlocBuilder<PosKdsCubit, PosKdsState>(
               builder: (context, state) {
-                if (state.loadTablesInfo.status == OperationStatus.loading) {
-                  return const Center(child: AppLoader());
-                }
-                final tables = state.tables;
-                if (tables.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'No tables found',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                  );
-                }
-                return AppRefresher(
-                  onRefresh: () async {
-                    context.read<PosKdsCubit>().listTables();
-                  },
-                  child: GridView.builder(
-                    padding: EdgeInsets.all(24.w),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 32.w,
-                      mainAxisSpacing: 32.h,
-                      childAspectRatio: 1.0,
-                    ),
-                    itemCount: tables.length,
-                    itemBuilder: (context, index) {
-                      final table = tables[index];
-                      final isOccupied = table.status == 'OCCUPIED';
-                      return GestureDetector(
-                        onTap: () =>
-                            Navigator.pushNamed(context, '/pos-terminal'),
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          alignment: Alignment.center,
-                          children: [
-                            // The Table Square
-                            Container(
-                              decoration: BoxDecoration(
-                                color: isOccupied
-                                    ? const Color(0xFFFFEBEE)
-                                    : AppColors.pureWhite,
-                                borderRadius: BorderRadius.circular(16.r),
-                                border: Border.all(
-                                  color: isOccupied
-                                      ? Colors.redAccent
-                                      : AppColors.borderGrey,
-                                  width: 2,
-                                ),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 8,
-                                    offset: Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      table.table_number,
-                                      style: TextStyle(
-                                        fontSize: 28.sp,
-                                        fontWeight: FontWeight.w900,
-                                        color: isOccupied
-                                            ? Colors.redAccent
-                                            : AppColors.textPrimary,
-                                      ),
-                                    ),
-                                    if (isOccupied)
-                                      Text(
-                                        'Active',
-                                        style: TextStyle(
-                                          fontSize: 12.sp,
-                                          color: Colors.redAccent,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            // Chair Indicator (Top, Right, Bottom, Left) depending on capacity
-                            if (table.capacity >= 1)
-                              _buildChair(Alignment.topCenter, false, -10.h),
-                            if (table.capacity >= 2)
-                              _buildChair(Alignment.bottomCenter, false, -10.h),
-                            if (table.capacity >= 3)
-                              _buildChair(
-                                Alignment.centerRight,
-                                isOccupied,
-                                -10.w,
-                              ),
-                            if (table.capacity >= 4)
-                              _buildChair(Alignment.centerLeft, false, -10.w),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                );
+                return _buildZoneFilter(state);
               },
             ),
-          ),
-        ],
+            Container(
+              color: AppColors.pureWhite,
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+              child: Row(
+                children: [
+                  _buildStatusLegend('Available', AppColors.primaryGreen),
+                  SizedBox(width: 16.w),
+                  _buildStatusLegend('Occupied', Colors.redAccent),
+                ],
+              ),
+            ),
+            Expanded(
+              child: BlocBuilder<PosKdsCubit, PosKdsState>(
+                builder: (context, state) {
+                  if (state.loadTablesInfo.status == OperationStatus.loading) {
+                    return const Center(child: AppLoader());
+                  }
+                  final tables = state.tables.where((t) {
+                    if (_selectedZoneId == null) return true;
+                    return t.zone_id == _selectedZoneId;
+                  }).toList();
+
+                  if (tables.isEmpty) {
+                    return Center(
+                      child: Text(
+                        'No tables found',
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                    );
+                  }
+
+                  // Get active orders to color chairs
+                  final activeOrders = state.orders.where((o) => ['PLACED', 'PREPARING', 'READY'].contains(o.status)).toList();
+
+                  return AppRefresher(
+                    onRefresh: () async {
+                      context.read<PosKdsCubit>().listTables();
+                      context.read<PosKdsCubit>().listOrders();
+                    },
+                    child: GridView.builder(
+                      padding: EdgeInsets.all(24.w),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 32.w,
+                        mainAxisSpacing: 32.h,
+                        childAspectRatio: 1,
+                      ),
+                      itemCount: tables.length,
+                      itemBuilder: (context, index) {
+                        final table = tables[index];
+                        final tableOrders = activeOrders.where((o) => o.table_id == table.id).toList();
+                        final isOccupied = tableOrders.isNotEmpty || table.status == 'OCCUPIED';
+
+                        // Aggregate active side labels
+                        final activeSideLabels = <String>{};
+                        for (final order in tableOrders) {
+                          activeSideLabels.addAll(order.table_side_ids.map((e) => e.toString()));
+                        }
+
+                        return GestureDetector(
+                          onTap: () {
+                            // Expand table or something
+                          },
+                          child: Stack(
+                            clipBehavior: Clip.none,
+                            alignment: Alignment.center,
+                            children: [
+                              // The Table Square
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: isOccupied
+                                        ? [const Color(0xFFFFEBEE), const Color(0xFFFFCDD2)]
+                                        : [AppColors.pureWhite, const Color(0xFFF5F5F5)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(20.r),
+                                  border: Border.all(
+                                    color: isOccupied ? Colors.redAccent : AppColors.borderGrey,
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isOccupied ? Colors.redAccent.withOpacity(0.3) : Colors.black.withOpacity(0.05),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 6),
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        table.table_number,
+                                        style: TextStyle(
+                                          fontSize: 32.sp,
+                                          fontWeight: FontWeight.w900,
+                                          color: isOccupied ? Colors.redAccent : AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      if (isOccupied)
+                                        Text(
+                                          'Active',
+                                          style: TextStyle(
+                                            fontSize: 12.sp,
+                                            color: Colors.redAccent,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              // Chairs
+                              ...List.generate(table.side_count, (i) {
+                                final label = table.side_labels.length > i ? table.side_labels[i] : 'S${i + 1}';
+                                final isSideActive = activeSideLabels.contains(label);
+                                return _buildChairForTable(i, table.side_count, isSideActive, label);
+                              }),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -188,26 +267,63 @@ class _TableListPageState extends State<TableListPage> {
     );
   }
 
-  Widget _buildChair(Alignment alignment, bool isOccupied, double offsetValue) {
+  Widget _buildChairForTable(int index, int total, bool isActive, String label) {
+    // Determine position based on total and index
+    Alignment alignment = Alignment.topCenter;
+    
+    // Increased chair size (32.w instead of 24.w) and offset
+    final offset = -16.0.w; 
+    
+    if (total == 1) {
+      alignment = Alignment.topCenter;
+    } else if (total == 2) {
+      alignment = index == 0 ? Alignment.topCenter : Alignment.bottomCenter;
+    } else if (total == 3) {
+      if (index == 0) alignment = Alignment.topCenter;
+      if (index == 1) alignment = Alignment.bottomCenter;
+      if (index == 2) alignment = Alignment.centerRight;
+    } else if (total == 4) {
+      if (index == 0) alignment = Alignment.topCenter;
+      if (index == 1) alignment = Alignment.centerRight;
+      if (index == 2) alignment = Alignment.bottomCenter;
+      if (index == 3) alignment = Alignment.centerLeft;
+    }
+
     return Positioned(
-      top: alignment == Alignment.topCenter ? offsetValue : null,
-      bottom: alignment == Alignment.bottomCenter ? offsetValue : null,
-      left: alignment == Alignment.centerLeft ? offsetValue : null,
-      right: alignment == Alignment.centerRight ? offsetValue : null,
+      top: alignment == Alignment.topCenter ? offset : null,
+      bottom: alignment == Alignment.bottomCenter ? offset : null,
+      left: alignment == Alignment.centerLeft ? offset : null,
+      right: alignment == Alignment.centerRight ? offset : null,
       child: Container(
-        width: 24.w,
-        height: 24.w,
+        width: 32.w,
+        height: 32.w,
         decoration: BoxDecoration(
-          color: isOccupied ? Colors.redAccent : const Color(0xFFE0E0E0),
+          gradient: LinearGradient(
+            colors: isActive 
+                ? [Colors.redAccent, Colors.red.shade700] 
+                : [const Color(0xFFF5F5F5), const Color(0xFFE0E0E0)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.pureWhite, width: 2),
-          boxShadow: const [
+          border: Border.all(color: AppColors.pureWhite, width: 3),
+          boxShadow: [
             BoxShadow(
-              color: Colors.black12,
-              blurRadius: 4,
-              offset: Offset(0, 2),
+              color: isActive ? Colors.redAccent.withOpacity(0.5) : Colors.black12,
+              blurRadius: isActive ? 8 : 4,
+              offset: const Offset(0, 2),
             ),
           ],
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 10.sp,
+              fontWeight: FontWeight.w900,
+              color: isActive ? AppColors.pureWhite : AppColors.textSecondary,
+            ),
+          ),
         ),
       ),
     );

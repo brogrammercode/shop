@@ -1,5 +1,3 @@
-// Auto-generated DTO file for AdvancePayment
-
 export interface AdvancePaymentDTO {
   id: string;
   branch_id: string;

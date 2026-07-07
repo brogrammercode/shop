@@ -13,8 +13,6 @@ export const PosBottomAction = ({ totalItems, totalPrice, onPlaceOrder, isOrderi
     <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-8 px-6">
       <div className="mx-auto max-w-md pointer-events-auto shadow-deep rounded-full bg-pure-white p-2">
         <div className="flex items-center justify-between w-full">
-          
-          {/* Active Tab: Billing / Place Order */}
           <button 
             onClick={totalItems > 0 ? onPlaceOrder : undefined}
             disabled={isOrdering}
@@ -41,7 +39,6 @@ export const PosBottomAction = ({ totalItems, totalPrice, onPlaceOrder, isOrderi
             )}
           </button>
 
-          {/* Inactive Tab: Orders */}
           <button className="flex-1 flex items-center justify-center gap-2 px-4 py-3 transition-transform active:scale-95">
             <svg className="w-5 h-5 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -49,7 +46,6 @@ export const PosBottomAction = ({ totalItems, totalPrice, onPlaceOrder, isOrderi
             <span className="text-text-secondary text-[14px] font-medium">Orders</span>
           </button>
 
-          {/* Inactive Tab: More */}
           <button className="flex-1 flex items-center justify-center gap-2 px-4 py-3 transition-transform active:scale-95">
             <svg className="w-5 h-5 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />

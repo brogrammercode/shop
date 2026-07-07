@@ -5,7 +5,7 @@ import { HttpStatus } from '../../constants/status';
 import { OrderType, PayMethod, KOTStatus } from '@prisma/client';
 
 export class PosKdsService {
-  async createOrder(branchId: string, data: { uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; final_paying_price?: number; employee_id?: string; partner_id?: string; items: { menu_item_id: string; variant_id?: string; quantity: number; unit_price: number; notes?: string }[] }) {
+  async createOrder(branchId: string, data: { uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; table_side_ids?: string[]; final_paying_price?: number; employee_id?: string; partner_id?: string; items: { menu_item_id: string; variant_id?: string; quantity: number; unit_price: number; notes?: string }[] }) {
     let subtotal = 0;
     const orderItems = data.items.map(item => {
       const itemSubtotal = item.quantity * item.unit_price;
@@ -13,7 +13,7 @@ export class PosKdsService {
       return { ...item, subtotal: itemSubtotal };
     });
 
-    const tax_amount = subtotal * 0.1;
+    const tax_amount = 0;
     const discount_amount = 0;
     const total_amount = subtotal + tax_amount - discount_amount;
     const final_paying_price = Number(data.final_paying_price ?? total_amount);
@@ -27,6 +27,7 @@ export class PosKdsService {
       delivery_address_id: data.delivery_address_id,
       order_type: data.order_type,
       table_id: data.table_id,
+      table_side_ids: data.table_side_ids,
       total_amount,
       subtotal,
       tax_amount,
@@ -84,6 +85,19 @@ export class PosKdsService {
     return order;
   }
 
+  async deleteOrder(id: string, branchId: string) {
+    const order = await this.getOrderById(id, branchId);
+    if (order.table_id) {
+      // Check if table has other active orders, if not, make it AVAILABLE
+      const orders = await this.listOrders(branchId);
+      const otherActiveOrders = orders.filter(o => o.table_id === order.table_id && o.id !== order.id && !['COMPLETED', 'CANCELLED'].includes(o.status));
+      if (otherActiveOrders.length === 0) {
+        await posKdsRepo.updateTable(order.table_id, { status: 'AVAILABLE' });
+      }
+    }
+    return posKdsRepo.deleteOrder(id);
+  }
+
   async payOrder(id: string, branchId: string, payment_method: PayMethod, amount: number) {
     const order = await this.getOrderById(id, branchId);
     if (order.status !== 'OPEN' && order.status !== 'BILLED') {
@@ -134,8 +148,38 @@ export class PosKdsService {
     return posKdsRepo.updateOrderStatus(id, 'CANCELLED');
   }
 
-  async createTable(branchId: string, zone_id: string, table_number: string, capacity: number) {
-    return posKdsRepo.createTable({ branch_id: branchId, zone_id, table_number, capacity });
+  async createTableZone(branchId: string, name: string) {
+    return posKdsRepo.createTableZone({ branch_id: branchId, name });
+  }
+
+  async listTableZones(branchId: string) {
+    return posKdsRepo.findTableZonesByBranch(branchId);
+  }
+
+  async getTableZoneById(id: string, branchId: string) {
+    const zone = await posKdsRepo.findTableZoneById(id);
+    if (!zone || zone.branch_id !== branchId) {
+      throw new NotFoundError(_POS_KDS_CONSTANTS._E_R_R_O_R_S.TABLE_ZONE_NOT_FOUND || 'Table zone not found');
+    }
+    return zone;
+  }
+
+  async updateTableZone(id: string, branchId: string, data: any) {
+    await this.getTableZoneById(id, branchId);
+    return posKdsRepo.updateTableZone(id, data);
+  }
+
+  async deleteTableZone(id: string, branchId: string) {
+    await this.getTableZoneById(id, branchId);
+    return posKdsRepo.deleteTableZone(id);
+  }
+
+  async createTable(branchId: string, zone_id: string, table_number: string, capacity: number, side_count?: number, side_labels?: string[]) {
+    let finalSideLabels = side_labels;
+    if (!finalSideLabels && side_count && side_count > 0) {
+      finalSideLabels = Array.from({ length: side_count }, (_, i) => `${table_number}-${i + 1}`);
+    }
+    return posKdsRepo.createTable({ branch_id: branchId, zone_id, table_number, capacity, side_count, side_labels: finalSideLabels });
   }
 
   async listTables(branchId: string) {
@@ -151,7 +195,11 @@ export class PosKdsService {
   }
 
   async updateTable(id: string, branchId: string, data: any) {
-    await this.getTableById(id, branchId);
+    const table = await this.getTableById(id, branchId);
+    if (data.side_count !== undefined && !data.side_labels) {
+      const tNumber = data.table_number || table.table_number;
+      data.side_labels = Array.from({ length: data.side_count }, (_, i) => `${tNumber}-${i + 1}`);
+    }
     return posKdsRepo.updateTable(id, data);
   }
 

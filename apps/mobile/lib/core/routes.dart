@@ -51,6 +51,9 @@ import 'package:mobile/features/manufacturing/wastage_log.form.page.dart';
 
 import 'package:mobile/features/pos_kds/pages/table_zone.list.page.dart';
 import 'package:mobile/features/pos_kds/pages/table.list.page.dart';
+import 'package:mobile/features/pos_kds/pages/table.form.page.dart';
+import 'package:mobile/features/pos_kds/pages/table.qr.page.dart';
+import 'package:mobile/features/pos_kds/models/table.model.dart';
 import 'package:mobile/features/pos_kds/pages/pos.terminal.page.dart';
 import 'package:mobile/features/pos_kds/pages/order.list.page.dart';
 import 'package:mobile/features/pos_kds/pages/order.detail.page.dart';
@@ -148,6 +151,8 @@ class AppRoutes {
   // POS & KDS Routes
   static const String tableZoneList = '/table-zone-list';
   static const String tableList = '/table-list';
+  static const String tableForm = '/table-form';
+  static const String tableQr = '/table-qr';
   static const String posTerminal = '/pos-terminal';
   static const String orderList = '/order-list';
   static const String orderDetail = '/order-detail';
@@ -246,6 +251,11 @@ class AppRoutes {
     // POS & KDS
     tableZoneList: (context) => const TableZoneListPage(),
     tableList: (context) => const TableListPage(),
+    tableForm: (context) => const TableFormPage(),
+    tableQr: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as TableModel;
+      return TableQrPage(table: args);
+    },
     posTerminal: (context) => const PosTerminalPage(),
     orderList: (context) => const OrderListPage(),
     orderDetail: (context) => const OrderDetailPage(),

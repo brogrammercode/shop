@@ -25,6 +25,8 @@ class PosCartPage extends StatefulWidget {
 class _PosCartPageState extends State<PosCartPage> {
   String _selectedOrderType = 'DINE_IN';
   String? _selectedTableId;
+  final List<String> _selectedTableSideIds = [];
+  final Set<String> _expandedTableIds = {};
   String? _selectedCustomerId;
   String? _selectedAddressId;
 
@@ -515,16 +517,124 @@ class _PosCartPageState extends State<PosCartPage> {
                                       )
                                     else
                                       ...posState.tables.map((table) {
-                                        return _buildSelectableTile(
-                                          label: table.table_number,
-                                          subtitle: table.status,
-                                          isSelected:
-                                              _selectedTableId == table.id,
-                                          onTap: () {
-                                            setState(() {
-                                              _selectedTableId = table.id;
-                                            });
-                                          },
+                                        return Column(
+                                          children: [
+                                            _buildSelectableTile(
+                                              label: table.table_number,
+                                              subtitle: table.status,
+                                              isSelected:
+                                                  _selectedTableSideIds.any((side) => table.side_labels.contains(side)) || _selectedTableId == table.id,
+                                              onTap: () {
+                                                setState(() {
+                                                  if (_expandedTableIds.contains(table.id)) {
+                                                    _expandedTableIds.remove(table.id);
+                                                  } else {
+                                                    _expandedTableIds.add(table.id);
+                                                  }
+                                                  if (table.side_labels.isEmpty) {
+                                                    _selectedTableId = table.id;
+                                                  }
+                                                });
+                                              },
+                                            ),
+                                            if (_expandedTableIds.contains(table.id) &&
+                                                table.side_labels.isNotEmpty)
+                                              Container(
+                                                margin: EdgeInsets.only(
+                                                  left: 16.w,
+                                                  bottom: 8.h,
+                                                ),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      'Select Sides',
+                                                      style: TextStyle(
+                                                        fontSize: 12.sp,
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        color: AppColors
+                                                            .textSecondary,
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: 8.h),
+                                                    Wrap(
+                                                      spacing: 8.w,
+                                                      runSpacing: 8.h,
+                                                      children: table.side_labels.map((
+                                                        side,
+                                                      ) {
+                                                        final isSideSelected =
+                                                            _selectedTableSideIds
+                                                                .contains(side);
+                                                        return GestureDetector(
+                                                          onTap: () {
+                                                            setState(() {
+                                                              if (isSideSelected) {
+                                                                _selectedTableSideIds
+                                                                    .remove(
+                                                                      side,
+                                                                    );
+                                                              } else {
+                                                                _selectedTableSideIds
+                                                                    .add(side);
+                                                              }
+                                                            });
+                                                          },
+                                                          child: Container(
+                                                            padding:
+                                                                EdgeInsets.symmetric(
+                                                                  horizontal:
+                                                                      12.w,
+                                                                  vertical: 6.h,
+                                                                ),
+                                                            decoration: BoxDecoration(
+                                                              color:
+                                                                  isSideSelected
+                                                                  ? AppColors
+                                                                        .primaryGreen
+                                                                  : AppColors
+                                                                        .pureWhite,
+                                                              borderRadius:
+                                                                  BorderRadius.circular(
+                                                                    20.r,
+                                                                  ),
+                                                              border: Border.all(
+                                                                color:
+                                                                    isSideSelected
+                                                                    ? AppColors
+                                                                          .primaryGreen
+                                                                    : AppColors
+                                                                          .borderGrey,
+                                                              ),
+                                                            ),
+                                                            child: Text(
+                                                              side,
+                                                              style: TextStyle(
+                                                                fontSize: 12.sp,
+                                                                fontWeight:
+                                                                    isSideSelected
+                                                                    ? FontWeight
+                                                                          .w800
+                                                                    : FontWeight
+                                                                          .w600,
+                                                                color:
+                                                                    isSideSelected
+                                                                    ? AppColors
+                                                                          .pureWhite
+                                                                    : AppColors
+                                                                          .textPrimary,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }).toList(),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                          ],
                                         );
                                       }),
                                   ],
@@ -666,29 +776,30 @@ class _PosCartPageState extends State<PosCartPage> {
                             SizedBox(height: 16.h),
                             Row(
                               children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '₹ ${cartTotal.toStringAsFixed(0)}',
-                                      style: TextStyle(
-                                        fontSize: 18.sp,
-                                        fontWeight: FontWeight.w900,
-                                        color: AppColors.textPrimary,
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '₹ ${cartTotal.toStringAsFixed(0)}',
+                                        style: TextStyle(
+                                          fontSize: 18.sp,
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.textPrimary,
+                                        ),
                                       ),
-                                    ),
-                                    Text(
-                                      'TOTAL',
-                                      style: TextStyle(
-                                        fontSize: 10.sp,
-                                        fontWeight: FontWeight.w800,
-                                        color: AppColors.textSecondary,
+                                      Text(
+                                        'TOTAL',
+                                        style: TextStyle(
+                                          fontSize: 10.sp,
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.textSecondary,
+                                        ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
                                 SizedBox(
                                   width: 160.w,
                                   child: AppButton(
@@ -698,7 +809,7 @@ class _PosCartPageState extends State<PosCartPage> {
                                         OperationStatus.loading,
                                     onPressed: () {
                                       if (_selectedOrderType == 'DINE_IN' &&
-                                          _selectedTableId == null) {
+                                          _selectedTableId == null && _selectedTableSideIds.isEmpty) {
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
@@ -743,16 +854,27 @@ class _PosCartPageState extends State<PosCartPage> {
                                         } catch (_) {}
                                       });
 
+                                      String? derivedTableId = _selectedTableId;
+                                      if (_selectedTableSideIds.isNotEmpty) {
+                                        for (var table in posState.tables) {
+                                          if (table.side_labels.contains(_selectedTableSideIds.first)) {
+                                            derivedTableId = table.id;
+                                            break;
+                                          }
+                                        }
+                                      }
+                                      
                                       context
                                           .read<PosKdsCubit>()
                                           .placeOrderFromCart(
                                             cartTotal,
                                             orderItemsList,
                                             _selectedOrderType,
-                                            _selectedTableId,
+                                            derivedTableId,
                                             _selectedCustomerId,
                                             deliveryAddressId:
                                                 _selectedAddressId,
+                                            tableSideIds: _selectedTableSideIds,
                                           );
                                     },
                                   ),
@@ -847,8 +969,6 @@ class _PosCartPageState extends State<PosCartPage> {
       address.pin_code,
     ].where((part) => part.trim().isNotEmpty).join(', ');
   }
-
-
 
   Widget _buildSelectableTile({
     required String label,

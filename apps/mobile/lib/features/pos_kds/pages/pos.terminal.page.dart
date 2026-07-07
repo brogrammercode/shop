@@ -121,10 +121,6 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
   }
 
   Widget _buildProductsGrid(CatalogState state) {
-    if (state.loadMenuItemsInfo.status == OperationStatus.loading &&
-        state.menuItems.isEmpty) {
-      return const Center(child: AppLoader(size: 24, strokeWidth: 2));
-    }
 
     var items = state.menuItems.where((i) => !i.is_deleted).toList();
     if (_selectedCategoryId != 'all') {
@@ -272,6 +268,13 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
                   Expanded(
                     child: BlocBuilder<CatalogCubit, CatalogState>(
                       builder: (context, catalogState) {
+                        if (catalogState.loadMenuItemsInfo.status ==
+                                OperationStatus.loading &&
+                            catalogState.menuItems.isEmpty) {
+                          return const Center(
+                            child: AppLoader(size: 24, strokeWidth: 2),
+                          );
+                        }
                         return SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

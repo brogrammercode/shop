@@ -6,6 +6,7 @@ class OrderModel {
   final int order_no;
   final String branch_id;
   final String table_id;
+  final List<String> table_side_ids;
   final String code;
   final String uid;
   final String delivery_address_id;
@@ -30,6 +31,7 @@ class OrderModel {
     required this.order_no,
     required this.branch_id,
     required this.table_id,
+    required this.table_side_ids,
     required this.code,
     required this.uid,
     required this.delivery_address_id,
@@ -56,6 +58,11 @@ class OrderModel {
       order_no: json['order_no'] ?? 0,
       branch_id: json['branch_id'] ?? '',
       table_id: json['table_id'] ?? '',
+      table_side_ids:
+          (json['table_side_ids'] as List?)
+              ?.map<String>((value) => value.toString())
+              .toList() ??
+          const [],
       code: json['code'] ?? '',
       uid: json['uid'] ?? '',
       delivery_address_id: json['delivery_address_id'] ?? '',
@@ -88,6 +95,7 @@ class OrderModel {
       'order_no': order_no,
       'branch_id': branch_id,
       'table_id': table_id,
+      'table_side_ids': table_side_ids,
       'code': code,
       'uid': uid,
       'delivery_address_id': delivery_address_id,
@@ -114,6 +122,7 @@ class OrderModel {
     int? order_no,
     String? branch_id,
     String? table_id,
+    List<String>? table_side_ids,
     String? code,
     String? uid,
     String? delivery_address_id,
@@ -138,6 +147,7 @@ class OrderModel {
       order_no: order_no ?? this.order_no,
       branch_id: branch_id ?? this.branch_id,
       table_id: table_id ?? this.table_id,
+      table_side_ids: table_side_ids ?? this.table_side_ids,
       code: code ?? this.code,
       uid: uid ?? this.uid,
       delivery_address_id: delivery_address_id ?? this.delivery_address_id,

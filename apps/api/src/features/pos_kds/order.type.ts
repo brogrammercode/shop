@@ -5,6 +5,7 @@ export interface OrderDTO {
   order_no: number;
   branch_id: string;
   table_id?: string;
+  table_side_ids?: string[];
   uid?: string;
   delivery_address_id?: string;
   employee_id?: string;

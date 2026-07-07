@@ -1,5 +1,3 @@
-// Auto-generated DTO file for OrderItem
-
 export interface OrderItemDTO {
   id: string;
   branch_id: string;

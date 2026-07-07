@@ -4,11 +4,13 @@ import 'package:mobile/features/pos_kds/models/order.model.dart';
 import 'package:mobile/features/pos_kds/models/table.model.dart';
 import 'package:mobile/features/pos_kds/models/kitchen_order_ticket.model.dart';
 import 'package:mobile/features/pos_kds/models/advance_payment.model.dart';
+import 'package:mobile/features/pos_kds/models/table_zone.model.dart';
 
 class PosKdsState {
   final List<OrderModel> orders;
   final OrderModel? selectedOrder;
   final List<TableModel> tables;
+  final List<TableZoneModel> tableZones;
   final List<KitchenOrderTicketModel> kots;
   final List<AdvancePaymentModel> payments;
   final List<UserModel> matchingCustomers;
@@ -20,6 +22,8 @@ class PosKdsState {
   final OperationInfo saveOrdersInfo;
   final OperationInfo loadTablesInfo;
   final OperationInfo saveTablesInfo;
+  final OperationInfo loadTableZonesInfo;
+  final OperationInfo saveTableZonesInfo;
   final OperationInfo loadKotsInfo;
   final OperationInfo saveKotsInfo;
   final OperationInfo loadPaymentsInfo;
@@ -30,6 +34,7 @@ class PosKdsState {
     this.orders = const [],
     this.selectedOrder,
     this.tables = const [],
+    this.tableZones = const [],
     this.kots = const [],
     this.payments = const [],
     this.matchingCustomers = const [],
@@ -39,6 +44,8 @@ class PosKdsState {
     this.saveOrdersInfo = const OperationInfo(status: OperationStatus.initial),
     this.loadTablesInfo = const OperationInfo(status: OperationStatus.initial),
     this.saveTablesInfo = const OperationInfo(status: OperationStatus.initial),
+    this.loadTableZonesInfo = const OperationInfo(status: OperationStatus.initial),
+    this.saveTableZonesInfo = const OperationInfo(status: OperationStatus.initial),
     this.loadKotsInfo = const OperationInfo(status: OperationStatus.initial),
     this.saveKotsInfo = const OperationInfo(status: OperationStatus.initial),
     this.loadPaymentsInfo = const OperationInfo(
@@ -54,6 +61,7 @@ class PosKdsState {
     List<OrderModel>? orders,
     OrderModel? selectedOrder,
     List<TableModel>? tables,
+    List<TableZoneModel>? tableZones,
     List<KitchenOrderTicketModel>? kots,
     List<AdvancePaymentModel>? payments,
     List<UserModel>? matchingCustomers,
@@ -64,6 +72,8 @@ class PosKdsState {
     OperationInfo? saveOrdersInfo,
     OperationInfo? loadTablesInfo,
     OperationInfo? saveTablesInfo,
+    OperationInfo? loadTableZonesInfo,
+    OperationInfo? saveTableZonesInfo,
     OperationInfo? loadKotsInfo,
     OperationInfo? saveKotsInfo,
     OperationInfo? loadPaymentsInfo,
@@ -75,6 +85,7 @@ class PosKdsState {
       orders: orders ?? this.orders,
       selectedOrder: selectedOrder ?? this.selectedOrder,
       tables: tables ?? this.tables,
+      tableZones: tableZones ?? this.tableZones,
       kots: kots ?? this.kots,
       payments: payments ?? this.payments,
       matchingCustomers: matchingCustomers ?? this.matchingCustomers,
@@ -86,6 +97,8 @@ class PosKdsState {
       saveOrdersInfo: saveOrdersInfo ?? this.saveOrdersInfo,
       loadTablesInfo: loadTablesInfo ?? this.loadTablesInfo,
       saveTablesInfo: saveTablesInfo ?? this.saveTablesInfo,
+      loadTableZonesInfo: loadTableZonesInfo ?? this.loadTableZonesInfo,
+      saveTableZonesInfo: saveTableZonesInfo ?? this.saveTableZonesInfo,
       loadKotsInfo: loadKotsInfo ?? this.loadKotsInfo,
       saveKotsInfo: saveKotsInfo ?? this.saveKotsInfo,
       loadPaymentsInfo: loadPaymentsInfo ?? this.loadPaymentsInfo,

@@ -1,5 +1,3 @@
-// Auto-generated DTO file for TableZone
-
 export interface TableZoneDTO {
   id: string;
   branch_id: string;

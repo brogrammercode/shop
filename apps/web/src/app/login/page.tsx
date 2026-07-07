@@ -1,12 +1,21 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Check, ChevronDown } from 'lucide-react';
 import { AuthRepo } from '@/features/auth/repo/auth.repo';
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-pure-white"><div className="w-8 h-8 border-2 border-primary-green border-t-transparent rounded-full animate-spin" /></div>}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState<'PHONE' | 'OTP'>('PHONE');
@@ -24,8 +33,11 @@ export default function LoginPage() {
       setError('');
       await AuthRepo.sendOtp(phoneNumber);
       setStep('OTP');
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to send OTP');
+    } catch (err: unknown) {
+      const message = err && typeof err === 'object' && 'response' in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+        : undefined;
+      setError(message || 'Failed to send OTP');
     } finally {
       setIsLoading(false);
     }
@@ -40,9 +52,12 @@ export default function LoginPage() {
       setIsLoading(true);
       setError('');
       await AuthRepo.verifyOtp(phoneNumber, otp);
-      router.push('/');
-    } catch (err: any) {
-      setError(err?.response?.data?.message || 'Invalid OTP');
+      router.push(searchParams.get('next') || '/');
+    } catch (err: unknown) {
+      const message = err && typeof err === 'object' && 'response' in err
+        ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+        : undefined;
+      setError(message || 'Invalid OTP');
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +70,7 @@ export default function LoginPage() {
           <span className="text-white font-black text-2xl leading-tight font-serif">L</span>
         </div>
         <h1 className="text-white text-[32px] font-extrabold mb-2 tracking-wide">Ladyluck</h1>
-        <p className="text-[#E8F5E9] text-[15px] font-medium m-0">Login to manage the store</p>
+        <p className="text-[#E8F5E9] text-[15px] font-medium m-0">Login to continue</p>
       </div>
 
       <div className="bg-white rounded-t-[24px] p-8 pb-8 shadow-[0_-4px_16px_rgba(0,0,0,0.1)] flex flex-col gap-5">

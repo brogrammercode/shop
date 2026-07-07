@@ -411,7 +411,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                         ),
                                       ],
                                     ),
-                                    if (order.table_id.isNotEmpty) ...[
+                                    if (order.table_id.isNotEmpty || order.table_side_ids.isNotEmpty) ...[
                                       SizedBox(height: 8.h),
                                       Row(
                                         children: [
@@ -422,7 +422,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                           ),
                                           SizedBox(width: 6.w),
                                           Text(
-                                            'Table: ${order.table_id}',
+                                            order.table_side_ids.isNotEmpty 
+                                                ? (order.table_id.isNotEmpty 
+                                                    ? 'Table ${order.table_id} (${order.table_side_ids.join(', ')})'
+                                                    : 'Table Sides: ${order.table_side_ids.join(', ')}')
+                                                : 'Table: ${order.table_id}',
                                             style: TextStyle(
                                               fontSize: 13.sp,
                                               fontWeight: FontWeight.w600,
@@ -710,10 +714,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                       ),
                                     ],
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
+                                  child: Stack(
                                     children: [
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
                                       SizedBox(height: 8.h),
                                       Image.asset(
                                         'assets/logo_transparent.png',
@@ -791,10 +797,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                           fontWeight: FontWeight.w800,
                                         ),
                                       ),
-                                      if (order.table_id.isNotEmpty) ...[
+                                      if (order.table_id.isNotEmpty || order.table_side_ids.isNotEmpty) ...[
                                         SizedBox(height: 4.h),
                                         Text(
-                                          'TABLE: ${order.table_id}',
+                                          order.table_side_ids.isNotEmpty 
+                                              ? (order.table_id.isNotEmpty 
+                                                  ? 'TABLE ${order.table_id} (${order.table_side_ids.join(', ')})'
+                                                  : 'TABLE SIDES: ${order.table_side_ids.join(', ')}')
+                                              : 'TABLE: ${order.table_id}',
                                           style: TextStyle(
                                             fontFamily: 'Courier',
                                             fontSize: 12.sp,
@@ -965,6 +975,27 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                           fontWeight: FontWeight.w800,
                                         ),
                                       ),
+                                        ],
+                                      ),
+                                      if (order.status.toUpperCase() == 'PAID')
+                                        Positioned.fill(
+                                          child: IgnorePointer(
+                                            child: Center(
+                                              child: Transform.rotate(
+                                                angle: -0.5,
+                                                child: Text(
+                                                  'PAID',
+                                                  style: TextStyle(
+                                                    fontSize: 80.sp,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: Colors.red.withOpacity(0.15),
+                                                    letterSpacing: 8,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
                                     ],
                                   ),
                                 ),

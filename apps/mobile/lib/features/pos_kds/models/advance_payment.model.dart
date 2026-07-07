@@ -1,5 +1,3 @@
-// Auto-generated Model file for AdvancePayment
-
 class AdvancePaymentModel {
   final String id;
   final String branch_id;

@@ -1,5 +1,3 @@
-// Auto-generated Model file for TableZone
-
 class TableZoneModel {
   final String id;
   final String branch_id;

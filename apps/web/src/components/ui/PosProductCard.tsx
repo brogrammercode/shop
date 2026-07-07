@@ -22,7 +22,6 @@ export const PosProductCard = ({
 }: PosProductCardProps) => {
   return (
     <div className="flex flex-col gap-2 w-full text-left relative">
-      {/* Image Container - Square Aspect Ratio */}
       <button 
         onClick={quantity === 0 ? onAdd : undefined} 
         className={`w-full aspect-square bg-soft-grey rounded-[14px] overflow-hidden relative transition-transform ${quantity === 0 ? 'active:scale-[0.98]' : ''}`}
@@ -35,7 +34,6 @@ export const PosProductCard = ({
           </div>
         )}
         
-        {/* Quantity Overlay */}
         {quantity > 0 && (
           <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-[14px]">
             <div className="bg-pure-white rounded-lg shadow-standard p-1 scale-90 origin-center" onClick={(e) => e.stopPropagation()}>
@@ -49,7 +47,6 @@ export const PosProductCard = ({
         )}
       </button>
 
-      {/* Info */}
       <div className="flex flex-col px-0.5 mt-[2px]">
         <h3 className="text-[12px] font-bold text-[#1C1C1C] leading-[1.2] line-clamp-2">
           {title}
