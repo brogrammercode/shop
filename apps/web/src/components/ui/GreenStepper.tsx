@@ -12,7 +12,7 @@ export const GreenStepper = ({ count, onIncrement, onDecrement }: GreenStepperPr
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M20 12H4" />
         </svg>
       </button>
-      <span className="text-[13px] font-black text-primary-green min-w-[12px] text-center">
+      <span className="text-[13px] font-bold text-primary-green min-w-[12px] text-center">
         {count}
       </span>
       <button onClick={onIncrement} className="text-primary-green active:opacity-70 p-1">

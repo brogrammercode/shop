@@ -356,6 +356,10 @@ export class CoreHrRepo {
     });
   }
 
+  async createAddress(data: { entity_type: any; entity_id: string; area: string; locality?: string; city?: string; state?: string; pin_code?: string; country?: string }) {
+    return prisma.address.create({ data });
+  }
+
   async createTimeLog(actorUid: string, branchId: string, employeeId: string, clockIn: Date) {
     return prisma.$transaction(async (tx) => {
       const log = await tx.timeLog.create({

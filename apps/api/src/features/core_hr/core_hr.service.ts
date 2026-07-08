@@ -16,12 +16,19 @@ export class CoreHrService {
   async sendOtp(phoneNumber: string) {
     if (!phoneNumber) throw new BadRequestError('Phone number is required');
 
-    let user = await coreHrRepo.findUserByPhone(phoneNumber);
+    // Normalize to E.164 format
+    const normalized = phoneNumber.startsWith('+')
+      ? phoneNumber
+      : phoneNumber.length === 10
+        ? `+91${phoneNumber}`           // Default to India if bare 10-digit
+        : `+${phoneNumber}`;
+
+    let user = await coreHrRepo.findUserByPhone(normalized);
     if (!user) {
       user = await coreHrRepo.findOrCreateUser(
-        `phone_${phoneNumber.replace(/[^0-9]/g, '')}`,
+        `phone_${normalized.replace(/[^0-9]/g, '')}`,
         _CORE_HR_CONSTANTS._D_E_F_A_U_L_T_S.UNKNOWN_USER,
-        phoneNumber,
+        normalized,
         null,
         null
       );
@@ -47,7 +54,7 @@ export class CoreHrService {
       valid_till,
     });
 
-    await this.smsService.sendSms(phoneNumber, `${_CORE_HR_CONSTANTS.OTP_SMS_BODY}${otp}`);
+    await this.smsService.sendSms(normalized, `${_CORE_HR_CONSTANTS.OTP_SMS_BODY}${otp}`);
   }
 
   async login(idToken?: string, phoneNumber?: string, otp?: string, ipAddress?: string, deviceInfo?: string) {
@@ -73,7 +80,14 @@ export class CoreHrService {
         email = payload.email || null;
         picture = payload.picture || null;
       } else if (phoneNumber && otp) {
-        user = await coreHrRepo.findUserByPhone(phoneNumber);
+        // Normalize to same E.164 format used during sendOtp
+        const normalizedPhone = phoneNumber.startsWith('+')
+          ? phoneNumber
+          : phoneNumber.length === 10
+            ? `+91${phoneNumber}`
+            : `+${phoneNumber}`;
+
+        user = await coreHrRepo.findUserByPhone(normalizedPhone);
         if (!user) {
           throw new BadRequestError('User not found');
         }
@@ -89,7 +103,7 @@ export class CoreHrService {
         }
         
         uid = user.id;
-        phone_number = phoneNumber;
+        phone_number = normalizedPhone;
         name = user.name;
       } else {
         throw new BadRequestError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.MISSING_CREDENTIALS);
@@ -351,6 +365,14 @@ export class CoreHrService {
 
   async createCashRegister(actorUid: string, branchId: string, registerName: string, macAddress?: string) {
     return coreHrRepo.createCashRegister(actorUid, branchId, registerName, macAddress);
+  }
+
+  async createAddress(uid: string, data: { area: string; locality?: string; city?: string; state?: string; pin_code?: string; country?: string }) {
+    return coreHrRepo.createAddress({
+      entity_type: 'USER',
+      entity_id: uid,
+      ...data,
+    });
   }
 
   async openCashRegister(actorUid: string, id: string, branchId: string, expectedCash: number, openedBy: string) {

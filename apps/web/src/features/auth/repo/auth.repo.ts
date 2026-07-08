@@ -11,12 +11,12 @@ export interface VerifyOtpResponse {
 
 export class AuthRepo {
   static async sendOtp(phoneNumber: string): Promise<void> {
-    const response = await apiClient.post('/auth/send-otp', { phone_number: phoneNumber });
+    const response = await apiClient.post('/hr/auth/send-otp', { phone_number: phoneNumber });
     return response.data?.data;
   }
 
   static async verifyOtp(phoneNumber: string, otp: string): Promise<VerifyOtpResponse> {
-    const response = await apiClient.post('/auth/verify-otp', { phone_number: phoneNumber, otp });
+    const response = await apiClient.post('/hr/auth/login', { phone_number: phoneNumber, otp });
     const data = response.data?.data;
     
     if (data?.tokens?.accessToken && data?.user) {

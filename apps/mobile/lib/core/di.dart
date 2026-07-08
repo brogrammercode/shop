@@ -9,12 +9,15 @@ import 'package:mobile/features/inventory/controllers/inventory.cubit.dart';
 import 'package:mobile/features/catalog/controllers/catalog.repo.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.repo.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.cubit.dart';
+import 'package:mobile/features/pos_kds/services/usb_receipt_printer_service.dart';
 import 'package:mobile/features/manufacturing/manufacturing.repo.dart';
 import 'package:mobile/features/manufacturing/manufacturing.cubit.dart';
 import 'package:mobile/features/finance/finance.repo.dart';
 import 'package:mobile/features/finance/finance.cubit.dart';
 import 'package:mobile/features/crm/crm.repo.dart';
 import 'package:mobile/features/crm/crm.cubit.dart';
+import 'package:mobile/features/notification/notification.cubit.dart';
+import 'package:mobile/features/notification/notification.repo.dart';
 
 final GetIt serviceLocator = GetIt.instance;
 
@@ -65,8 +68,15 @@ class AppDependencies {
     return PosKdsRepo(apiClient: apiClient);
   }
 
+  static UsbReceiptPrinterService usbReceiptPrinterService() {
+    return const UsbReceiptPrinterService();
+  }
+
   static PosKdsCubit posKdsCubit() {
-    return PosKdsCubit(repo: posKdsRepo());
+    return PosKdsCubit(
+      repo: posKdsRepo(),
+      receiptPrinterService: usbReceiptPrinterService(),
+    );
   }
 
   static ManufacturingRepo manufacturingRepo() {
@@ -91,5 +101,13 @@ class AppDependencies {
 
   static CrmCubit crmCubit() {
     return CrmCubit(repo: crmRepo());
+  }
+
+  static NotificationRepo notificationRepo() {
+    return NotificationRepo(apiClient: apiClient);
+  }
+
+  static NotificationCubit notificationCubit() {
+    return NotificationCubit(repo: notificationRepo());
   }
 }

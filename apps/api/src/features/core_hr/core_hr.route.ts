@@ -24,6 +24,7 @@ router.get(_CORE_HR_CONSTANTS._R_O_U_T_E_S.BRANCH_SEARCH, coreHrController.searc
 router.post(_CORE_HR_CONSTANTS._R_O_U_T_E_S.BRANCH_JOIN_REQUEST, coreHrController.createJoinRequest);
 
 router.get(_CORE_HR_CONSTANTS._R_O_U_T_E_S.USER_LOGS, coreHrController.listUserLogs);
+router.post('/auth/addresses', coreHrController.createAddress);
 
 // Employee routes
 router.use(requireBranchEmployee);

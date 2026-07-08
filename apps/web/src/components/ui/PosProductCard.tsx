@@ -22,9 +22,17 @@ export const PosProductCard = ({
 }: PosProductCardProps) => {
   return (
     <div className="flex flex-col gap-2 w-full text-left relative">
-      <button 
+      <div 
         onClick={quantity === 0 ? onAdd : undefined} 
-        className={`w-full aspect-square bg-soft-grey rounded-[14px] overflow-hidden relative transition-transform ${quantity === 0 ? 'active:scale-[0.98]' : ''}`}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (quantity === 0 && onAdd) onAdd();
+          }
+        }}
+        className={`w-full aspect-square bg-soft-grey rounded-[14px] overflow-hidden relative transition-transform ${quantity === 0 ? 'active:scale-[0.98] cursor-pointer' : ''}`}
       >
         {imageUrl ? (
           <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
@@ -45,13 +53,13 @@ export const PosProductCard = ({
             </div>
           </div>
         )}
-      </button>
+      </div>
 
       <div className="flex flex-col px-0.5 mt-[2px]">
-        <h3 className="text-[12px] font-bold text-[#1C1C1C] leading-[1.2] line-clamp-2">
+        <h3 className="text-[12px] font-medium text-text-primary leading-[1.2] line-clamp-2">
           {title}
         </h3>
-        <span className="text-[12px] font-bold text-[#0F8244] mt-[4px]">
+        <span className="text-[12px] font-medium text-primary-green mt-[4px]">
           ₹ {price}
         </span>
       </div>

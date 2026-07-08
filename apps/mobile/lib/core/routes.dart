@@ -90,6 +90,7 @@ import 'package:mobile/features/finance/fixed_asset.detail.page.dart';
 import 'package:mobile/features/finance/fixed_asset.form.page.dart';
 import 'package:mobile/features/finance/royalty.list.page.dart';
 import 'package:mobile/features/finance/royalty.detail.page.dart';
+import 'package:mobile/features/notification/notification.page.dart';
 
 class AppRoutes {
   static const String splash = '/splash';
@@ -158,6 +159,7 @@ class AppRoutes {
   static const String orderDetail = '/order-detail';
   static const String deliveryPartnerList = '/delivery-partner-list';
   static const String kdsTerminal = '/kds-terminal';
+  static const String notifications = '/notifications';
 
   // Core HR Routes
   static const String employeeList = '/employee-list';
@@ -261,6 +263,7 @@ class AppRoutes {
     orderDetail: (context) => const OrderDetailPage(),
     deliveryPartnerList: (context) => const DeliveryPartnerListPage(),
     kdsTerminal: (context) => const KdsTerminalPage(),
+    notifications: (context) => const NotificationPage(),
 
     // Core HR
     employeeList: (context) => const EmployeeListPage(),

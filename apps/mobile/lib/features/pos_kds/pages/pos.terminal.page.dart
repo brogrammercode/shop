@@ -8,6 +8,7 @@ import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
 import 'package:mobile/features/pos_kds/pages/pos.cart.page.dart';
 import 'package:mobile/features/catalog/controllers/catalog.cubit.dart';
 import 'package:mobile/features/catalog/controllers/catalog.state.dart';
+import 'package:mobile/features/notification/notification.icon.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/components/ui/loader.dart';
 
@@ -121,7 +122,6 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
   }
 
   Widget _buildProductsGrid(CatalogState state) {
-
     var items = state.menuItems.where((i) => !i.is_deleted).toList();
     if (_selectedCategoryId != 'all') {
       items = items.where((i) => i.category_id == _selectedCategoryId).toList();
@@ -438,30 +438,36 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
           ),
           BlocBuilder<PosKdsCubit, PosKdsState>(
             builder: (context, state) {
-              if (state.cart.isEmpty) {
-                return SizedBox(width: 40.w);
-              }
-              return GestureDetector(
-                onTap: () => context.read<PosKdsCubit>().clearCart(),
-                child: Container(
-                  padding: EdgeInsets.all(8.w),
-                  decoration: const BoxDecoration(
-                    color: AppColors.pureWhite,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.shadowColor,
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const NotificationIcon(),
+                  if (state.cart.isNotEmpty) ...[
+                    SizedBox(width: 8.w),
+                    GestureDetector(
+                      onTap: () => context.read<PosKdsCubit>().clearCart(),
+                      child: Container(
+                        padding: EdgeInsets.all(8.w),
+                        decoration: const BoxDecoration(
+                          color: AppColors.pureWhite,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.shadowColor,
+                              blurRadius: 4,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.clear,
+                          color: AppColors.textPrimary,
+                          size: 20.w,
+                        ),
                       ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.clear,
-                    color: AppColors.textPrimary,
-                    size: 20.w,
-                  ),
-                ),
+                    ),
+                  ],
+                ],
               );
             },
           ),

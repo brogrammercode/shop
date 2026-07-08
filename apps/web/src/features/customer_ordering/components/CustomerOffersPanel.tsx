@@ -8,7 +8,7 @@ interface CustomerOffersPanelProps {
 export const CustomerOffersPanel = ({ isLoggedIn }: CustomerOffersPanelProps) => {
   return (
     <section className="px-4 py-4 bg-pure-white">
-      <h2 className="text-[12px] font-extrabold text-text-tertiary uppercase tracking-[0.8px] mb-3">
+      <h2 className="text-[12px] font-bold text-text-tertiary uppercase tracking-[0.8px] mb-3">
         {CUSTOMER_ORDERING_TEXT.OFFERS_TITLE}
       </h2>
       <div className="grid grid-cols-1 gap-3">
@@ -17,8 +17,8 @@ export const CustomerOffersPanel = ({ isLoggedIn }: CustomerOffersPanelProps) =>
             <BadgePercent size={18} className="text-primary-green" />
           </div>
           <div className="min-w-0">
-            <p className="text-[13px] font-black text-text-primary">
-              {CUSTOMER_ORDERING_TEXT.OFFER_ONE_TITLE}
+            <p className="text-[13px] font-semibold text-text-primary">
+              {CUSTOMER_ORDERING_TEXT.OFFER_TWO_TITLE}
             </p>
             <p className="text-[11px] font-semibold text-text-secondary leading-relaxed">
               {isLoggedIn ? CUSTOMER_ORDERING_TEXT.OFFER_TWO_BODY : CUSTOMER_ORDERING_TEXT.OFFER_ONE_BODY}

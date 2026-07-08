@@ -44,7 +44,7 @@ export const PosCategoryScroll = ({ categories, activeId, onSelect }: PosCategor
             <div className="flex flex-col items-center">
               <span
                 className={`text-[12px] tracking-tight ${
-                  isActive ? "font-bold text-text-primary" : "font-medium text-[#757575]"
+                  isActive ? "font-medium text-text-primary" : "font-normal text-text-secondary"
                 }`}
               >
                 {cat.label}

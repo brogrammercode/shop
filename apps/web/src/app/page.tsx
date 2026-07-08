@@ -5,7 +5,7 @@ export default function Home() {
     <div className="min-h-screen flex items-center justify-center bg-pure-white">
       <Link 
         href="/menu" 
-        className="px-6 py-3 bg-primary-green text-pure-white font-bold rounded-lg shadow-standard"
+        className="px-6 py-3 bg-primary-green text-pure-white font-medium rounded-lg shadow-standard"
       >
         Open POS Menu
       </Link>

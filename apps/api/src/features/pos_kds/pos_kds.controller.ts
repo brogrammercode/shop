@@ -10,6 +10,13 @@ export const listOrders = asyncHandler(async (req: Request, res: Response) => {
   return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.ORDERS_LISTED, HttpStatus.OK);
 });
 
+export const listMyOrders = asyncHandler(async (req: Request, res: Response) => {
+  const uid = req.user?.uid;
+  if (!uid) throw new BadRequestError('User not authenticated');
+  const result = await posKdsService.listMyOrders(uid);
+  return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.ORDERS_LISTED, HttpStatus.OK);
+});
+
 export const createOrder = asyncHandler(async (req: Request, res: Response) => {
   const branchId = req.employee?.branch_id || req.body.branch_id;
   const result = await posKdsService.createOrder(branchId, {

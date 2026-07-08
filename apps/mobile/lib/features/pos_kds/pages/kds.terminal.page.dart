@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/core/di.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.cubit.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
 import 'package:mobile/features/pos_kds/models/order.model.dart';
@@ -32,6 +33,15 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
   void initState() {
     super.initState();
     _fetchOrders();
+    _loadPollingInterval();
+  }
+
+  Future<void> _loadPollingInterval() async {
+    final seconds = await AppDependencies.localStorage.getKdsPollingSeconds();
+    if (!mounted) {
+      return;
+    }
+    setState(() => _pollingIntervalSeconds = seconds);
     _startPolling();
   }
 
@@ -46,6 +56,82 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
 
   void _fetchOrders() {
     context.read<PosKdsCubit>().listOrders();
+  }
+
+  String _deliveryAddress(OrderModel order) {
+    final addresses = order.user?.addresses ?? const [];
+    for (final address in addresses) {
+      if (address.id == order.delivery_address_id) {
+        final value = _addressValue([
+          address.area,
+          address.locality,
+          address.city,
+          address.state,
+          address.pin_code,
+        ]);
+        if (value.isNotEmpty) {
+          return value;
+        }
+      }
+    }
+    if (addresses.length == 1) {
+      final address = addresses.first;
+      return _addressValue([
+        address.area,
+        address.locality,
+        address.city,
+        address.state,
+        address.pin_code,
+      ]);
+    }
+    return '';
+  }
+
+  String _addressValue(List<String> parts) {
+    return parts.where((part) => part.trim().isNotEmpty).join(', ');
+  }
+
+  String _tableDisplay(OrderModel order, PosKdsState posState) {
+    final table =
+        order.table ??
+        posState.tables
+            .where((table) => table.id == order.table_id)
+            .firstOrNull;
+    final tableName = table?.table_number.trim().isNotEmpty == true
+        ? table!.table_number
+        : '';
+    final sideNames = _sideDisplay(order, table?.side_labels ?? const []);
+    if (tableName.isNotEmpty && sideNames.isNotEmpty) {
+      return 'Table $tableName ($sideNames)';
+    }
+    if (tableName.isNotEmpty) {
+      return 'Table $tableName';
+    }
+    if (sideNames.isNotEmpty) {
+      return 'Sides: $sideNames';
+    }
+    return '';
+  }
+
+  String _sideDisplay(OrderModel order, List<String> labels) {
+    if (order.table_side_ids.isEmpty) {
+      return '';
+    }
+    return order.table_side_ids
+        .map((side) {
+          if (labels.contains(side)) {
+            return side;
+          }
+          final prefix = '${order.table_id}-';
+          if (side.startsWith(prefix)) {
+            final index = int.tryParse(side.replaceFirst(prefix, ''));
+            if (index != null && index > 0 && labels.length >= index) {
+              return labels[index - 1];
+            }
+          }
+          return side;
+        })
+        .join(', ');
   }
 
   @override
@@ -483,6 +569,7 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
     return GestureDetector(
       onTap: () {
         setState(() => _pollingIntervalSeconds = seconds);
+        AppDependencies.localStorage.saveKdsPollingSeconds(seconds);
         setSheetState(() {});
         _startPolling();
       },
@@ -830,22 +917,10 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
     }
 
     final customer = order.user;
-    
+
     final posState = context.read<PosKdsCubit>().state;
-    String tableDisplay = 'Fulfillment';
-    if (order.table_id.isNotEmpty || order.table_side_ids.isNotEmpty) {
-      final table = posState.tables.where((t) => t.id == order.table_id).firstOrNull;
-      final tableName = table?.table_number ?? 'Unknown';
-      if (order.table_side_ids.isNotEmpty) {
-         if (order.table_id.isNotEmpty) {
-           tableDisplay = 'Table $tableName (${order.table_side_ids.join(', ')})';
-         } else {
-           tableDisplay = 'Sides: ${order.table_side_ids.join(', ')}';
-         }
-      } else {
-         tableDisplay = 'Table $tableName';
-      }
-    }
+    final tableDisplay = _tableDisplay(order, posState);
+    final deliveryAddress = _deliveryAddress(order);
 
     return GestureDetector(
       onLongPress: () {
@@ -893,7 +968,9 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                         Row(
                           children: [
                             Icon(
-                              order.order_type == 'DINE_IN' ? Icons.table_restaurant_outlined : Icons.takeout_dining_outlined,
+                              order.order_type == 'DINE_IN'
+                                  ? Icons.table_restaurant_outlined
+                                  : Icons.takeout_dining_outlined,
                               size: 13.w,
                               color: AppColors.textSecondary,
                             ),
@@ -914,7 +991,7 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                 ],
               ),
             ),
-            
+
             Padding(
               padding: EdgeInsets.all(12.w),
               child: Column(
@@ -947,10 +1024,9 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                               : customer.name,
                           customer == null
                               ? 'No linked customer'
-                              : [
-                                  customer.phone,
-                                  customer.email,
-                                ].where((item) => item.trim().isNotEmpty).join(' • '),
+                              : [customer.phone, customer.email]
+                                    .where((item) => item.trim().isNotEmpty)
+                                    .join(' • '),
                         ),
                       ),
                       SizedBox(width: 12.w),
@@ -959,17 +1035,17 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                           order.order_type == 'DINE_IN'
                               ? Icons.table_restaurant_outlined
                               : Icons.location_on_outlined,
-                          order.table_id.isNotEmpty || order.table_side_ids.isNotEmpty
+                          tableDisplay.isNotEmpty
                               ? tableDisplay
                               : 'Fulfillment',
-                          order.delivery_address_id.isNotEmpty
-                              ? order.delivery_address_id
+                          deliveryAddress.isNotEmpty
+                              ? deliveryAddress
                               : order.order_type,
                         ),
                       ),
                     ],
                   ),
-                  
+
                   if (order.notes.isNotEmpty) ...[
                     SizedBox(height: 12.h),
                     Container(
@@ -1026,7 +1102,9 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFF3F4F6),
                                     borderRadius: BorderRadius.circular(8.r),
-                                    border: Border.all(color: AppColors.borderGrey),
+                                    border: Border.all(
+                                      color: AppColors.borderGrey,
+                                    ),
                                   ),
                                   child: Text(
                                     '${item.qty.toInt()}x',
@@ -1040,7 +1118,8 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                                 SizedBox(width: 12.w),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         item.menu_item?.display_name ??
@@ -1057,7 +1136,9 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                                           padding: EdgeInsets.all(8.w),
                                           decoration: BoxDecoration(
                                             color: const Color(0xFFFFF8E1),
-                                            borderRadius: BorderRadius.circular(6.r),
+                                            borderRadius: BorderRadius.circular(
+                                              6.r,
+                                            ),
                                             border: Border.all(
                                               color: const Color(0xFFFFECB3),
                                             ),
@@ -1078,7 +1159,9 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                                                   style: TextStyle(
                                                     fontSize: 12.sp,
                                                     fontWeight: FontWeight.w700,
-                                                    color: const Color(0xFFF57F17),
+                                                    color: const Color(
+                                                      0xFFF57F17,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
@@ -1098,7 +1181,7 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                 ],
               ),
             ),
-            
+
             // Footer Action Section
             if (columnStatus == 'OPEN')
               Padding(

@@ -1,5 +1,6 @@
 import 'package:mobile/features/pos_kds/models/order_item.model.dart';
 import 'package:mobile/features/core_hr/models/user.model.dart';
+import 'package:mobile/features/pos_kds/models/table.model.dart';
 
 class OrderModel {
   final String id;
@@ -13,6 +14,7 @@ class OrderModel {
   final String employee_id;
   final String partner_id;
   final UserModel? user;
+  final TableModel? table;
   final String order_type;
   final String status;
   final double subtotal;
@@ -38,6 +40,7 @@ class OrderModel {
     required this.employee_id,
     required this.partner_id,
     this.user,
+    this.table,
     required this.order_type,
     required this.status,
     required this.subtotal,
@@ -69,6 +72,7 @@ class OrderModel {
       employee_id: json['employee_id'] ?? '',
       partner_id: json['partner_id'] ?? '',
       user: json['user'] != null ? UserModel.fromJson(json['user']) : null,
+      table: json['table'] != null ? TableModel.fromJson(json['table']) : null,
       order_type: json['order_type'] ?? '',
       status: json['status'] ?? '',
       subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
@@ -102,6 +106,7 @@ class OrderModel {
       'employee_id': employee_id,
       'partner_id': partner_id,
       'user': user?.toJson(),
+      'table': table?.toJson(),
       'order_type': order_type,
       'status': status,
       'subtotal': subtotal,
@@ -129,6 +134,7 @@ class OrderModel {
     String? employee_id,
     String? partner_id,
     UserModel? user,
+    TableModel? table,
     String? order_type,
     String? status,
     double? subtotal,
@@ -154,6 +160,7 @@ class OrderModel {
       employee_id: employee_id ?? this.employee_id,
       partner_id: partner_id ?? this.partner_id,
       user: user ?? this.user,
+      table: table ?? this.table,
       order_type: order_type ?? this.order_type,
       status: status ?? this.status,
       subtotal: subtotal ?? this.subtotal,

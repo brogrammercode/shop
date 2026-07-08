@@ -1,16 +1,24 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
 import 'package:mobile/features/core_hr/models/user.model.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.repo.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
+import 'package:mobile/features/pos_kds/models/order.model.dart';
+import 'package:mobile/features/pos_kds/services/receipt_printer_exception.dart';
+import 'package:mobile/features/pos_kds/services/usb_receipt_printer_service.dart';
 
 class PosKdsCubit extends Cubit<PosKdsState> {
   final PosKdsRepo _repo;
+  final UsbReceiptPrinterService _receiptPrinterService;
 
-  PosKdsCubit({required PosKdsRepo repo})
-    : _repo = repo,
-      super(const PosKdsState());
+  PosKdsCubit({
+    required PosKdsRepo repo,
+    required UsbReceiptPrinterService receiptPrinterService,
+  }) : _repo = repo,
+       _receiptPrinterService = receiptPrinterService,
+       super(const PosKdsState());
 
   void addToCart(String menuItemId) {
     final currentCart = Map<String, int>.from(state.cart);
@@ -666,5 +674,119 @@ class PosKdsCubit extends Cubit<PosKdsState> {
         );
       },
     );
+  }
+
+  Future<void> printOrderReceipt(OrderModel order) async {
+    emit(
+      state.copyWith(
+        printReceiptInfo: const OperationInfo(status: OperationStatus.loading),
+        printLogs: [_printLogEntry(PosConstant.PRINT_LOG_STARTED)],
+      ),
+    );
+    try {
+      await _receiptPrinterService.printOrderReceipt(
+        order,
+        onLog: _appendPrintLog,
+      );
+      _appendPrintLog(PosConstant.PRINT_LOG_PRINT_SUCCESS);
+      Fluttertoast.showToast(msg: PosConstant.RECEIPT_PRINT_SUCCESS_MESSAGE);
+      emit(
+        state.copyWith(
+          printReceiptInfo: const OperationInfo(
+            status: OperationStatus.success,
+          ),
+        ),
+      );
+    } on ReceiptPrinterException catch (error) {
+      _appendPrintLog(
+        '${PosConstant.PRINT_LOG_PRINT_FAILED}: ${error.message}',
+      );
+      Fluttertoast.showToast(msg: error.message);
+      emit(
+        state.copyWith(
+          printReceiptInfo: OperationInfo(
+            status: OperationStatus.error,
+            error: ServerFailure(error.message),
+          ),
+        ),
+      );
+    } catch (_) {
+      _appendPrintLog(
+        '${PosConstant.PRINT_LOG_PRINT_FAILED}: ${PosConstant.PRINTING_FAILED_MESSAGE}',
+      );
+      Fluttertoast.showToast(msg: PosConstant.PRINTING_FAILED_MESSAGE);
+      emit(
+        state.copyWith(
+          printReceiptInfo: const OperationInfo(
+            status: OperationStatus.error,
+            error: ServerFailure(PosConstant.PRINTING_FAILED_MESSAGE),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> printTestReceipt() async {
+    emit(
+      state.copyWith(
+        printReceiptInfo: const OperationInfo(status: OperationStatus.loading),
+        printLogs: [_printLogEntry(PosConstant.PRINT_LOG_TEST_STARTED)],
+      ),
+    );
+    try {
+      await _receiptPrinterService.printTestReceipt(onLog: _appendPrintLog);
+      _appendPrintLog(PosConstant.PRINT_LOG_PRINT_SUCCESS);
+      Fluttertoast.showToast(msg: PosConstant.RECEIPT_PRINT_SUCCESS_MESSAGE);
+      emit(
+        state.copyWith(
+          printReceiptInfo: const OperationInfo(
+            status: OperationStatus.success,
+          ),
+        ),
+      );
+    } on ReceiptPrinterException catch (error) {
+      _appendPrintLog(
+        '${PosConstant.PRINT_LOG_PRINT_FAILED}: ${error.message}',
+      );
+      Fluttertoast.showToast(msg: error.message);
+      emit(
+        state.copyWith(
+          printReceiptInfo: OperationInfo(
+            status: OperationStatus.error,
+            error: ServerFailure(error.message),
+          ),
+        ),
+      );
+    } catch (_) {
+      _appendPrintLog(
+        '${PosConstant.PRINT_LOG_PRINT_FAILED}: ${PosConstant.PRINTING_FAILED_MESSAGE}',
+      );
+      Fluttertoast.showToast(msg: PosConstant.PRINTING_FAILED_MESSAGE);
+      emit(
+        state.copyWith(
+          printReceiptInfo: const OperationInfo(
+            status: OperationStatus.error,
+            error: ServerFailure(PosConstant.PRINTING_FAILED_MESSAGE),
+          ),
+        ),
+      );
+    }
+  }
+
+  void _appendPrintLog(String message) {
+    if (isClosed) {
+      return;
+    }
+    emit(
+      state.copyWith(printLogs: [...state.printLogs, _printLogEntry(message)]),
+    );
+  }
+
+  String _printLogEntry(String message) {
+    final now = DateTime.now();
+    final hour = now.hour.toString().padLeft(2, '0');
+    final minute = now.minute.toString().padLeft(2, '0');
+    final second = now.second.toString().padLeft(2, '0');
+    return '$hour:$minute:$second  $message';
   }
 }

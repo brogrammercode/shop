@@ -1,7 +1,7 @@
 export const RatingBadge = ({ rating }: { rating: number }) => {
   return (
-    <div className="flex items-center gap-0.5 px-1.5 py-0.5 bg-primary-green rounded-[6px]">
-      <span className="text-[9px] font-black text-pure-white leading-none">
+    <div className="flex items-center gap-[2px] bg-primary-green px-1.5 py-[2px] rounded border border-[#0B6433]/20 shadow-sm">
+      <span className="text-[9px] font-bold text-pure-white leading-none">
         {rating.toFixed(1)}
       </span>
       <svg className="w-[9px] h-[9px] text-pure-white" fill="currentColor" viewBox="0 0 20 20">

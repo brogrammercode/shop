@@ -15,8 +15,9 @@ class PosKdsState {
   final List<AdvancePaymentModel> payments;
   final List<UserModel> matchingCustomers;
   final UserModel? selectedCustomer;
+  final List<String> printLogs;
 
-  final Map<String, int> cart; // menuItemId -> quantity
+  final Map<String, int> cart;
 
   final OperationInfo loadOrdersInfo;
   final OperationInfo saveOrdersInfo;
@@ -28,6 +29,7 @@ class PosKdsState {
   final OperationInfo saveKotsInfo;
   final OperationInfo loadPaymentsInfo;
   final OperationInfo searchCustomersInfo;
+  final OperationInfo printReceiptInfo;
   final OrderModel? lastPlacedOrder;
 
   const PosKdsState({
@@ -39,19 +41,27 @@ class PosKdsState {
     this.payments = const [],
     this.matchingCustomers = const [],
     this.selectedCustomer,
+    this.printLogs = const [],
     this.cart = const {},
     this.loadOrdersInfo = const OperationInfo(status: OperationStatus.initial),
     this.saveOrdersInfo = const OperationInfo(status: OperationStatus.initial),
     this.loadTablesInfo = const OperationInfo(status: OperationStatus.initial),
     this.saveTablesInfo = const OperationInfo(status: OperationStatus.initial),
-    this.loadTableZonesInfo = const OperationInfo(status: OperationStatus.initial),
-    this.saveTableZonesInfo = const OperationInfo(status: OperationStatus.initial),
+    this.loadTableZonesInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
+    this.saveTableZonesInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
     this.loadKotsInfo = const OperationInfo(status: OperationStatus.initial),
     this.saveKotsInfo = const OperationInfo(status: OperationStatus.initial),
     this.loadPaymentsInfo = const OperationInfo(
       status: OperationStatus.initial,
     ),
     this.searchCustomersInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
+    this.printReceiptInfo = const OperationInfo(
       status: OperationStatus.initial,
     ),
     this.lastPlacedOrder,
@@ -66,6 +76,7 @@ class PosKdsState {
     List<AdvancePaymentModel>? payments,
     List<UserModel>? matchingCustomers,
     UserModel? selectedCustomer,
+    List<String>? printLogs,
     bool clearSelectedCustomer = false,
     Map<String, int>? cart,
     OperationInfo? loadOrdersInfo,
@@ -78,6 +89,7 @@ class PosKdsState {
     OperationInfo? saveKotsInfo,
     OperationInfo? loadPaymentsInfo,
     OperationInfo? searchCustomersInfo,
+    OperationInfo? printReceiptInfo,
     OrderModel? lastPlacedOrder,
     bool clearLastPlacedOrder = false,
   }) {
@@ -92,6 +104,7 @@ class PosKdsState {
       selectedCustomer: clearSelectedCustomer
           ? null
           : selectedCustomer ?? this.selectedCustomer,
+      printLogs: printLogs ?? this.printLogs,
       cart: cart ?? this.cart,
       loadOrdersInfo: loadOrdersInfo ?? this.loadOrdersInfo,
       saveOrdersInfo: saveOrdersInfo ?? this.saveOrdersInfo,
@@ -103,6 +116,7 @@ class PosKdsState {
       saveKotsInfo: saveKotsInfo ?? this.saveKotsInfo,
       loadPaymentsInfo: loadPaymentsInfo ?? this.loadPaymentsInfo,
       searchCustomersInfo: searchCustomersInfo ?? this.searchCustomersInfo,
+      printReceiptInfo: printReceiptInfo ?? this.printReceiptInfo,
       lastPlacedOrder: clearLastPlacedOrder
           ? null
           : lastPlacedOrder ?? this.lastPlacedOrder,

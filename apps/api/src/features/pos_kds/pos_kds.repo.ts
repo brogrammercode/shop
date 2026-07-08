@@ -36,6 +36,19 @@ export class PosKdsRepo {
     return this.withUserAddresses(orders);
   }
 
+  async findOrdersByUser(uid: string) {
+    return prisma.order.findMany({
+      where: { uid },
+      include: {
+        branch: { select: { id: true, name: true } },
+        items: {
+          include: { menu_item: { select: { id: true, display_name: true } } },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+  }
+
   async findOrderById(id: string) {
     const order = await prisma.order.findUnique({ where: { id }, include: { user: true, table: true, items: { include: { menu_item: true } }, kots: true, advance_payments: true } });
     if (!order) {

@@ -51,9 +51,7 @@ export const calculateSubtotal = (cartItems: CustomerCartItem[]): number => {
   return cartItems.reduce((total, cartItem) => total + cartItem.item.selling_price * cartItem.quantity, 0);
 };
 
-export const calculateTax = (subtotal: number): number => {
-  return subtotal * CUSTOMER_ORDERING_DEFAULTS.TAX_RATE;
-};
+
 
 export const formatAmount = (amount: number): string => {
   return `₹ ${Math.round(amount)}`;

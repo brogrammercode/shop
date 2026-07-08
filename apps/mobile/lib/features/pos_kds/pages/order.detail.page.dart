@@ -177,7 +177,59 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         }
       }
     }
-    return order.delivery_address_id;
+    if (addresses.length == 1) {
+      final address = addresses.first;
+      final parts = [
+        address.area,
+        address.locality,
+        address.city,
+        address.state,
+        address.pin_code,
+      ].where((part) => part.trim().isNotEmpty).toList();
+      if (parts.isNotEmpty) {
+        return parts.join(', ');
+      }
+    }
+    return '';
+  }
+
+  String _tableDisplay(OrderModel order) {
+    final tableName = order.table?.table_number.trim().isNotEmpty == true
+        ? order.table!.table_number
+        : '';
+    final sideNames = _sideDisplay(order);
+    if (tableName.isNotEmpty && sideNames.isNotEmpty) {
+      return 'Table $tableName ($sideNames)';
+    }
+    if (tableName.isNotEmpty) {
+      return 'Table $tableName';
+    }
+    if (sideNames.isNotEmpty) {
+      return 'Sides: $sideNames';
+    }
+    return '';
+  }
+
+  String _sideDisplay(OrderModel order) {
+    if (order.table_side_ids.isEmpty) {
+      return '';
+    }
+    final labels = order.table?.side_labels ?? const [];
+    return order.table_side_ids
+        .map((side) {
+          if (labels.contains(side)) {
+            return side;
+          }
+          final prefix = '${order.table_id}-';
+          if (side.startsWith(prefix)) {
+            final index = int.tryParse(side.replaceFirst(prefix, ''));
+            if (index != null && index > 0 && labels.length >= index) {
+              return labels[index - 1];
+            }
+          }
+          return side;
+        })
+        .join(', ');
   }
 
   TextStyle _headerStyle() => TextStyle(
@@ -241,6 +293,133 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             height: 300.h,
             margin: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
             decoration: BoxDecoration(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrintLogSection(PosKdsState state) {
+    final isPrinting = state.printReceiptInfo.status == OperationStatus.loading;
+    return Container(
+      margin: EdgeInsets.only(bottom: 16.h),
+      padding: EdgeInsets.all(14.w),
+      decoration: BoxDecoration(
+        color: AppColors.pureWhite,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: AppColors.borderGrey),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.shadowColor,
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                PosConstant.PRINT_LOG_TITLE.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 10.sp,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textTertiary,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              GestureDetector(
+                onTap: isPrinting
+                    ? null
+                    : () => context.read<PosKdsCubit>().printTestReceipt(),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 10.w,
+                    vertical: 6.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE8F5E9),
+                    borderRadius: BorderRadius.circular(20.r),
+                    border: Border.all(color: AppColors.primaryGreen),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isPrinting)
+                        SizedBox(
+                          width: 12.w,
+                          height: 12.w,
+                          child: const CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.primaryGreen,
+                          ),
+                        )
+                      else
+                        Icon(
+                          Icons.print_outlined,
+                          size: 14.w,
+                          color: AppColors.primaryGreen,
+                        ),
+                      SizedBox(width: 6.w),
+                      Text(
+                        PosConstant.PRINT_TEST_BILL,
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primaryGreen,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          Container(
+            width: double.infinity,
+            constraints: BoxConstraints(maxHeight: 132.h),
+            padding: EdgeInsets.all(10.w),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFAFAFA),
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(color: AppColors.borderGrey),
+            ),
+            child: state.printLogs.isEmpty
+                ? Text(
+                    PosConstant.PRINT_LOG_EMPTY,
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
+                  )
+                : SingleChildScrollView(
+                    reverse: true,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: state.printLogs
+                          .map(
+                            (log) => Padding(
+                              padding: EdgeInsets.only(bottom: 6.h),
+                              child: Text(
+                                log,
+                                style: TextStyle(
+                                  fontFamily: 'Courier',
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                  height: 1.25,
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
           ),
         ],
       ),
@@ -339,8 +518,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   }
 
                   final finalPayingPrice =
-                      double.tryParse(_finalPayingPriceController.text.trim()) ??
+                      double.tryParse(
+                        _finalPayingPriceController.text.trim(),
+                      ) ??
                       order.total_amount;
+                  final deliveryAddress = _deliveryAddress(order);
+                  final tableDisplay = _tableDisplay(order);
 
                   return Column(
                     children: [
@@ -358,323 +541,365 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                 child: Stack(
                                   children: [
                                     Container(
-                                padding: EdgeInsets.all(16.w),
-                                decoration: BoxDecoration(
-                                  color: AppColors.pureWhite,
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: AppColors.shadowColor,
-                                      blurRadius: 8,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              '#${order.order_no}',
-                                              style: TextStyle(
-                                                fontSize: 18.sp,
-                                                fontWeight: FontWeight.w900,
-                                                color: AppColors.textPrimary,
-                                              ),
-                                            ),
-                                            if (order.code.isNotEmpty) ...[
-                                              SizedBox(width: 8.w),
-                                              Container(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: 6.w,
-                                                  vertical: 2.h,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: AppColors.primaryGreen,
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                        4.r,
-                                                      ),
-                                                ),
-                                                child: Text(
-                                                  order.code,
-                                                  style: TextStyle(
-                                                    fontSize: 11.sp,
-                                                    fontWeight: FontWeight.w900,
-                                                    color: AppColors.pureWhite,
+                                      padding: EdgeInsets.all(16.w),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.pureWhite,
+                                        borderRadius: BorderRadius.circular(
+                                          12.r,
+                                        ),
+                                        boxShadow: const [
+                                          BoxShadow(
+                                            color: AppColors.shadowColor,
+                                            blurRadius: 8,
+                                            offset: Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    '#${order.order_no}',
+                                                    style: TextStyle(
+                                                      fontSize: 18.sp,
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                      color:
+                                                          AppColors.textPrimary,
+                                                    ),
                                                   ),
+                                                  if (order
+                                                      .code
+                                                      .isNotEmpty) ...[
+                                                    SizedBox(width: 8.w),
+                                                    Container(
+                                                      padding:
+                                                          EdgeInsets.symmetric(
+                                                            horizontal: 6.w,
+                                                            vertical: 2.h,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: AppColors
+                                                            .primaryGreen,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              4.r,
+                                                            ),
+                                                      ),
+                                                      child: Text(
+                                                        order.code,
+                                                        style: TextStyle(
+                                                          fontSize: 11.sp,
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          color: AppColors
+                                                              .pureWhite,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
+                                              _buildStatusBadge(order.status),
+                                            ],
+                                          ),
+                                          SizedBox(height: 12.h),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.calendar_today,
+                                                size: 14.w,
+                                                color: AppColors.textSecondary,
+                                              ),
+                                              SizedBox(width: 6.w),
+                                              Text(
+                                                _formatTime(order.created_at),
+                                                style: TextStyle(
+                                                  fontSize: 13.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                  color:
+                                                      AppColors.textSecondary,
                                                 ),
                                               ),
                                             ],
-                                          ],
-                                        ),
-                                        _buildStatusBadge(order.status),
-                                      ],
-                                    ),
-                                    SizedBox(height: 12.h),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.calendar_today,
-                                          size: 14.w,
-                                          color: AppColors.textSecondary,
-                                        ),
-                                        SizedBox(width: 6.w),
-                                        Text(
-                                          _formatTime(order.created_at),
-                                          style: TextStyle(
-                                            fontSize: 13.sp,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.textSecondary,
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    if (order.table_id.isNotEmpty || order.table_side_ids.isNotEmpty) ...[
-                                      SizedBox(height: 8.h),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.table_restaurant_outlined,
-                                            size: 14.w,
-                                            color: AppColors.textSecondary,
-                                          ),
-                                          SizedBox(width: 6.w),
-                                          Text(
-                                            order.table_side_ids.isNotEmpty 
-                                                ? (order.table_id.isNotEmpty 
-                                                    ? 'Table ${order.table_id} (${order.table_side_ids.join(', ')})'
-                                                    : 'Table Sides: ${order.table_side_ids.join(', ')}')
-                                                : 'Table: ${order.table_id}',
-                                            style: TextStyle(
-                                              fontSize: 13.sp,
-                                              fontWeight: FontWeight.w600,
-                                              color: AppColors.textSecondary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                    if (order
-                                        .delivery_address_id
-                                        .isNotEmpty) ...[
-                                      SizedBox(height: 8.h),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.location_on_outlined,
-                                            size: 14.w,
-                                            color: AppColors.textSecondary,
-                                          ),
-                                          SizedBox(width: 6.w),
-                                          Expanded(
-                                            child: Text(
-                                              'Delivery: ${order.delivery_address_id}',
-                                              style: TextStyle(
-                                                fontSize: 13.sp,
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.textSecondary,
-                                              ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                    if (order.employee_id.isNotEmpty) ...[
-                                      SizedBox(height: 8.h),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.person_outline,
-                                            size: 14.w,
-                                            color: AppColors.textSecondary,
-                                          ),
-                                          SizedBox(width: 6.w),
-                                          Text(
-                                            'Staff: ${order.employee_id}',
-                                            style: TextStyle(
-                                              fontSize: 13.sp,
-                                              fontWeight: FontWeight.w600,
-                                              color: AppColors.textSecondary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                    if (order.partner_id.isNotEmpty) ...[
-                                      SizedBox(height: 8.h),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.delivery_dining,
-                                            size: 14.w,
-                                            color: AppColors.textSecondary,
-                                          ),
-                                          SizedBox(width: 6.w),
-                                          Text(
-                                            'Partner: ${order.partner_id}',
-                                            style: TextStyle(
-                                              fontSize: 13.sp,
-                                              fontWeight: FontWeight.w600,
-                                              color: AppColors.textSecondary,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                    if (order.user != null) ...[
-                                      SizedBox(height: 12.h),
-                                      Divider(color: AppColors.borderGrey),
-                                      SizedBox(height: 12.h),
-                                      Text(
-                                        'Customer Details',
-                                        style: TextStyle(
-                                          fontSize: 13.sp,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      SizedBox(height: 8.h),
-                                      Row(
-                                        children: [
-                                          if (order
-                                              .user!
-                                              .avatar
-                                              .isNotEmpty) ...[
-                                            CircleAvatar(
-                                              radius: 16.w,
-                                              backgroundImage: NetworkImage(
-                                                order.user!.avatar,
-                                              ),
-                                            ),
-                                            SizedBox(width: 8.w),
-                                          ] else ...[
-                                            Icon(
-                                              Icons.person,
-                                              size: 24.w,
-                                              color: AppColors.textSecondary,
-                                            ),
-                                            SizedBox(width: 8.w),
-                                          ],
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                          if (tableDisplay.isNotEmpty) ...[
+                                            SizedBox(height: 8.h),
+                                            Row(
                                               children: [
-                                                Text(
-                                                  order.user!.name,
-                                                  style: TextStyle(
-                                                    fontSize: 14.sp,
-                                                    fontWeight: FontWeight.w700,
-                                                    color:
-                                                        AppColors.textPrimary,
-                                                  ),
+                                                Icon(
+                                                  Icons
+                                                      .table_restaurant_outlined,
+                                                  size: 14.w,
+                                                  color:
+                                                      AppColors.textSecondary,
                                                 ),
-                                                if (order
-                                                        .user!
-                                                        .phone
-                                                        .isNotEmpty ||
-                                                    order
-                                                        .user!
-                                                        .email
-                                                        .isNotEmpty)
-                                                  Text(
-                                                    '${order.user!.phone}${order.user!.phone.isNotEmpty && order.user!.email.isNotEmpty ? ' • ' : ''}${order.user!.email}',
+                                                SizedBox(width: 6.w),
+                                                Expanded(
+                                                  child: Text(
+                                                    tableDisplay,
                                                     style: TextStyle(
-                                                      fontSize: 12.sp,
+                                                      fontSize: 13.sp,
                                                       fontWeight:
                                                           FontWeight.w600,
                                                       color: AppColors
                                                           .textSecondary,
                                                     ),
                                                   ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                    SizedBox(height: 12.h),
-                                    Divider(color: AppColors.borderGrey),
-                                    SizedBox(height: 12.h),
-                                    Text(
-                                      'Financial Summary',
-                                      style: TextStyle(
-                                        fontSize: 13.sp,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4.h),
-                                    Text(
-                                      'Subtotal: ${_formatAmount(order.subtotal)}',
-                                      style: TextStyle(fontSize: 12.sp),
-                                    ),
-                                    if (order.discount_amount > 0)
-                                      Text(
-                                        'Discount: -${_formatAmount(order.discount_amount)}',
-                                        style: TextStyle(fontSize: 12.sp),
-                                      ),
-                                   ],
-                                 ),
-                               ),
-                              // PAID STAMP
-                              if (order.status.toUpperCase() == 'PAID')
-                                Positioned.fill(
-                                  child: IgnorePointer(
-                                    child: Center(
-                                      child: Transform.rotate(
-                                        angle: -0.42,
-                                        child: Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 20.w,
-                                            vertical: 10.h,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFF1B7A3E).withOpacity(0.08),
-                                            border: Border.all(
-                                              color: const Color(0xFF1B7A3E).withOpacity(0.75),
-                                              width: 4.5,
-                                            ),
-                                            borderRadius: BorderRadius.circular(8.r),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: const Color(0xFF1B7A3E).withOpacity(0.25),
-                                                blurRadius: 12,
-                                                spreadRadius: 2,
-                                              ),
-                                            ],
-                                          ),
-                                          child: Text(
-                                            'PAID',
-                                            style: TextStyle(
-                                              fontSize: 48.sp,
-                                              fontWeight: FontWeight.w900,
-                                              color: const Color(0xFF1B7A3E).withOpacity(0.72),
-                                              letterSpacing: 12,
-                                              height: 1,
-                                              shadows: [
-                                                Shadow(
-                                                  color: const Color(0xFF1B7A3E).withOpacity(0.35),
-                                                  blurRadius: 8,
-                                                  offset: const Offset(2, 2),
                                                 ),
                                               ],
+                                            ),
+                                          ],
+                                          if (deliveryAddress.isNotEmpty) ...[
+                                            SizedBox(height: 8.h),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.location_on_outlined,
+                                                  size: 14.w,
+                                                  color:
+                                                      AppColors.textSecondary,
+                                                ),
+                                                SizedBox(width: 6.w),
+                                                Expanded(
+                                                  child: Text(
+                                                    'Delivery: $deliveryAddress',
+                                                    style: TextStyle(
+                                                      fontSize: 13.sp,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: AppColors
+                                                          .textSecondary,
+                                                    ),
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                          if (order.employee_id.isNotEmpty) ...[
+                                            SizedBox(height: 8.h),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.person_outline,
+                                                  size: 14.w,
+                                                  color:
+                                                      AppColors.textSecondary,
+                                                ),
+                                                SizedBox(width: 6.w),
+                                                Text(
+                                                  'Staff: ${order.employee_id}',
+                                                  style: TextStyle(
+                                                    fontSize: 13.sp,
+                                                    fontWeight: FontWeight.w600,
+                                                    color:
+                                                        AppColors.textSecondary,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                          if (order.partner_id.isNotEmpty) ...[
+                                            SizedBox(height: 8.h),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.delivery_dining,
+                                                  size: 14.w,
+                                                  color:
+                                                      AppColors.textSecondary,
+                                                ),
+                                                SizedBox(width: 6.w),
+                                                Text(
+                                                  'Partner: ${order.partner_id}',
+                                                  style: TextStyle(
+                                                    fontSize: 13.sp,
+                                                    fontWeight: FontWeight.w600,
+                                                    color:
+                                                        AppColors.textSecondary,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                          if (order.user != null) ...[
+                                            SizedBox(height: 12.h),
+                                            Divider(
+                                              color: AppColors.borderGrey,
+                                            ),
+                                            SizedBox(height: 12.h),
+                                            Text(
+                                              'Customer Details',
+                                              style: TextStyle(
+                                                fontSize: 13.sp,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(height: 8.h),
+                                            Row(
+                                              children: [
+                                                if (order
+                                                    .user!
+                                                    .avatar
+                                                    .isNotEmpty) ...[
+                                                  CircleAvatar(
+                                                    radius: 16.w,
+                                                    backgroundImage:
+                                                        NetworkImage(
+                                                          order.user!.avatar,
+                                                        ),
+                                                  ),
+                                                  SizedBox(width: 8.w),
+                                                ] else ...[
+                                                  Icon(
+                                                    Icons.person,
+                                                    size: 24.w,
+                                                    color:
+                                                        AppColors.textSecondary,
+                                                  ),
+                                                  SizedBox(width: 8.w),
+                                                ],
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        order.user!.name,
+                                                        style: TextStyle(
+                                                          fontSize: 14.sp,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                          color: AppColors
+                                                              .textPrimary,
+                                                        ),
+                                                      ),
+                                                      if (order
+                                                              .user!
+                                                              .phone
+                                                              .isNotEmpty ||
+                                                          order
+                                                              .user!
+                                                              .email
+                                                              .isNotEmpty)
+                                                        Text(
+                                                          '${order.user!.phone}${order.user!.phone.isNotEmpty && order.user!.email.isNotEmpty ? ' • ' : ''}${order.user!.email}',
+                                                          style: TextStyle(
+                                                            fontSize: 12.sp,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color: AppColors
+                                                                .textSecondary,
+                                                          ),
+                                                        ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                          SizedBox(height: 12.h),
+                                          Divider(color: AppColors.borderGrey),
+                                          SizedBox(height: 12.h),
+                                          Text(
+                                            'Financial Summary',
+                                            style: TextStyle(
+                                              fontSize: 13.sp,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          SizedBox(height: 4.h),
+                                          Text(
+                                            'Subtotal: ${_formatAmount(order.subtotal)}',
+                                            style: TextStyle(fontSize: 12.sp),
+                                          ),
+                                          if (order.discount_amount > 0)
+                                            Text(
+                                              'Discount: -${_formatAmount(order.discount_amount)}',
+                                              style: TextStyle(fontSize: 12.sp),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    // PAID STAMP
+                                    if (order.status.toUpperCase() == 'PAID')
+                                      Positioned.fill(
+                                        child: IgnorePointer(
+                                          child: Center(
+                                            child: Transform.rotate(
+                                              angle: -0.42,
+                                              child: Container(
+                                                padding: EdgeInsets.symmetric(
+                                                  horizontal: 20.w,
+                                                  vertical: 10.h,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(
+                                                    0xFF1B7A3E,
+                                                  ).withOpacity(0.08),
+                                                  border: Border.all(
+                                                    color: const Color(
+                                                      0xFF1B7A3E,
+                                                    ).withOpacity(0.75),
+                                                    width: 4.5,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                        8.r,
+                                                      ),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: const Color(
+                                                        0xFF1B7A3E,
+                                                      ).withOpacity(0.25),
+                                                      blurRadius: 12,
+                                                      spreadRadius: 2,
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Text(
+                                                  'PAID',
+                                                  style: TextStyle(
+                                                    fontSize: 48.sp,
+                                                    fontWeight: FontWeight.w900,
+                                                    color: const Color(
+                                                      0xFF1B7A3E,
+                                                    ).withOpacity(0.72),
+                                                    letterSpacing: 12,
+                                                    height: 1,
+                                                    shadows: [
+                                                      Shadow(
+                                                        color: const Color(
+                                                          0xFF1B7A3E,
+                                                        ).withOpacity(0.35),
+                                                        blurRadius: 8,
+                                                        offset: const Offset(
+                                                          2,
+                                                          2,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ),
+                                  ],
                                 ),
-                            ],
-                          ),
-                        ),
+                              ),
 
                               if (order.notes.isNotEmpty) ...[
                                 SizedBox(height: 16.h),
@@ -744,261 +969,260 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.stretch,
                                         children: [
-                                      SizedBox(height: 8.h),
-                                      Image.asset(
-                                        'assets/logo_transparent.png',
-                                        width: 120.w,
-                                        height: 80.h,
-                                        fit: BoxFit.cover,
-                                      ),
-                                      SizedBox(height: 8.h),
-                                      Text(
-                                        'ORDER #${order.order_no}',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontFamily: 'Courier',
-                                          fontSize: 22.sp,
-                                          fontWeight: FontWeight.w900,
-                                          letterSpacing: 2,
-                                        ),
-                                      ),
+                                          SizedBox(height: 8.h),
+                                          Image.asset(
+                                            'assets/logo_transparent.png',
+                                            width: 120.w,
+                                            height: 80.h,
+                                            fit: BoxFit.cover,
+                                          ),
+                                          SizedBox(height: 8.h),
+                                          Text(
+                                            'ORDER #${order.order_no}',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontFamily: 'Courier',
+                                              fontSize: 22.sp,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 2,
+                                            ),
+                                          ),
 
-                                      SizedBox(height: 8.h),
-                                      Text(
-                                        'LadyLuck',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontFamily: 'Courier',
-                                          fontSize: 16.sp,
-                                          fontWeight: FontWeight.w900,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Sweets, Fast Food & Restaurant',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontFamily: 'Courier',
-                                          fontSize: 12.sp,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      Text(
-                                        'RHMTB Barari, Bhagalpur, Bihar, 812003',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontFamily: 'Courier',
-                                          fontSize: 11.sp,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      SizedBox(height: 8.h),
-                                      Text(
-                                        'ORDER ID: ${order.id.toUpperCase()}',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontFamily: 'Courier',
-                                          fontSize: 10.sp,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        'DATE: ${_formatTime(order.created_at)}',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontFamily: 'Courier',
-                                          fontSize: 12.sp,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      SizedBox(height: 16.h),
-                                      _buildDashedLine(),
-                                      SizedBox(height: 16.h),
-                                      Text(
-                                        'TYPE: ${order.order_type}',
-                                        style: TextStyle(
-                                          fontFamily: 'Courier',
-                                          fontSize: 14.sp,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                      if (order.table_id.isNotEmpty || order.table_side_ids.isNotEmpty) ...[
-                                        SizedBox(height: 4.h),
-                                        Text(
-                                          order.table_side_ids.isNotEmpty 
-                                              ? (order.table_id.isNotEmpty 
-                                                  ? 'TABLE ${order.table_id} (${order.table_side_ids.join(', ')})'
-                                                  : 'TABLE SIDES: ${order.table_side_ids.join(', ')}')
-                                              : 'TABLE: ${order.table_id}',
-                                          style: TextStyle(
-                                            fontFamily: 'Courier',
-                                            fontSize: 12.sp,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ],
-                                      if (order.user != null) ...[
-                                        SizedBox(height: 8.h),
-                                        Text(
-                                          'CUSTOMER: ${order.user!.name}',
-                                          style: TextStyle(
-                                            fontFamily: 'Courier',
-                                            fontSize: 12.sp,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                        if (order.user!.phone.isNotEmpty)
+                                          SizedBox(height: 8.h),
                                           Text(
-                                            'PHONE: ${order.user!.phone}',
+                                            'LadyLuck',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontFamily: 'Courier',
+                                              fontSize: 16.sp,
+                                              fontWeight: FontWeight.w900,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Sweets, Fast Food & Restaurant',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontFamily: 'Courier',
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          Text(
+                                            'RHMTB Barari, Bhagalpur, Bihar, 812003',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontFamily: 'Courier',
+                                              fontSize: 11.sp,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          SizedBox(height: 8.h),
+                                          Text(
+                                            'ORDER ID: ${order.id.toUpperCase()}',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontFamily: 'Courier',
+                                              fontSize: 10.sp,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            'DATE: ${_formatTime(order.created_at)}',
+                                            textAlign: TextAlign.center,
                                             style: TextStyle(
                                               fontFamily: 'Courier',
                                               fontSize: 12.sp,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
-                                        if (order.user!.email.isNotEmpty)
+                                          SizedBox(height: 16.h),
+                                          _buildDashedLine(),
+                                          SizedBox(height: 16.h),
                                           Text(
-                                            'EMAIL: ${order.user!.email}',
+                                            'TYPE: ${order.order_type}',
                                             style: TextStyle(
                                               fontFamily: 'Courier',
-                                              fontSize: 12.sp,
-                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14.sp,
+                                              fontWeight: FontWeight.w800,
                                             ),
                                           ),
-                                      ],
-                                      if (order
-                                          .delivery_address_id
-                                          .isNotEmpty) ...[
-                                        SizedBox(height: 8.h),
-                                        Text(
-                                          'ADDRESS: ${_deliveryAddress(order)}',
-                                          style: TextStyle(
-                                            fontFamily: 'Courier',
-                                            fontSize: 12.sp,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                      SizedBox(height: 16.h),
-                                      _buildDashedLine(),
-                                      SizedBox(height: 16.h),
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            flex: 3,
-                                            child: Text(
-                                              'ITEM',
-                                              style: _headerStyle(),
+                                          if (tableDisplay.isNotEmpty) ...[
+                                            SizedBox(height: 4.h),
+                                            Text(
+                                              tableDisplay.toUpperCase(),
+                                              style: TextStyle(
+                                                fontFamily: 'Courier',
+                                                fontSize: 12.sp,
+                                                fontWeight: FontWeight.w700,
+                                              ),
                                             ),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(
-                                              'QTY',
-                                              textAlign: TextAlign.center,
-                                              style: _headerStyle(),
+                                          ],
+                                          if (order.user != null) ...[
+                                            SizedBox(height: 8.h),
+                                            Text(
+                                              'CUSTOMER: ${order.user!.name}',
+                                              style: TextStyle(
+                                                fontFamily: 'Courier',
+                                                fontSize: 12.sp,
+                                                fontWeight: FontWeight.w800,
+                                              ),
                                             ),
-                                          ),
-                                          Expanded(
-                                            flex: 1,
-                                            child: Text(
-                                              'AMT',
-                                              textAlign: TextAlign.right,
-                                              style: _headerStyle(),
+                                            if (order.user!.phone.isNotEmpty)
+                                              Text(
+                                                'PHONE: ${order.user!.phone}',
+                                                style: TextStyle(
+                                                  fontFamily: 'Courier',
+                                                  fontSize: 12.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            if (order.user!.email.isNotEmpty)
+                                              Text(
+                                                'EMAIL: ${order.user!.email}',
+                                                style: TextStyle(
+                                                  fontFamily: 'Courier',
+                                                  fontSize: 12.sp,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                          ],
+                                          if (deliveryAddress.isNotEmpty) ...[
+                                            SizedBox(height: 8.h),
+                                            Text(
+                                              'ADDRESS: $deliveryAddress',
+                                              style: TextStyle(
+                                                fontFamily: 'Courier',
+                                                fontSize: 12.sp,
+                                                fontWeight: FontWeight.w600,
+                                              ),
                                             ),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 8.h),
-                                      ...order.items.map((item) {
-                                        final itemName =
-                                            item.menu_item?.display_name ??
-                                            'Item ${item.menu_item_id}';
-                                        return Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            vertical: 4.h,
-                                          ),
-                                          child: Row(
+                                          ],
+                                          SizedBox(height: 16.h),
+                                          _buildDashedLine(),
+                                          SizedBox(height: 16.h),
+                                          Row(
                                             children: [
                                               Expanded(
                                                 flex: 3,
                                                 child: Text(
-                                                  itemName,
-                                                  style: _itemStyle(),
+                                                  'ITEM',
+                                                  style: _headerStyle(),
                                                 ),
                                               ),
                                               Expanded(
                                                 flex: 1,
                                                 child: Text(
-                                                  '${item.qty}',
+                                                  'QTY',
                                                   textAlign: TextAlign.center,
-                                                  style: _itemStyle(),
+                                                  style: _headerStyle(),
                                                 ),
                                               ),
                                               Expanded(
                                                 flex: 1,
                                                 child: Text(
-                                                  item.total_price
-                                                      .toStringAsFixed(2),
+                                                  'AMT',
                                                   textAlign: TextAlign.right,
-                                                  style: _itemStyle(),
+                                                  style: _headerStyle(),
                                                 ),
                                               ),
                                             ],
                                           ),
-                                        );
-                                      }),
-                                      SizedBox(height: 16.h),
-                                      _buildDashedLine(),
-                                      SizedBox(height: 16.h),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            'TOTAL AMOUNT',
-                                            style: _boldStyle(),
+                                          SizedBox(height: 8.h),
+                                          ...order.items.map((item) {
+                                            final itemName =
+                                                item.menu_item?.display_name ??
+                                                'Item ${item.menu_item_id}';
+                                            return Padding(
+                                              padding: EdgeInsets.symmetric(
+                                                vertical: 4.h,
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    flex: 3,
+                                                    child: Text(
+                                                      itemName,
+                                                      style: _itemStyle(),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 1,
+                                                    child: Text(
+                                                      '${item.qty}',
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: _itemStyle(),
+                                                    ),
+                                                  ),
+                                                  Expanded(
+                                                    flex: 1,
+                                                    child: Text(
+                                                      item.total_price
+                                                          .toStringAsFixed(2),
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                      style: _itemStyle(),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }),
+                                          SizedBox(height: 16.h),
+                                          _buildDashedLine(),
+                                          SizedBox(height: 16.h),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'TOTAL AMOUNT',
+                                                style: _boldStyle(),
+                                              ),
+                                              Text(
+                                                _formatAmount(
+                                                  order.total_amount,
+                                                ),
+                                                style: _boldStyle(),
+                                              ),
+                                            ],
                                           ),
-                                          Text(
-                                            _formatAmount(order.total_amount),
-                                            style: _boldStyle(),
+                                          SizedBox(height: 8.h),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'FINAL PAYING',
+                                                style: _boldStyle(),
+                                              ),
+                                              Text(
+                                                _formatAmount(finalPayingPrice),
+                                                style: _boldStyle(),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 8.h),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            'FINAL PAYING',
-                                            style: _boldStyle(),
+                                          SizedBox(height: 20.h),
+                                          Center(
+                                            child: QrImageView(
+                                              data:
+                                                  '${ApiConstants.BASE_URL}/pos-kds/orders/${order.id}',
+                                              version: QrVersions.auto,
+                                              size: 100.w,
+                                              backgroundColor:
+                                                  AppColors.pureWhite,
+                                            ),
                                           ),
+                                          SizedBox(height: 12.h),
                                           Text(
-                                            _formatAmount(finalPayingPrice),
-                                            style: _boldStyle(),
+                                            'THANK YOU FOR YOUR ORDER',
+                                            textAlign: TextAlign.center,
+                                            style: TextStyle(
+                                              fontFamily: 'Courier',
+                                              fontSize: 14.sp,
+                                              fontWeight: FontWeight.w800,
+                                            ),
                                           ),
-                                        ],
-                                      ),
-                                      SizedBox(height: 20.h),
-                                      Center(
-                                        child: QrImageView(
-                                          data:
-                                              '${ApiConstants.BASE_URL}/pos-kds/orders/${order.id}',
-                                          version: QrVersions.auto,
-                                          size: 100.w,
-                                          backgroundColor: AppColors.pureWhite,
-                                        ),
-                                      ),
-                                      SizedBox(height: 12.h),
-                                      Text(
-                                        'THANK YOU FOR YOUR ORDER',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontFamily: 'Courier',
-                                          fontSize: 14.sp,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
                                         ],
                                       ),
                                       if (order.status.toUpperCase() == 'PAID')
@@ -1012,7 +1236,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                                   style: TextStyle(
                                                     fontSize: 80.sp,
                                                     fontWeight: FontWeight.w900,
-                                                    color: Colors.red.withOpacity(0.15),
+                                                    color: Colors.red
+                                                        .withOpacity(0.15),
                                                     letterSpacing: 8,
                                                   ),
                                                 ),
@@ -1025,11 +1250,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                 ),
                               ),
                               SizedBox(height: 16.h),
+                              _buildPrintLogSection(state),
                             ],
                           ),
                         ),
                       ),
-                      // Mark Paid section (only if not already paid)
                       if (order.status.toUpperCase() != 'PAID')
                         Container(
                           margin: EdgeInsets.fromLTRB(24.w, 0, 24.w, 16.h),
@@ -1064,7 +1289,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                   Expanded(
                                     child: TextField(
                                       controller: _finalPayingPriceController,
-                                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                      keyboardType:
+                                          const TextInputType.numberWithOptions(
+                                            decimal: true,
+                                          ),
                                       onChanged: (_) => setState(() {}),
                                       decoration: InputDecoration(
                                         prefixText: '₹ ',
@@ -1073,7 +1301,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                           fontWeight: FontWeight.w900,
                                           color: AppColors.textPrimary,
                                         ),
-                                        hintText: order.total_amount.toStringAsFixed(2),
+                                        hintText: order.total_amount
+                                            .toStringAsFixed(2),
                                         hintStyle: TextStyle(
                                           color: AppColors.textTertiary,
                                           fontWeight: FontWeight.w700,
@@ -1083,16 +1312,29 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                           vertical: 12.h,
                                         ),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10.r),
-                                          borderSide: BorderSide(color: AppColors.borderGrey),
+                                          borderRadius: BorderRadius.circular(
+                                            10.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: AppColors.borderGrey,
+                                          ),
                                         ),
                                         focusedBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10.r),
-                                          borderSide: BorderSide(color: AppColors.primaryGreen, width: 1.5),
+                                          borderRadius: BorderRadius.circular(
+                                            10.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: AppColors.primaryGreen,
+                                            width: 1.5,
+                                          ),
                                         ),
                                         enabledBorder: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10.r),
-                                          borderSide: BorderSide(color: AppColors.borderGrey),
+                                          borderRadius: BorderRadius.circular(
+                                            10.r,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: AppColors.borderGrey,
+                                          ),
                                         ),
                                       ),
                                       style: TextStyle(
@@ -1109,21 +1351,33 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                       builder: (context, payState) {
                                         return ElevatedButton(
                                           style: ElevatedButton.styleFrom(
-                                            backgroundColor: AppColors.primaryGreen,
-                                            foregroundColor: AppColors.pureWhite,
-                                            padding: EdgeInsets.symmetric(vertical: 14.h),
+                                            backgroundColor:
+                                                AppColors.primaryGreen,
+                                            foregroundColor:
+                                                AppColors.pureWhite,
+                                            padding: EdgeInsets.symmetric(
+                                              vertical: 14.h,
+                                            ),
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(10.r),
+                                              borderRadius:
+                                                  BorderRadius.circular(10.r),
                                             ),
                                             elevation: 0,
                                           ),
-                                          onPressed: payState.saveOrdersInfo.status == OperationStatus.loading
+                                          onPressed:
+                                              payState.saveOrdersInfo.status ==
+                                                  OperationStatus.loading
                                               ? null
                                               : () async {
-                                                  final amount = double.tryParse(
-                                                    _finalPayingPriceController.text.trim(),
-                                                  ) ?? order.total_amount;
-                                                  final cubit = context.read<PosKdsCubit>();
+                                                  final amount =
+                                                      double.tryParse(
+                                                        _finalPayingPriceController
+                                                            .text
+                                                            .trim(),
+                                                      ) ??
+                                                      order.total_amount;
+                                                  final cubit = context
+                                                      .read<PosKdsCubit>();
                                                   await cubit.payOrder(
                                                     order.id,
                                                     {
@@ -1135,25 +1389,35 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                                     cubit.getOrder(order.id);
                                                   }
                                                 },
-                                          child: payState.saveOrdersInfo.status == OperationStatus.loading
+                                          child:
+                                              payState.saveOrdersInfo.status ==
+                                                  OperationStatus.loading
                                               ? SizedBox(
                                                   width: 18.w,
                                                   height: 18.w,
-                                                  child: const CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                    color: AppColors.pureWhite,
-                                                  ),
+                                                  child:
+                                                      const CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        color:
+                                                            AppColors.pureWhite,
+                                                      ),
                                                 )
                                               : Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
                                                   children: [
-                                                    Icon(Icons.check_circle_outline, size: 16.w),
+                                                    Icon(
+                                                      Icons
+                                                          .check_circle_outline,
+                                                      size: 16.w,
+                                                    ),
                                                     SizedBox(width: 6.w),
                                                     Text(
                                                       'Mark Paid',
                                                       style: TextStyle(
                                                         fontSize: 13.sp,
-                                                        fontWeight: FontWeight.w900,
+                                                        fontWeight:
+                                                            FontWeight.w900,
                                                       ),
                                                     ),
                                                   ],
@@ -1170,7 +1434,23 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                       AppBottomAction(
                         child: AppButton(
                           text: PosConstant.PRINT_BILL,
-                          onPressed: () => _shareReceipt(order),
+                          isLoading:
+                              state.printReceiptInfo.status ==
+                              OperationStatus.loading,
+                          onPressed:
+                              state.printReceiptInfo.status ==
+                                  OperationStatus.loading
+                              ? () {}
+                              : () {
+                                  final amount =
+                                      double.tryParse(
+                                        _finalPayingPriceController.text.trim(),
+                                      ) ??
+                                      order.total_amount;
+                                  context.read<PosKdsCubit>().printOrderReceipt(
+                                    order.copyWith(final_paying_price: amount),
+                                  );
+                                },
                         ),
                       ),
                     ],

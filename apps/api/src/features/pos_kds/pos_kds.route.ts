@@ -5,6 +5,16 @@ import { authenticate, requirePosKdsAccess } from './pos_kds.middleware';
 
 const router = Router();
 
+// Public routes
+router.get(
+  _POS_KDS_CONSTANTS._R_O_U_T_E_S.PUBLIC_TABLES,
+  posKdsController.listPublicTables
+);
+
+// Customer-facing authenticated routes (no POS access required)
+router.get('/orders/my', authenticate, posKdsController.listMyOrders);
+
+// Protected POS routes
 router.use(authenticate, requirePosKdsAccess);
 
 router.get(

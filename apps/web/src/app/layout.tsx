@@ -8,8 +8,8 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Simple Web App",
-  description: "A very simple web app",
+  title: "Ladyluck",
+  description: "Order food online — fast, fresh, and delivered to you.",
 };
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${outfit.variable} antialiased`}>{children}</body>
+      <body className={`${outfit.variable} font-sans antialiased`}>{children}</body>
     </html>
   );
 }

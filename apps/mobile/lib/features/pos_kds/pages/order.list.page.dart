@@ -61,32 +61,114 @@ class _OrderListPageState extends State<OrderListPage> {
     }
   }
 
+  String _deliveryAddress(OrderModel order) {
+    final addresses = order.user?.addresses ?? const [];
+    for (final address in addresses) {
+      if (address.id == order.delivery_address_id) {
+        final value = _addressValue([
+          address.area,
+          address.locality,
+          address.city,
+          address.state,
+          address.pin_code,
+        ]);
+        if (value.isNotEmpty) {
+          return value;
+        }
+      }
+    }
+    if (addresses.length == 1) {
+      final address = addresses.first;
+      return _addressValue([
+        address.area,
+        address.locality,
+        address.city,
+        address.state,
+        address.pin_code,
+      ]);
+    }
+    return '';
+  }
+
+  String _addressValue(List<String> parts) {
+    return parts.where((part) => part.trim().isNotEmpty).join(', ');
+  }
+
+  String _tableDisplay(OrderModel order) {
+    final tableName = order.table?.table_number.trim().isNotEmpty == true
+        ? order.table!.table_number
+        : '';
+    final sideNames = _sideDisplay(order);
+    if (tableName.isNotEmpty && sideNames.isNotEmpty) {
+      return 'Table $tableName ($sideNames)';
+    }
+    if (tableName.isNotEmpty) {
+      return 'Table $tableName';
+    }
+    if (sideNames.isNotEmpty) {
+      return 'Sides: $sideNames';
+    }
+    return '';
+  }
+
+  String _sideDisplay(OrderModel order) {
+    if (order.table_side_ids.isEmpty) {
+      return '';
+    }
+    final labels = order.table?.side_labels ?? const [];
+    return order.table_side_ids
+        .map((side) {
+          if (labels.contains(side)) {
+            return side;
+          }
+          final prefix = '${order.table_id}-';
+          if (side.startsWith(prefix)) {
+            final index = int.tryParse(side.replaceFirst(prefix, ''));
+            if (index != null && index > 0 && labels.length >= index) {
+              return labels[index - 1];
+            }
+          }
+          return side;
+        })
+        .join(', ');
+  }
+
   List<OrderModel> _visibleOrders(List<OrderModel> orders) {
     final filtered = orders.where((order) {
       final statusMatches =
           _statusFilter == 'ALL' || order.status.toUpperCase() == _statusFilter;
       final typeMatches =
           _typeFilter == 'ALL' || order.order_type.toUpperCase() == _typeFilter;
-      
+
       bool dateMatches = true;
       if (_dateFilter == 'TODAY') {
         final orderDate = DateTime.tryParse(order.created_at)?.toLocal();
         if (orderDate != null) {
           final now = DateTime.now();
-          dateMatches = orderDate.year == now.year && orderDate.month == now.month && orderDate.day == now.day;
+          dateMatches =
+              orderDate.year == now.year &&
+              orderDate.month == now.month &&
+              orderDate.day == now.day;
         }
       } else if (_dateFilter == 'THIS_WEEK') {
         final orderDate = DateTime.tryParse(order.created_at)?.toLocal();
         if (orderDate != null) {
           final now = DateTime.now();
-          final startOfWeek = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
-          dateMatches = orderDate.isAfter(startOfWeek.subtract(const Duration(seconds: 1)));
+          final startOfWeek = DateTime(
+            now.year,
+            now.month,
+            now.day,
+          ).subtract(Duration(days: now.weekday - 1));
+          dateMatches = orderDate.isAfter(
+            startOfWeek.subtract(const Duration(seconds: 1)),
+          );
         }
       } else if (_dateFilter == 'THIS_MONTH') {
         final orderDate = DateTime.tryParse(order.created_at)?.toLocal();
         if (orderDate != null) {
           final now = DateTime.now();
-          dateMatches = orderDate.year == now.year && orderDate.month == now.month;
+          dateMatches =
+              orderDate.year == now.year && orderDate.month == now.month;
         }
       }
       return statusMatches && typeMatches && dateMatches;
@@ -225,7 +307,9 @@ class _OrderListPageState extends State<OrderListPage> {
                   ),
                   child: Icon(
                     Icons.tune_rounded,
-                    color: _hasActiveFilters ? AppColors.primaryGreen : AppColors.textPrimary,
+                    color: _hasActiveFilters
+                        ? AppColors.primaryGreen
+                        : AppColors.textPrimary,
                     size: 20.w,
                   ),
                 ),
@@ -276,10 +360,9 @@ class _OrderListPageState extends State<OrderListPage> {
   Widget _buildSummary(List<OrderModel> orders) {
     final paid = orders.where((order) => order.status == 'PAID').length;
     final open = orders.where((order) => order.status == 'OPEN').length;
-    final total = orders.where((order) => order.status == 'PAID').fold<double>(
-      0,
-      (sum, order) => sum + order.total_amount,
-    );
+    final total = orders
+        .where((order) => order.status == 'PAID')
+        .fold<double>(0, (sum, order) => sum + order.total_amount);
     return Container(
       margin: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 12.h),
       padding: EdgeInsets.all(16.w),
@@ -349,7 +432,10 @@ class _OrderListPageState extends State<OrderListPage> {
   }
 
   bool get _hasActiveFilters =>
-      _statusFilter != 'ALL' || _typeFilter != 'ALL' || _dateFilter != 'TODAY' || _sortMode != 'NEWEST';
+      _statusFilter != 'ALL' ||
+      _typeFilter != 'ALL' ||
+      _dateFilter != 'TODAY' ||
+      _sortMode != 'NEWEST';
 
   IconData _orderTypeIcon(String orderType) {
     switch (orderType.toUpperCase()) {
@@ -367,7 +453,6 @@ class _OrderListPageState extends State<OrderListPage> {
         return Icons.shopping_bag_outlined;
     }
   }
-
 
   void _showFilterSheet() {
     final orders = context.read<PosKdsCubit>().state.orders;
@@ -457,12 +542,19 @@ class _OrderListPageState extends State<OrderListPage> {
                           setSheetState(() {});
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 14.w,
+                            vertical: 8.h,
+                          ),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFFE8F5E9) : AppColors.pureWhite,
+                            color: isSelected
+                                ? const Color(0xFFE8F5E9)
+                                : AppColors.pureWhite,
                             borderRadius: BorderRadius.circular(10.r),
                             border: Border.all(
-                              color: isSelected ? AppColors.primaryGreen : AppColors.borderGrey,
+                              color: isSelected
+                                  ? AppColors.primaryGreen
+                                  : AppColors.borderGrey,
                             ),
                           ),
                           child: Row(
@@ -471,7 +563,9 @@ class _OrderListPageState extends State<OrderListPage> {
                               Icon(
                                 Icons.flag_outlined,
                                 size: 13.w,
-                                color: isSelected ? AppColors.primaryGreen : AppColors.textSecondary,
+                                color: isSelected
+                                    ? AppColors.primaryGreen
+                                    : AppColors.textSecondary,
                               ),
                               SizedBox(width: 5.w),
                               Text(
@@ -479,7 +573,9 @@ class _OrderListPageState extends State<OrderListPage> {
                                 style: TextStyle(
                                   fontSize: 12.sp,
                                   fontWeight: FontWeight.w800,
-                                  color: isSelected ? AppColors.primaryGreen : AppColors.textPrimary,
+                                  color: isSelected
+                                      ? AppColors.primaryGreen
+                                      : AppColors.textPrimary,
                                 ),
                               ),
                             ],
@@ -504,10 +600,38 @@ class _OrderListPageState extends State<OrderListPage> {
                     spacing: 8.w,
                     runSpacing: 8.h,
                     children: [
-                      _buildSortChip(ctx, setSheetState, 'Today', 'TODAY', Icons.today_outlined, isDate: true),
-                      _buildSortChip(ctx, setSheetState, 'This week', 'THIS_WEEK', Icons.view_week_outlined, isDate: true),
-                      _buildSortChip(ctx, setSheetState, 'This month', 'THIS_MONTH', Icons.calendar_month_outlined, isDate: true),
-                      _buildSortChip(ctx, setSheetState, 'All time', 'ALL', Icons.history_outlined, isDate: true),
+                      _buildSortChip(
+                        ctx,
+                        setSheetState,
+                        'Today',
+                        'TODAY',
+                        Icons.today_outlined,
+                        isDate: true,
+                      ),
+                      _buildSortChip(
+                        ctx,
+                        setSheetState,
+                        'This week',
+                        'THIS_WEEK',
+                        Icons.view_week_outlined,
+                        isDate: true,
+                      ),
+                      _buildSortChip(
+                        ctx,
+                        setSheetState,
+                        'This month',
+                        'THIS_MONTH',
+                        Icons.calendar_month_outlined,
+                        isDate: true,
+                      ),
+                      _buildSortChip(
+                        ctx,
+                        setSheetState,
+                        'All time',
+                        'ALL',
+                        Icons.history_outlined,
+                        isDate: true,
+                      ),
                     ],
                   ),
                   SizedBox(height: 20.h),
@@ -533,12 +657,19 @@ class _OrderListPageState extends State<OrderListPage> {
                           setSheetState(() {});
                         },
                         child: Container(
-                          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 14.w,
+                            vertical: 8.h,
+                          ),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFFE8F5E9) : AppColors.pureWhite,
+                            color: isSelected
+                                ? const Color(0xFFE8F5E9)
+                                : AppColors.pureWhite,
                             borderRadius: BorderRadius.circular(10.r),
                             border: Border.all(
-                              color: isSelected ? AppColors.primaryGreen : AppColors.borderGrey,
+                              color: isSelected
+                                  ? AppColors.primaryGreen
+                                  : AppColors.borderGrey,
                             ),
                           ),
                           child: Row(
@@ -547,7 +678,9 @@ class _OrderListPageState extends State<OrderListPage> {
                               Icon(
                                 _orderTypeIcon(type),
                                 size: 13.w,
-                                color: isSelected ? AppColors.primaryGreen : AppColors.textSecondary,
+                                color: isSelected
+                                    ? AppColors.primaryGreen
+                                    : AppColors.textSecondary,
                               ),
                               SizedBox(width: 5.w),
                               Text(
@@ -555,7 +688,9 @@ class _OrderListPageState extends State<OrderListPage> {
                                 style: TextStyle(
                                   fontSize: 12.sp,
                                   fontWeight: FontWeight.w800,
-                                  color: isSelected ? AppColors.primaryGreen : AppColors.textPrimary,
+                                  color: isSelected
+                                      ? AppColors.primaryGreen
+                                      : AppColors.textPrimary,
                                 ),
                               ),
                             ],
@@ -580,11 +715,41 @@ class _OrderListPageState extends State<OrderListPage> {
                     spacing: 8.w,
                     runSpacing: 8.h,
                     children: [
-                      _buildSortChip(ctx, setSheetState, 'Newest first', 'NEWEST', Icons.arrow_downward_rounded),
-                      _buildSortChip(ctx, setSheetState, 'Oldest first', 'OLDEST', Icons.arrow_upward_rounded),
-                      _buildSortChip(ctx, setSheetState, 'Highest total', 'AMOUNT_HIGH', Icons.trending_up),
-                      _buildSortChip(ctx, setSheetState, 'Lowest total', 'AMOUNT_LOW', Icons.trending_down),
-                      _buildSortChip(ctx, setSheetState, 'Order number', 'ORDER_NO', Icons.tag),
+                      _buildSortChip(
+                        ctx,
+                        setSheetState,
+                        'Newest first',
+                        'NEWEST',
+                        Icons.arrow_downward_rounded,
+                      ),
+                      _buildSortChip(
+                        ctx,
+                        setSheetState,
+                        'Oldest first',
+                        'OLDEST',
+                        Icons.arrow_upward_rounded,
+                      ),
+                      _buildSortChip(
+                        ctx,
+                        setSheetState,
+                        'Highest total',
+                        'AMOUNT_HIGH',
+                        Icons.trending_up,
+                      ),
+                      _buildSortChip(
+                        ctx,
+                        setSheetState,
+                        'Lowest total',
+                        'AMOUNT_LOW',
+                        Icons.trending_down,
+                      ),
+                      _buildSortChip(
+                        ctx,
+                        setSheetState,
+                        'Order number',
+                        'ORDER_NO',
+                        Icons.tag,
+                      ),
                     ],
                   ),
                 ],
@@ -631,7 +796,9 @@ class _OrderListPageState extends State<OrderListPage> {
             Icon(
               icon,
               size: 13.w,
-              color: isSelected ? AppColors.primaryGreen : AppColors.textSecondary,
+              color: isSelected
+                  ? AppColors.primaryGreen
+                  : AppColors.textSecondary,
             ),
             SizedBox(width: 5.w),
             Text(
@@ -639,7 +806,9 @@ class _OrderListPageState extends State<OrderListPage> {
               style: TextStyle(
                 fontSize: 12.sp,
                 fontWeight: FontWeight.w800,
-                color: isSelected ? AppColors.primaryGreen : AppColors.textPrimary,
+                color: isSelected
+                    ? AppColors.primaryGreen
+                    : AppColors.textPrimary,
               ),
             ),
           ],
@@ -657,6 +826,8 @@ class _OrderListPageState extends State<OrderListPage> {
         ? order.final_paying_price
         : order.total_amount;
     final customer = order.user;
+    final tableDisplay = _tableDisplay(order);
+    final deliveryAddress = _deliveryAddress(order);
     return GestureDetector(
       onTap: () => _openOrder(order),
       child: Container(
@@ -788,15 +959,9 @@ class _OrderListPageState extends State<OrderListPage> {
                     order.order_type == 'DINE_IN'
                         ? Icons.table_restaurant_outlined
                         : Icons.location_on_outlined,
-                    order.table_id.isNotEmpty || order.table_side_ids.isNotEmpty
-                        ? (order.table_side_ids.isNotEmpty 
-                            ? (order.table_id.isNotEmpty 
-                                ? 'Table ${order.table_id} (${order.table_side_ids.join(', ')})'
-                                : 'Table Sides: ${order.table_side_ids.join(', ')}')
-                            : 'Table ${order.table_id}')
-                        : 'Fulfillment',
-                    order.delivery_address_id.isNotEmpty
-                        ? order.delivery_address_id
+                    tableDisplay.isNotEmpty ? tableDisplay : 'Fulfillment',
+                    deliveryAddress.isNotEmpty
+                        ? deliveryAddress
                         : order.order_type,
                   ),
                 ),
@@ -926,8 +1091,6 @@ class _OrderListPageState extends State<OrderListPage> {
 
   // _showSortSheet replaced by _showFilterSheet (accessed from filter icon)
 
-
-
   void _showOrderActions(OrderModel order) {
     ActionBottomSheet.show(
       context,
@@ -986,7 +1149,9 @@ class _OrderListPageState extends State<OrderListPage> {
                   context: context,
                   builder: (context) => AlertDialog(
                     title: const Text('Delete Order'),
-                    content: const Text('Are you sure you want to completely delete this order? This action cannot be undone.'),
+                    content: const Text(
+                      'Are you sure you want to completely delete this order? This action cannot be undone.',
+                    ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
@@ -994,7 +1159,10 @@ class _OrderListPageState extends State<OrderListPage> {
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                        child: const Text(
+                          'Delete',
+                          style: TextStyle(color: Colors.red),
+                        ),
                       ),
                     ],
                   ),

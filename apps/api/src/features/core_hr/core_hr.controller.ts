@@ -196,7 +196,12 @@ export const listCashRegisters = asyncHandler(async (req: Request, res: Response
 export const createCashRegister = asyncHandler(async (req: Request, res: Response) => {
   const { register_name, mac_address } = req.body;
   const result = await coreHrService.createCashRegister(req.user!.uid, req.employee.branch_id, register_name, mac_address);
-  return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.CASH_REGISTER_CREATED, HttpStatus.CREATED);
+  return sendSuccess(res, result, 'Cash register created successfully', HttpStatus.CREATED);
+});
+
+export const createAddress = asyncHandler(async (req: Request, res: Response) => {
+  const result = await coreHrService.createAddress(req.user!.uid, req.body);
+  return sendSuccess(res, result, 'Address created successfully', HttpStatus.CREATED);
 });
 
 export const openCashRegister = asyncHandler(async (req: Request, res: Response) => {
