@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:mobile/constants/api.dart';
 import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
 import 'package:mobile/features/pos_kds/models/order.model.dart';
+import 'package:mobile/features/pos_kds/services/table_side_label_resolver.dart';
 
 class ReceiptPrintFormatter {
   const ReceiptPrintFormatter();
@@ -336,25 +337,7 @@ class ReceiptPrintFormatter {
   }
 
   String _sideDisplay(OrderModel order) {
-    if (order.table_side_ids.isEmpty) {
-      return '';
-    }
-    final labels = order.table?.side_labels ?? const [];
-    return order.table_side_ids
-        .map((side) {
-          if (labels.contains(side)) {
-            return side;
-          }
-          final prefix = '${order.table_id}-';
-          if (side.startsWith(prefix)) {
-            final index = int.tryParse(side.replaceFirst(prefix, ''));
-            if (index != null && index > 0 && labels.length >= index) {
-              return labels[index - 1];
-            }
-          }
-          return side;
-        })
-        .join(', ');
+    return TableSideLabelResolver.display(order);
   }
 
   String _deliveryAddress(OrderModel order) {

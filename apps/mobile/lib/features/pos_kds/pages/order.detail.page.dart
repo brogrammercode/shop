@@ -13,6 +13,7 @@ import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.cubit.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
 import 'package:mobile/features/pos_kds/models/order.model.dart';
+import 'package:mobile/features/pos_kds/services/table_side_label_resolver.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -211,25 +212,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   String _sideDisplay(OrderModel order) {
-    if (order.table_side_ids.isEmpty) {
-      return '';
-    }
-    final labels = order.table?.side_labels ?? const [];
-    return order.table_side_ids
-        .map((side) {
-          if (labels.contains(side)) {
-            return side;
-          }
-          final prefix = '${order.table_id}-';
-          if (side.startsWith(prefix)) {
-            final index = int.tryParse(side.replaceFirst(prefix, ''));
-            if (index != null && index > 0 && labels.length >= index) {
-              return labels[index - 1];
-            }
-          }
-          return side;
-        })
-        .join(', ');
+    return TableSideLabelResolver.display(order);
   }
 
   TextStyle _headerStyle() => TextStyle(

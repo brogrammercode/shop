@@ -7,6 +7,7 @@ import 'package:mobile/core/di.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.cubit.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
 import 'package:mobile/features/pos_kds/models/order.model.dart';
+import 'package:mobile/features/pos_kds/services/table_side_label_resolver.dart';
 import 'package:mobile/features/catalog/controllers/catalog.cubit.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/components/ui/loader.dart';
@@ -114,24 +115,7 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
   }
 
   String _sideDisplay(OrderModel order, List<String> labels) {
-    if (order.table_side_ids.isEmpty) {
-      return '';
-    }
-    return order.table_side_ids
-        .map((side) {
-          if (labels.contains(side)) {
-            return side;
-          }
-          final prefix = '${order.table_id}-';
-          if (side.startsWith(prefix)) {
-            final index = int.tryParse(side.replaceFirst(prefix, ''));
-            if (index != null && index > 0 && labels.length >= index) {
-              return labels[index - 1];
-            }
-          }
-          return side;
-        })
-        .join(', ');
+    return TableSideLabelResolver.display(order);
   }
 
   @override

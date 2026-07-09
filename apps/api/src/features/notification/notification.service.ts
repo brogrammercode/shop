@@ -90,6 +90,20 @@ export class NotificationService {
         title: data.title,
         body: data.message,
       },
+      android: {
+        priority: "high",
+        notification: {
+          channelId: _NOTIFICATION_CONSTANTS._P_U_S_H.CHANNEL_ID,
+          sound: _NOTIFICATION_CONSTANTS._P_U_S_H.SOUND,
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: _NOTIFICATION_CONSTANTS._P_U_S_H.SOUND,
+          },
+        },
+      },
       data: {
         ref_type: data.ref_type,
         ref_link: data.ref_link,

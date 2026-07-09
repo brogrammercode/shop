@@ -113,17 +113,26 @@ export class PosKdsService {
     const sideLabels = Array.isArray(table.side_labels)
       ? table.side_labels.map((side) => side.toString())
       : [];
-    return (sideIds || []).map((sideId) => {
+    const seen = new Set<string>();
+    return (sideIds || []).reduce<string[]>((sides, rawSideId) => {
+      const sideId = rawSideId?.toString().trim();
+      if (!sideId) {
+        return sides;
+      }
+      let resolvedSide = sideId;
       if (sideLabels.includes(sideId)) {
-        return sideId;
-      }
-      const prefix = `${table.id}-`;
-      if (sideId.startsWith(prefix)) {
+        resolvedSide = sideId;
+      } else if (sideId.startsWith(`${table.id}-`)) {
+        const prefix = `${table.id}-`;
         const index = Number(sideId.replace(prefix, "")) - 1;
-        return sideLabels[index] || sideId;
+        resolvedSide = sideLabels[index] || sideId;
       }
-      return sideId;
-    });
+      if (!seen.has(resolvedSide)) {
+        seen.add(resolvedSide);
+        sides.push(resolvedSide);
+      }
+      return sides;
+    }, []);
   }
 
   private getOrderWindowAfterFour() {

@@ -1,10 +1,11 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface UserModel {
   id: string;
   email: string;
   name: string;
+  phone?: string;
   user_id: string;
   image: string;
   cover: string;
@@ -44,7 +45,7 @@ interface UserState {
   addresses: AddressModel[];
   bankDetails: BankDetailModel[];
   employeeContext: EmployeeContext | null;
-  
+
   setAuth: (token: string, user: UserModel) => void;
   setAddresses: (addresses: AddressModel[]) => void;
   setBankDetails: (details: BankDetailModel[]) => void;
@@ -65,17 +66,18 @@ export const useUserStore = create<UserState>()(
       setAddresses: (addresses) => set({ addresses }),
       setBankDetails: (bankDetails) => set({ bankDetails }),
       setEmployeeContext: (employeeContext) => set({ employeeContext }),
-      
-      clearContext: () => set({
-        token: null,
-        user: null,
-        addresses: [],
-        bankDetails: [],
-        employeeContext: null,
-      }),
+
+      clearContext: () =>
+        set({
+          token: null,
+          user: null,
+          addresses: [],
+          bankDetails: [],
+          employeeContext: null,
+        }),
     }),
     {
-      name: 'ladyluck-user-storage',
-    }
-  )
+      name: "ladyluck-user-storage",
+    },
+  ),
 );

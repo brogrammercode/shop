@@ -42,4 +42,8 @@ export const _NOTIFICATION_CONSTANTS = {
     IN_APP: "IN_APP",
     PUSH: "PUSH",
   },
+  _P_U_S_H: {
+    CHANNEL_ID: "order_notifications",
+    SOUND: "default",
+  },
 };

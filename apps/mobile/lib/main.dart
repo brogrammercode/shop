@@ -18,7 +18,7 @@ void main() async {
   await dotenv.load(fileName: ".env");
   await setupDependencies();
   runApp(const MyApp());
-  FirebaseMessagingNavigationService.configure();
+  await FirebaseMessagingNavigationService.configure();
 }
 
 class MyApp extends StatelessWidget {

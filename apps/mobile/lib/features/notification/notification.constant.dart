@@ -18,6 +18,10 @@ class NotificationConstant {
   static const String LOG_OUT = 'Log Out';
   static const String LOG_OUT_CONFIRM = 'Are you sure you want to log out?';
   static const String LOG_OUT_ACTION = 'Log out';
+  static const String CHANNEL_ID = 'order_notifications';
+  static const String CHANNEL_NAME = 'Order Notifications';
+  static const String CHANNEL_DESCRIPTION =
+      'Notifications for POS and KDS order lifecycle updates';
   static const String REF_TYPE_ORDER = 'ORDER';
   static const String PLATFORM_ANDROID = 'android';
   static const String PLATFORM_IOS = 'ios';

@@ -55,7 +55,7 @@ class TableQrPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final sides = table.side_labels;
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       body: SafeArea(
@@ -73,13 +73,17 @@ class TableQrPage extends StatelessWidget {
                   : ListView.separated(
                       padding: EdgeInsets.all(24.w),
                       itemCount: sides.length,
-                      separatorBuilder: (context, index) => SizedBox(height: 32.h),
+                      separatorBuilder: (context, index) =>
+                          SizedBox(height: 32.h),
                       itemBuilder: (context, index) {
                         final side = sides[index];
-                        // In a real app, this URL should point to your web app ordering page
-                        // e.g. https://my-web-app.com/order?branch=123&table=456&side=A1
-                        final qrData = 'https://web.app/order?b=${table.branch_id}&t=${table.id}&s=$side';
-                        
+                        final qrData = Uri.https('web.app', '/menu', {
+                          'branch_id': table.branch_id,
+                          'table_id': table.id,
+                          'table_side_id': side,
+                          'order_type': 'DINE_IN',
+                        }).toString();
+
                         return Container(
                           padding: EdgeInsets.all(24.w),
                           decoration: BoxDecoration(
@@ -90,7 +94,7 @@ class TableQrPage extends StatelessWidget {
                                 color: Colors.black12,
                                 blurRadius: 10,
                                 offset: Offset(0, 4),
-                              )
+                              ),
                             ],
                           ),
                           child: Column(
@@ -109,7 +113,9 @@ class TableQrPage extends StatelessWidget {
                                 padding: EdgeInsets.all(16.w),
                                 decoration: BoxDecoration(
                                   color: AppColors.pureWhite,
-                                  border: Border.all(color: AppColors.borderGrey),
+                                  border: Border.all(
+                                    color: AppColors.borderGrey,
+                                  ),
                                   borderRadius: BorderRadius.circular(16.r),
                                 ),
                                 child: QrImageView(
