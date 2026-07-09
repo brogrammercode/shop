@@ -48,9 +48,10 @@ model Branch {
   bom        BillOfMaterial[]
   production ProductionBatch[]
 
-  table_zones TableZone[]
-  orders      Order[]
-  accounts    Account[]
+  table_zones    TableZone[]
+  table_sessions TableSession[]
+  orders         Order[]
+  accounts       Account[]
 
   @@map("branches")
 }
@@ -90,13 +91,14 @@ model User {
   updated_at DateTime @updatedAt
   is_deleted Boolean  @default(false)
 
-  employee      Employee?
-  user_logs     UserLog[]
-  device_tokens UserDeviceToken[]
-  orders        Order[]
-  loyalty_trans LoyaltyTrans[]
-  sessions      UserSession[]
-  complaints    Complaint[]
+  employee       Employee?
+  user_logs      UserLog[]
+  device_tokens  UserDeviceToken[]
+  orders         Order[]
+  table_sessions TableSession[]
+  loyalty_trans  LoyaltyTrans[]
+  sessions       UserSession[]
+  complaints     Complaint[]
 
   @@map("users")
 }
@@ -427,8 +429,33 @@ model MenuItem {
 
   order_items OrderItem[]
   combo_items ComboItem[]
+  sale_modes  MenuItemSaleMode[]
 
   @@map("menu_items")
+}
+
+model MenuItemSaleMode {
+  id             String       @id @default(cuid())
+  branch_id      String
+  menu_item_id   String
+  uom_id         String
+  label          String
+  price_per_unit Float
+  min_qty        Float        @default(1)
+  step_qty       Float        @default(1)
+  allow_decimal  Boolean      @default(false)
+  is_default     Boolean      @default(false)
+  sort_order     Int          @default(0)
+  status         EntityStatus @default(ACTIVE)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  is_deleted Boolean  @default(false)
+
+  menu_item MenuItem      @relation(fields: [menu_item_id], references: [id])
+  uom       UnitOfMeasure @relation(fields: [uom_id], references: [id])
+
+  @@map("menu_item_sale_modes")
 }
 
 model ModifierGroup {
@@ -562,8 +589,9 @@ model UnitOfMeasure {
   is_deleted Boolean  @default(false)
 
   variants         ItemVariant[]
-  conversions_from UOMConversion[] @relation("FromUOM")
-  conversions_to   UOMConversion[] @relation("ToUOM")
+  sale_modes       MenuItemSaleMode[]
+  conversions_from UOMConversion[]    @relation("FromUOM")
+  conversions_to   UOMConversion[]    @relation("ToUOM")
 
   @@map("units_of_measure")
 }
@@ -935,8 +963,9 @@ model Table {
   updated_at DateTime @updatedAt
   is_deleted Boolean  @default(false)
 
-  zone   TableZone @relation(fields: [zone_id], references: [id])
-  orders Order[]
+  zone     TableZone      @relation(fields: [zone_id], references: [id])
+  orders   Order[]
+  sessions TableSession[]
 
   @@map("tables")
 }
@@ -971,6 +1000,7 @@ model Order {
   order_no               Int         @default(0)
   branch_id              String
   table_id               String?
+  table_session_id       String?
   table_side_ids         Json?
   uid                    String?
   delivery_address_id    String?
@@ -987,15 +1017,17 @@ model Order {
   final_paying_price     Float       @default(0)
   fulfillment_date       DateTime?
   notes                  String?
+  payment_proofs         String[]    @default([])
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
-  branch   Branch           @relation(fields: [branch_id], references: [id])
-  table    Table?           @relation(fields: [table_id], references: [id])
-  user     User?            @relation(fields: [uid], references: [id])
-  employee Employee?        @relation(fields: [employee_id], references: [id])
-  partner  DeliveryPartner? @relation(fields: [partner_id], references: [id])
+  branch        Branch           @relation(fields: [branch_id], references: [id])
+  table         Table?           @relation(fields: [table_id], references: [id])
+  table_session TableSession?    @relation(fields: [table_session_id], references: [id])
+  user          User?            @relation(fields: [uid], references: [id])
+  employee      Employee?        @relation(fields: [employee_id], references: [id])
+  partner       DeliveryPartner? @relation(fields: [partner_id], references: [id])
 
   items            OrderItem[]
   kots             KitchenOrderTicket[]
@@ -1004,6 +1036,34 @@ model Order {
   complaints       Complaint[]
 
   @@map("orders")
+}
+
+model TableSession {
+  id             String             @id @default(cuid())
+  branch_id      String
+  table_id       String
+  table_side_ids Json?
+  uid            String?
+  status         TableSessionStatus @default(ACTIVE)
+
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  closed_at  DateTime?
+
+  branch Branch  @relation(fields: [branch_id], references: [id])
+  table  Table   @relation(fields: [table_id], references: [id])
+  user   User?   @relation(fields: [uid], references: [id])
+  orders Order[]
+
+  @@map("table_sessions")
+}
+
+enum TableSessionStatus {
+  ACTIVE
+  BILLED
+  PAID
+  CLOSED
+  CANCELLED
 }
 
 enum OrderType {
@@ -1028,14 +1088,21 @@ enum OrderStatus {
 }
 
 model OrderItem {
-  id           String  @id @default(cuid())
-  branch_id    String
-  order_id     String
-  menu_item_id String
-  qty          Float
-  unit_price   Float
-  total_price  Float
-  notes        String?
+  id                String  @id @default(cuid())
+  branch_id         String
+  order_id          String
+  menu_item_id      String
+  sale_mode_id      String?
+  qty               Float
+  unit_price        Float
+  total_price       Float
+  sale_mode_label   String?
+  quantity_uom_id   String?
+  quantity_uom_code String?
+  base_quantity     Float?
+  base_uom_id       String?
+  base_uom_code     String?
+  notes             String?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt

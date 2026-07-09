@@ -15,6 +15,7 @@ import {
 } from "@/features/customer_ordering/constants/customer_ordering.constants";
 import { CustomerOrderingApi } from "@/features/customer_ordering/services/customer_ordering.api";
 import {
+  CustomerCartLine,
   CustomerMenuCategory,
   CustomerOrderingContext,
   CustomerTable,
@@ -23,6 +24,7 @@ import {
   buildCartItems,
   calculateSubtotal,
   flattenItems,
+  formatQuantity,
   formatAmount,
   readOrderingContext,
 } from "@/features/customer_ordering/utils/customer_ordering.utils";
@@ -37,12 +39,12 @@ export default function CartPage() {
   );
   const [categories, setCategories] = useState<CustomerMenuCategory[]>([]);
   const [tables, setTables] = useState<CustomerTable[]>([]);
-  const [cart, setCart] = useState<Record<string, number>>(() => {
+  const [cart, setCart] = useState<Record<string, CustomerCartLine>>(() => {
     if (typeof window === "undefined") return {};
     const storedCart = sessionStorage.getItem(
       CUSTOMER_ORDERING_STORAGE_KEYS.CART,
     );
-    return storedCart ? (JSON.parse(storedCart) as Record<string, number>) : {};
+    return storedCart ? normalizeStoredCart(JSON.parse(storedCart)) : {};
   });
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>(() =>
     orderingContext?.tableSideId ? [orderingContext.tableSideId] : [],
@@ -56,7 +58,8 @@ export default function CartPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = window.setTimeout(() => setIsMounted(true), 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -100,12 +103,24 @@ export default function CartPage() {
   const subtotal = useMemo(() => calculateSubtotal(cartItems), [cartItems]);
   const payable = subtotal;
 
-  const updateCart = (itemId: string, delta: number) => {
+  const updateCart = (cartKey: string, delta: number) => {
     setCart((current) => {
-      const nextQuantity = Math.max(0, (current[itemId] || 0) + delta);
+      const line = current[cartKey];
+      if (!line) return current;
+      const cartItem = cartItems.find((item) => item.cartKey === cartKey);
+      if (!cartItem) return current;
+      const step = cartItem.saleMode.step_qty;
+      const nextQuantity = Math.max(0, line.quantity + step * delta);
       const next = { ...current };
-      if (nextQuantity === 0) delete next[itemId];
-      else next[itemId] = nextQuantity;
+      if (nextQuantity === 0) delete next[cartKey];
+      else {
+        next[cartKey] = {
+          ...line,
+          quantity: cartItem.saleMode.allow_decimal
+            ? Number(nextQuantity.toFixed(3))
+            : Math.round(nextQuantity),
+        };
+      }
       return next;
     });
   };
@@ -157,8 +172,12 @@ export default function CartPage() {
         final_paying_price: payable,
         items: cartItems.map((cartItem) => ({
           menu_item_id: cartItem.item.id,
+          sale_mode_id: cartItem.saleMode.id,
+          sale_mode_label: cartItem.saleMode.label,
+          quantity_uom_id: cartItem.saleMode.uom_id,
+          quantity_uom_code: cartItem.saleMode.uom_code,
           quantity: cartItem.quantity,
-          unit_price: cartItem.item.selling_price,
+          unit_price: cartItem.saleMode.price_per_unit,
         })),
       });
       setCart({});
@@ -254,7 +273,7 @@ export default function CartPage() {
         <div className="flex flex-col gap-3 bg-pure-white p-4 rounded-[14px] border border-border-grey shadow-sm">
           {cartItems.map((cartItem) => (
             <div
-              key={cartItem.item.id}
+              key={cartItem.cartKey}
               className="border-b border-border-grey pb-3 last:border-0 last:pb-0"
             >
               <div className="flex items-start justify-between gap-3">
@@ -263,20 +282,20 @@ export default function CartPage() {
                     {cartItem.item.display_name}
                   </p>
                   <p className="text-[12px] font-normal text-text-secondary mt-1">
-                    {formatAmount(cartItem.item.selling_price)}
+                    {cartItem.saleMode.label} • {formatAmount(cartItem.saleMode.price_per_unit)} / {cartItem.saleMode.uom_code || CUSTOMER_ORDERING_TEXT.DEFAULT_SALE_MODE}
                   </p>
                 </div>
                 <p className="text-[13px] font-semibold text-text-primary">
                   {formatAmount(
-                    cartItem.item.selling_price * cartItem.quantity,
+                    cartItem.saleMode.price_per_unit * cartItem.quantity,
                   )}
                 </p>
               </div>
               <div className="mt-3 flex">
                 <GreenStepper
-                  count={cartItem.quantity}
-                  onIncrement={() => updateCart(cartItem.item.id, 1)}
-                  onDecrement={() => updateCart(cartItem.item.id, -1)}
+                  count={`${formatQuantity(cartItem.quantity)} ${cartItem.saleMode.uom_code || ""}`.trim()}
+                  onIncrement={() => updateCart(cartItem.cartKey, 1)}
+                  onDecrement={() => updateCart(cartItem.cartKey, -1)}
                 />
               </div>
             </div>
@@ -358,3 +377,21 @@ const BillRow = ({
     </span>
   </div>
 );
+
+const normalizeStoredCart = (value: unknown): Record<string, CustomerCartLine> => {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+  return Object.entries(value as Record<string, unknown>).reduce<Record<string, CustomerCartLine>>((next, [key, entry]) => {
+    if (typeof entry === "number") {
+      return next;
+    }
+    if (entry && typeof entry === "object") {
+      const line = entry as CustomerCartLine;
+      if (line.menu_item_id && line.sale_mode_id) {
+        next[key] = line;
+      }
+    }
+    return next;
+  }, {});
+};

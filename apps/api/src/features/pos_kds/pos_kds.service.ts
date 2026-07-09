@@ -11,6 +11,7 @@ export class PosKdsService {
     branchId: string,
     data: {
       uid?: string;
+      table_session_id?: string;
       delivery_address_id?: string;
       order_type: OrderType;
       table_id?: string;
@@ -19,9 +20,14 @@ export class PosKdsService {
       employee_id?: string;
       partner_id?: string;
       notes?: string;
+      payment_proofs?: string[];
       items: {
         menu_item_id: string;
         variant_id?: string;
+        sale_mode_id?: string;
+        sale_mode_label?: string;
+        quantity_uom_id?: string;
+        quantity_uom_code?: string;
         quantity: number;
         unit_price: number;
         notes?: string;
@@ -29,11 +35,12 @@ export class PosKdsService {
     },
   ) {
     let subtotal = 0;
-    const orderItems = data.items.map((item) => {
-      const itemSubtotal = item.quantity * item.unit_price;
+    const orderItems = await Promise.all(data.items.map(async (item) => {
+      const resolvedItem = await this.resolveOrderItem(branchId, item);
+      const itemSubtotal = resolvedItem.quantity * resolvedItem.unit_price;
       subtotal += itemSubtotal;
-      return { ...item, subtotal: itemSubtotal };
-    });
+      return { ...resolvedItem, subtotal: itemSubtotal };
+    }));
 
     const tax_amount = 0;
     const discount_amount = 0;
@@ -46,20 +53,57 @@ export class PosKdsService {
         orderWindow.start,
         orderWindow.end,
       )) + 1;
-    const table = data.table_id
+    const isDineIn = data.order_type === OrderType.DINE_IN;
+    const isDelivery = data.order_type === OrderType.DELIVERY;
+    const table = isDineIn && data.table_id
       ? await posKdsRepo.findTableById(data.table_id)
       : null;
-    const table_side_ids = table
+    const table_side_ids = isDineIn && table
       ? this.normalizeTableSideIds(table, data.table_side_ids)
-      : data.table_side_ids;
+      : undefined;
+
+    let tableSession: any = null;
+    let appendOrder: any = null;
+    if (isDineIn) {
+      if (!table || !data.table_id) {
+        throw new BadRequestError(_POS_KDS_CONSTANTS._E_R_R_O_R_S.TABLE_NOT_FOUND);
+      }
+      const sessionResult = await this.resolveTableSession(
+        branchId,
+        data.table_id,
+        table_side_ids || [],
+        data.table_session_id,
+        data.uid,
+      );
+      tableSession = sessionResult.session;
+      appendOrder = sessionResult.order;
+    }
+
+    if (
+      !isDineIn &&
+      data.uid &&
+      (data.order_type === OrderType.DELIVERY || data.order_type === OrderType.TAKEAWAY)
+    ) {
+      appendOrder = await posKdsRepo.findActiveCustomerOrder(
+        branchId,
+        data.uid,
+        data.order_type,
+        isDelivery ? data.delivery_address_id : undefined,
+      );
+    }
+
+    if (appendOrder) {
+      return this.appendItemsToOrder(branchId, appendOrder, orderItems, subtotal, data.employee_id);
+    }
 
     const order = await posKdsRepo.createOrder({
       branch_id: branchId,
       order_no,
       uid: data.uid,
-      delivery_address_id: data.delivery_address_id,
+      delivery_address_id: isDelivery ? data.delivery_address_id : undefined,
       order_type: data.order_type,
-      table_id: data.table_id,
+      table_id: isDineIn ? data.table_id : undefined,
+      table_session_id: tableSession?.id,
       table_side_ids,
       total_amount,
       subtotal,
@@ -67,10 +111,10 @@ export class PosKdsService {
       discount_amount,
       final_paying_price,
       employee_id: data.employee_id,
-      partner_id:
-        data.order_type === OrderType.DELIVERY ? data.partner_id : undefined,
+      partner_id: isDelivery ? data.partner_id : undefined,
       code: `ORD-${Date.now()}-${order_no.toString().padStart(3, "0")}`,
       notes: data.notes,
+      payment_proofs: data.payment_proofs || [],
     });
 
     await posKdsRepo.createOrderItems(
@@ -78,14 +122,21 @@ export class PosKdsService {
         branch_id: branchId,
         order_id: order.id,
         menu_item_id: item.menu_item_id,
-        qty: item.quantity ?? (item as any).qty,
+        sale_mode_id: item.sale_mode_id,
+        qty: item.quantity,
         unit_price: item.unit_price,
         total_price: item.subtotal,
+        sale_mode_label: item.sale_mode_label,
+        quantity_uom_id: item.quantity_uom_id,
+        quantity_uom_code: item.quantity_uom_code,
+        base_quantity: item.base_quantity,
+        base_uom_id: item.base_uom_id,
+        base_uom_code: item.base_uom_code,
         notes: item.notes,
       })),
     );
 
-    if (data.order_type === "DINE_IN" && data.table_id) {
+    if (isDineIn && data.table_id) {
       await posKdsRepo.updateTable(data.table_id, { status: "OCCUPIED" });
     }
 
@@ -104,6 +155,214 @@ export class PosKdsService {
       actor_id: data.employee_id,
     });
     return createdOrder;
+  }
+
+  private async appendItemsToOrder(
+    branchId: string,
+    appendOrder: any,
+    orderItems: Awaited<ReturnType<PosKdsService["resolveOrderItem"]>>[],
+    subtotal: number,
+    employeeId?: string,
+  ) {
+    await posKdsRepo.createOrderItems(
+      orderItems.map((item) => ({
+        branch_id: branchId,
+        order_id: appendOrder.id,
+        menu_item_id: item.menu_item_id,
+        sale_mode_id: item.sale_mode_id,
+        qty: item.quantity,
+        unit_price: item.unit_price,
+        total_price: item.quantity * item.unit_price,
+        sale_mode_label: item.sale_mode_label,
+        quantity_uom_id: item.quantity_uom_id,
+        quantity_uom_code: item.quantity_uom_code,
+        base_quantity: item.base_quantity,
+        base_uom_id: item.base_uom_id,
+        base_uom_code: item.base_uom_code,
+        notes: item.notes,
+      })),
+    );
+    const nextSubtotal = Number(appendOrder.subtotal || 0) + subtotal;
+    const nextTotal =
+      nextSubtotal +
+      Number(appendOrder.tax_amount || 0) -
+      Number(appendOrder.discount_amount || 0);
+    const shouldReopen = [
+      OrderStatus.BILLED,
+      OrderStatus.READY,
+      OrderStatus.OUT_FOR_DELIVERY,
+      OrderStatus.DELIVERED,
+      OrderStatus.FAILED_DELIVERY,
+    ].includes(appendOrder.status);
+    await posKdsRepo.updateOrder(appendOrder.id, {
+      subtotal: nextSubtotal,
+      total_amount: nextTotal,
+      final_paying_price: nextTotal,
+      status: shouldReopen ? OrderStatus.OPEN : appendOrder.status,
+    });
+    await posKdsRepo.createKOT({
+      branch_id: branchId,
+      order_id: appendOrder.id,
+      station: "HOT_FOOD",
+      status: KOTStatus.PREPARING,
+    });
+    const updatedOrder = await this.getOrderById(appendOrder.id, branchId);
+    await this.notifyOrder(updatedOrder, {
+      type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_STATUS_UPDATED,
+      title: _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_STATUS_UPDATED_TITLE,
+      message: this.orderMessage(updatedOrder, "has new items added"),
+      actor_id: employeeId,
+    });
+    return updatedOrder;
+  }
+
+  private async resolveTableSession(
+    branchId: string,
+    tableId: string,
+    selectedSideIds: string[],
+    tableSessionId?: string,
+    uid?: string,
+  ) {
+    if (tableSessionId) {
+      const session = await posKdsRepo.findTableSessionById(tableSessionId);
+      if (!session || session.branch_id !== branchId || session.table_id !== tableId) {
+        throw new NotFoundError(_POS_KDS_CONSTANTS._E_R_R_O_R_S.TABLE_SESSION_NOT_FOUND);
+      }
+      if (!["ACTIVE", "BILLED"].includes(session.status)) {
+        throw new BadRequestError(_POS_KDS_CONSTANTS._E_R_R_O_R_S.TABLE_SESSION_CLOSED);
+      }
+      if (!this.sameSessionSeatScope(session.table_side_ids, selectedSideIds)) {
+        throw new BadRequestError(_POS_KDS_CONSTANTS._E_R_R_O_R_S.TABLE_SEATS_OCCUPIED);
+      }
+      return {
+        session,
+        order: this.activeSessionOrder(session),
+      };
+    }
+
+    const sessions = await posKdsRepo.findActiveTableSessions(branchId, tableId);
+    const conflictingSessions = sessions.filter((session) =>
+      this.sideScopesOverlap(session.table_side_ids, selectedSideIds),
+    );
+    if (conflictingSessions.length > 0) {
+      const sameUserSession = uid
+        ? conflictingSessions.find((session) => session.uid === uid)
+        : null;
+      if (sameUserSession) {
+        return {
+          session: sameUserSession,
+          order: this.activeSessionOrder(sameUserSession),
+        };
+      }
+      throw new BadRequestError(_POS_KDS_CONSTANTS._E_R_R_O_R_S.TABLE_SEATS_OCCUPIED);
+    }
+
+    const session = await posKdsRepo.createTableSession({
+      branch_id: branchId,
+      table_id: tableId,
+      table_side_ids: selectedSideIds,
+      uid,
+    });
+    return { session, order: null };
+  }
+
+  private activeSessionOrder(session: any) {
+    return (session.orders || []).find((order: any) =>
+      !["PAID", "CANCELLED", "REFUNDED"].includes(order.status),
+    );
+  }
+
+  private sameSessionSeatScope(rawSessionSides: any, selectedSideIds: string[]) {
+    const sessionSides = this.toStringList(rawSessionSides);
+    if (sessionSides.length === 0 && selectedSideIds.length === 0) {
+      return true;
+    }
+    if (sessionSides.length === 0 || selectedSideIds.length === 0) {
+      return true;
+    }
+    return selectedSideIds.every((sideId) => sessionSides.includes(sideId));
+  }
+
+  private sideScopesOverlap(rawSessionSides: any, selectedSideIds: string[]) {
+    const sessionSides = this.toStringList(rawSessionSides);
+    if (sessionSides.length === 0 || selectedSideIds.length === 0) {
+      return true;
+    }
+    return selectedSideIds.some((sideId) => sessionSides.includes(sideId));
+  }
+
+  private toStringList(value: any) {
+    if (!Array.isArray(value)) {
+      return [];
+    }
+    return value.map((item) => item?.toString().trim()).filter(Boolean);
+  }
+
+  private async resolveOrderItem(
+    branchId: string,
+    item: {
+      menu_item_id: string;
+      sale_mode_id?: string;
+      sale_mode_label?: string;
+      quantity_uom_id?: string;
+      quantity_uom_code?: string;
+      quantity: number;
+      unit_price: number;
+      notes?: string;
+    },
+  ) {
+    const menuItem = await posKdsRepo.findMenuItemForSale(item.menu_item_id, branchId);
+    if (!menuItem) {
+      throw new NotFoundError(_POS_KDS_CONSTANTS._E_R_R_O_R_S.MENU_ITEM_NOT_FOUND);
+    }
+    let saleMode = item.sale_mode_id
+      ? menuItem.sale_modes.find((mode) => mode.id === item.sale_mode_id)
+      : null;
+
+    if (!saleMode) {
+      saleMode = menuItem.sale_modes.find((mode) => mode.is_default) || menuItem.sale_modes[0];
+    }
+    
+    const quantity = Number(item.quantity);
+    const unitPrice = saleMode ? Number(saleMode.price_per_unit) : Number(item.unit_price);
+    const quantityUomId = saleMode?.uom_id || item.quantity_uom_id || menuItem.variant?.uom_id;
+    const quantityUomCode = saleMode?.uom?.code || item.quantity_uom_code || menuItem.variant?.uom?.code;
+    const baseUomId = menuItem.variant?.uom_id;
+    const baseUomCode = menuItem.variant?.uom?.code;
+    const baseQuantity = await this.baseQuantity(branchId, quantity, quantityUomId, baseUomId);
+    return {
+      menu_item_id: item.menu_item_id,
+      sale_mode_id: saleMode?.id || item.sale_mode_id,
+      sale_mode_label: saleMode?.label || item.sale_mode_label || _POS_KDS_CONSTANTS._D_E_F_A_U_L_T_S.SALE_MODE_LABEL,
+      quantity_uom_id: quantityUomId,
+      quantity_uom_code: quantityUomCode,
+      quantity,
+      unit_price: unitPrice,
+      base_quantity: baseQuantity,
+      base_uom_id: baseUomId,
+      base_uom_code: baseUomCode,
+      notes: item.notes,
+    };
+  }
+
+  private async baseQuantity(
+    branchId: string,
+    quantity: number,
+    quantityUomId?: string,
+    baseUomId?: string,
+  ) {
+    if (!quantityUomId || !baseUomId || quantityUomId === baseUomId) {
+      return quantity;
+    }
+    const direct = await posKdsRepo.findUOMConversion(branchId, quantityUomId, baseUomId);
+    if (direct) {
+      return quantity * direct.factor;
+    }
+    const reverse = await posKdsRepo.findUOMConversion(branchId, baseUomId, quantityUomId);
+    if (reverse && reverse.factor !== 0) {
+      return quantity / reverse.factor;
+    }
+    return quantity;
   }
 
   private normalizeTableSideIds(
@@ -169,16 +428,15 @@ export class PosKdsService {
 
   async deleteOrder(id: string, branchId: string) {
     const order = await this.getOrderById(id, branchId);
+    if ((order as any).table_session_id) {
+      await posKdsRepo.updateTableSession((order as any).table_session_id, {
+        status: "CANCELLED" as any,
+        closed_at: new Date(),
+      });
+    }
     if (order.table_id) {
-      // Check if table has other active orders, if not, make it AVAILABLE
-      const orders = await this.listOrders(branchId);
-      const otherActiveOrders = orders.filter(
-        (o) =>
-          o.table_id === order.table_id &&
-          o.id !== order.id &&
-          !["COMPLETED", "CANCELLED"].includes(o.status),
-      );
-      if (otherActiveOrders.length === 0) {
+      const activeSessions = await posKdsRepo.findActiveTableSessions(branchId, order.table_id);
+      if (activeSessions.length === 0) {
         await posKdsRepo.updateTable(order.table_id, { status: "AVAILABLE" });
       }
     }
@@ -195,6 +453,7 @@ export class PosKdsService {
     branchId: string,
     payment_method: PayMethod,
     amount: number,
+    payment_proofs?: string[],
   ) {
     const order = await this.getOrderById(id, branchId);
     if (order.status !== "OPEN" && order.status !== "BILLED") {
@@ -208,10 +467,26 @@ export class PosKdsService {
       payment_method,
     });
 
-    await posKdsRepo.updateOrderStatus(id, "PAID");
+    const proofUrls = Array.isArray(payment_proofs)
+      ? payment_proofs.map((proof) => proof?.toString().trim()).filter(Boolean)
+      : [];
+    await posKdsRepo.updateOrder(id, {
+      status: "PAID",
+      payment_proofs: [...((order as any).payment_proofs || []), ...proofUrls],
+    });
+
+    if ((order as any).table_session_id) {
+      await posKdsRepo.updateTableSession((order as any).table_session_id, {
+        status: "CLOSED" as any,
+        closed_at: new Date(),
+      });
+    }
 
     if (order.table_id) {
-      await posKdsRepo.updateTable(order.table_id, { status: "AVAILABLE" });
+      const activeSessions = await posKdsRepo.findActiveTableSessions(branchId, order.table_id);
+      if (activeSessions.length === 0) {
+        await posKdsRepo.updateTable(order.table_id, { status: "AVAILABLE" });
+      }
     }
 
     await this.notifyOrder(
@@ -233,6 +508,18 @@ export class PosKdsService {
     }
 
     const updatedOrder = await posKdsRepo.updateOrderStatus(id, "REFUNDED");
+    if ((order as any).table_session_id) {
+      await posKdsRepo.updateTableSession((order as any).table_session_id, {
+        status: "CLOSED" as any,
+        closed_at: new Date(),
+      });
+    }
+    if (order.table_id) {
+      const activeSessions = await posKdsRepo.findActiveTableSessions(branchId, order.table_id);
+      if (activeSessions.length === 0) {
+        await posKdsRepo.updateTable(order.table_id, { status: "AVAILABLE" });
+      }
+    }
     await this.notifyOrder(updatedOrder, {
       type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_REFUNDED,
       title: _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_REFUNDED_TITLE,
@@ -253,11 +540,19 @@ export class PosKdsService {
       }
     }
 
-    if (order.table_id) {
-      await posKdsRepo.updateTable(order.table_id, { status: "AVAILABLE" });
-    }
-
     const updatedOrder = await posKdsRepo.updateOrderStatus(id, "CANCELLED");
+    if ((order as any).table_session_id) {
+      await posKdsRepo.updateTableSession((order as any).table_session_id, {
+        status: "CANCELLED" as any,
+        closed_at: new Date(),
+      });
+    }
+    if (order.table_id) {
+      const activeSessions = await posKdsRepo.findActiveTableSessions(branchId, order.table_id);
+      if (activeSessions.length === 0) {
+        await posKdsRepo.updateTable(order.table_id, { status: "AVAILABLE" });
+      }
+    }
     await this.notifyOrder(updatedOrder, {
       type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_CANCELLED,
       title: _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_CANCELLED_TITLE,

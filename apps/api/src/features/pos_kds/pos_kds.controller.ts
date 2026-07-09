@@ -34,8 +34,8 @@ export const getOrderById = asyncHandler(async (req: Request, res: Response) => 
 
 export const payOrder = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as Record<string, string>;
-  const { payment_method, amount } = req.body;
-  const result = await posKdsService.payOrder(id, req.employee.branch_id, payment_method, amount);
+  const { payment_method, amount, payment_proofs } = req.body;
+  const result = await posKdsService.payOrder(id, req.employee.branch_id, payment_method, amount, payment_proofs);
   return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_PAID, HttpStatus.OK);
 });
 

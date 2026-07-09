@@ -5,6 +5,36 @@ import { ModifierGroupDTO } from './modifier_group.type';
 import { ModifierDTO } from './modifier.type';
 import { ComboMealDTO } from './combo_meal.type';
 import { ComboItemDTO } from './combo_item.type';
+import { MenuItemSaleModeDTO } from './menu_item_sale_mode.type';
+
+const menuItemInclude = {
+  variant: {
+    select: {
+      item_id: true,
+      uom_id: true,
+      uom: {
+        select: {
+          id: true,
+          code: true,
+          description: true,
+        },
+      },
+    },
+  },
+  sale_modes: {
+    where: { is_deleted: false },
+    include: {
+      uom: {
+        select: {
+          id: true,
+          code: true,
+          description: true,
+        },
+      },
+    },
+    orderBy: { sort_order: 'asc' as const },
+  },
+};
 
 export class CatalogRepo {
   async createMenuCategory(data: {
@@ -48,15 +78,42 @@ export class CatalogRepo {
     description?: string;
     selling_price: number;
     image_url?: string;
+    images?: string[];
+    videos?: string[];
+    sale_modes?: any[];
     created_by?: string;
   }): Promise<MenuItemDTO> {
-    return prisma.menuItem.create({ data }) as unknown as MenuItemDTO;
+    const { sale_modes, ...menuData } = data;
+    return prisma.$transaction(async (tx) => {
+      const menuItem = await tx.menuItem.create({ data: menuData });
+      if (sale_modes?.length) {
+        await tx.menuItemSaleMode.createMany({
+          data: sale_modes.map((mode, index) => ({
+            branch_id: data.branch_id,
+            menu_item_id: menuItem.id,
+            uom_id: mode.uom_id,
+            label: mode.label,
+            price_per_unit: Number(mode.price_per_unit),
+            min_qty: Number(mode.min_qty ?? 1),
+            step_qty: Number(mode.step_qty ?? 1),
+            allow_decimal: Boolean(mode.allow_decimal),
+            is_default: Boolean(mode.is_default),
+            sort_order: Number(mode.sort_order ?? index),
+            status: mode.status ?? 'ACTIVE',
+          })),
+        });
+      }
+      return tx.menuItem.findUnique({
+        where: { id: menuItem.id },
+        include: menuItemInclude,
+      }) as unknown as MenuItemDTO;
+    });
   }
 
   async findMenuItemsByBranch(branch_id: string): Promise<MenuItemDTO[]> {
     return prisma.menuItem.findMany({
       where: { branch_id, is_deleted: false },
-      include: { variant: { select: { item_id: true } } },
+      include: menuItemInclude,
       orderBy: { created_at: 'desc' },
     }) as unknown as MenuItemDTO[];
   }
@@ -64,7 +121,7 @@ export class CatalogRepo {
   async findMenuItemsByCategory(category_id: string): Promise<MenuItemDTO[]> {
     return prisma.menuItem.findMany({
       where: { category_id, is_deleted: false },
-      include: { variant: { select: { item_id: true } } },
+      include: menuItemInclude,
       orderBy: { created_at: 'desc' },
     }) as unknown as MenuItemDTO[];
   }
@@ -72,12 +129,45 @@ export class CatalogRepo {
   async findMenuItemById(id: string): Promise<MenuItemDTO | null> {
     return prisma.menuItem.findFirst({
       where: { id, is_deleted: false },
-      include: { variant: { select: { item_id: true } } },
+      include: menuItemInclude,
     }) as unknown as MenuItemDTO | null;
   }
 
   async updateMenuItem(id: string, data: any): Promise<MenuItemDTO> {
-    return prisma.menuItem.update({ where: { id }, data }) as unknown as MenuItemDTO;
+    const { sale_modes, ...menuData } = data;
+    return prisma.$transaction(async (tx) => {
+      await tx.menuItem.update({ where: { id }, data: menuData });
+      if (Array.isArray(sale_modes)) {
+        await tx.menuItemSaleMode.updateMany({
+          where: { menu_item_id: id },
+          data: { is_deleted: true },
+        });
+        if (sale_modes.length) {
+          const item = await tx.menuItem.findUnique({ where: { id } });
+          if (item) {
+            await tx.menuItemSaleMode.createMany({
+              data: sale_modes.map((mode, index) => ({
+                branch_id: item.branch_id,
+                menu_item_id: id,
+                uom_id: mode.uom_id,
+                label: mode.label,
+                price_per_unit: Number(mode.price_per_unit),
+                min_qty: Number(mode.min_qty ?? 1),
+                step_qty: Number(mode.step_qty ?? 1),
+                allow_decimal: Boolean(mode.allow_decimal),
+                is_default: Boolean(mode.is_default),
+                sort_order: Number(mode.sort_order ?? index),
+                status: mode.status ?? 'ACTIVE',
+              })),
+            });
+          }
+        }
+      }
+      return tx.menuItem.findUnique({
+        where: { id },
+        include: menuItemInclude,
+      }) as unknown as MenuItemDTO;
+    });
   }
 
   async deleteMenuItem(id: string): Promise<MenuItemDTO> {
@@ -85,6 +175,37 @@ export class CatalogRepo {
       where: { id },
       data: { is_deleted: true },
     }) as unknown as MenuItemDTO;
+  }
+
+  async replaceMenuItemSaleModes(menuItemId: string, branchId: string, saleModes: any[]): Promise<MenuItemSaleModeDTO[]> {
+    return prisma.$transaction(async (tx) => {
+      await tx.menuItemSaleMode.updateMany({
+        where: { menu_item_id: menuItemId },
+        data: { is_deleted: true },
+      });
+      if (saleModes.length) {
+        await tx.menuItemSaleMode.createMany({
+          data: saleModes.map((mode, index) => ({
+            branch_id: branchId,
+            menu_item_id: menuItemId,
+            uom_id: mode.uom_id,
+            label: mode.label,
+            price_per_unit: Number(mode.price_per_unit),
+            min_qty: Number(mode.min_qty ?? 1),
+            step_qty: Number(mode.step_qty ?? 1),
+            allow_decimal: Boolean(mode.allow_decimal),
+            is_default: Boolean(mode.is_default),
+            sort_order: Number(mode.sort_order ?? index),
+            status: mode.status ?? 'ACTIVE',
+          })),
+        });
+      }
+      return tx.menuItemSaleMode.findMany({
+        where: { menu_item_id: menuItemId, is_deleted: false },
+        include: { uom: true },
+        orderBy: { sort_order: 'asc' },
+      }) as unknown as MenuItemSaleModeDTO[];
+    });
   }
 
   async createModifierGroup(data: {
@@ -200,6 +321,7 @@ export class CatalogRepo {
         items: {
           where: { is_deleted: false, status: 'ACTIVE' },
           orderBy: { created_at: 'asc' },
+          include: menuItemInclude,
         },
       },
     }) as unknown as MenuCategoryDTO[];

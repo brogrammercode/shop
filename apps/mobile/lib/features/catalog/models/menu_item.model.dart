@@ -1,4 +1,4 @@
-// Auto-generated Model file for MenuItem
+import 'package:mobile/features/catalog/models/menu_item_sale_mode.model.dart';
 
 class MenuItemModel {
   final String id;
@@ -12,6 +12,7 @@ class MenuItemModel {
   final List<String> videos;
   final String status;
   final List<String> images;
+  final List<MenuItemSaleModeModel> sale_modes;
   final String created_at;
   final String updated_at;
   final String created_by;
@@ -28,6 +29,7 @@ class MenuItemModel {
     required this.selling_price,
     this.videos = const [],
     this.images = const [],
+    this.sale_modes = const [],
     required this.status,
     required this.created_at,
     required this.updated_at,
@@ -45,6 +47,11 @@ class MenuItemModel {
       display_name: json['display_name'] ?? '',
       description: json['description'] ?? '',
       images: (json['images'] as List?)?.map((e) => e as String).toList() ?? const [],
+      sale_modes:
+          (json['sale_modes'] as List?)
+              ?.map((e) => MenuItemSaleModeModel.fromJson(e))
+              .toList() ??
+          const [],
       selling_price: (json['selling_price'] as num?)?.toDouble() ?? 0.0,
       videos: (json['videos'] as List?)?.map((e) => e as String).toList() ?? const [],
       status: json['status'] ?? '',
@@ -67,6 +74,7 @@ class MenuItemModel {
       'selling_price': selling_price,
       'videos': videos,
       'images': images,
+      'sale_modes': sale_modes.map((e) => e.toJson()).toList(),
       'status': status,
       'created_at': created_at,
       'updated_at': updated_at,
@@ -87,6 +95,7 @@ class MenuItemModel {
     List<String>? videos,
     String? status,
     List<String>? images,
+    List<MenuItemSaleModeModel>? sale_modes,
     String? created_at,
     String? updated_at,
     String? created_by,
@@ -103,6 +112,7 @@ class MenuItemModel {
       selling_price: selling_price ?? this.selling_price,
       videos: videos ?? this.videos,
       images: images ?? this.images,
+      sale_modes: sale_modes ?? this.sale_modes,
       status: status ?? this.status,
       created_at: created_at ?? this.created_at,
       updated_at: updated_at ?? this.updated_at,

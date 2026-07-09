@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/core/routes.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/components/ui/bottom_action.dart';
 import 'package:mobile/constants/api.dart';
@@ -13,12 +14,13 @@ import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.cubit.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
 import 'package:mobile/features/pos_kds/models/order.model.dart';
-import 'package:mobile/features/pos_kds/services/table_side_label_resolver.dart';
+import 'package:mobile/features/pos_kds/services/order_display_formatter.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:image_picker/image_picker.dart';
 
 class OrderDetailPage extends StatefulWidget {
   const OrderDetailPage({super.key});
@@ -31,6 +33,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   final GlobalKey _receiptKey = GlobalKey();
   final TextEditingController _finalPayingPriceController =
       TextEditingController();
+  final List<String> _paymentProofPaths = [];
 
   @override
   void initState() {
@@ -68,6 +71,19 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         text: 'ORDER #${order.order_no}',
       ),
     );
+  }
+
+  Future<void> _pickPaymentProof() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) {
+      return;
+    }
+    setState(() => _paymentProofPaths.add(pickedFile.path));
+  }
+
+  void _removePaymentProof(String path) {
+    setState(() => _paymentProofPaths.remove(path));
   }
 
   Widget _buildStatusBadge(String status) {
@@ -162,57 +178,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return '₹ ${amount.toStringAsFixed(2)}';
   }
 
-  String _deliveryAddress(OrderModel order) {
-    final addresses = order.user?.addresses ?? const [];
-    for (final address in addresses) {
-      if (address.id == order.delivery_address_id) {
-        final parts = [
-          address.area,
-          address.locality,
-          address.city,
-          address.state,
-          address.pin_code,
-        ].where((part) => part.trim().isNotEmpty).toList();
-        if (parts.isNotEmpty) {
-          return parts.join(', ');
-        }
-      }
-    }
-    if (addresses.length == 1) {
-      final address = addresses.first;
-      final parts = [
-        address.area,
-        address.locality,
-        address.city,
-        address.state,
-        address.pin_code,
-      ].where((part) => part.trim().isNotEmpty).toList();
-      if (parts.isNotEmpty) {
-        return parts.join(', ');
-      }
-    }
-    return '';
-  }
-
-  String _tableDisplay(OrderModel order) {
-    final tableName = order.table?.table_number.trim().isNotEmpty == true
-        ? order.table!.table_number
-        : '';
-    final sideNames = _sideDisplay(order);
-    if (tableName.isNotEmpty && sideNames.isNotEmpty) {
-      return 'Table $tableName ($sideNames)';
-    }
-    if (tableName.isNotEmpty) {
-      return 'Table $tableName';
-    }
-    if (sideNames.isNotEmpty) {
-      return 'Sides: $sideNames';
-    }
-    return '';
-  }
-
-  String _sideDisplay(OrderModel order) {
-    return TableSideLabelResolver.display(order);
+  void _goBack() {
+    Navigator.pushReplacementNamed(context, AppRoutes.home);
   }
 
   TextStyle _headerStyle() => TextStyle(
@@ -422,7 +389,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               child: Row(
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: _goBack,
                     child: Container(
                       padding: EdgeInsets.all(8.w),
                       decoration: const BoxDecoration(
@@ -505,8 +472,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         _finalPayingPriceController.text.trim(),
                       ) ??
                       order.total_amount;
-                  final deliveryAddress = _deliveryAddress(order);
-                  final tableDisplay = _tableDisplay(order);
+                  final deliveryAddress = OrderDisplayFormatter.deliveryAddress(
+                    order,
+                  );
+                  final tableDisplay = OrderDisplayFormatter.tableDisplay(
+                    order,
+                  );
+                  final fulfillmentTitle =
+                      OrderDisplayFormatter.fulfillmentTitle(order);
 
                   return Column(
                     children: [
@@ -635,6 +608,36 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                                       color: AppColors
                                                           .textSecondary,
                                                     ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                          if (tableDisplay.isEmpty &&
+                                              deliveryAddress.isEmpty) ...[
+                                            SizedBox(height: 8.h),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  OrderDisplayFormatter.isTakeaway(
+                                                        order,
+                                                      )
+                                                      ? Icons
+                                                            .takeout_dining_outlined
+                                                      : Icons
+                                                            .shopping_bag_outlined,
+                                                  size: 14.w,
+                                                  color:
+                                                      AppColors.textSecondary,
+                                                ),
+                                                SizedBox(width: 6.w),
+                                                Text(
+                                                  fulfillmentTitle,
+                                                  style: TextStyle(
+                                                    fontSize: 13.sp,
+                                                    fontWeight: FontWeight.w600,
+                                                    color:
+                                                        AppColors.textSecondary,
                                                   ),
                                                 ),
                                               ],
@@ -1022,7 +1025,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                           _buildDashedLine(),
                                           SizedBox(height: 16.h),
                                           Text(
-                                            'TYPE: ${order.order_type}',
+                                            'TYPE: ${OrderDisplayFormatter.orderTypeLabel(order.order_type)}',
                                             style: TextStyle(
                                               fontFamily: 'Courier',
                                               fontSize: 14.sp,
@@ -1033,6 +1036,18 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                             SizedBox(height: 4.h),
                                             Text(
                                               tableDisplay.toUpperCase(),
+                                              style: TextStyle(
+                                                fontFamily: 'Courier',
+                                                fontSize: 12.sp,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                          if (tableDisplay.isEmpty &&
+                                              deliveryAddress.isEmpty) ...[
+                                            SizedBox(height: 4.h),
+                                            Text(
+                                              fulfillmentTitle.toUpperCase(),
                                               style: TextStyle(
                                                 fontFamily: 'Courier',
                                                 fontSize: 12.sp,
@@ -1131,7 +1146,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                                   Expanded(
                                                     flex: 1,
                                                     child: Text(
-                                                      '${item.qty}',
+                                                      OrderDisplayFormatter.quantityText(
+                                                        item,
+                                                      ),
                                                       textAlign:
                                                           TextAlign.center,
                                                       style: _itemStyle(),
@@ -1267,6 +1284,96 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                 ),
                               ),
                               SizedBox(height: 10.h),
+                              GestureDetector(
+                                onTap: _pickPaymentProof,
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12.w,
+                                    vertical: 10.h,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF9FAFB),
+                                    borderRadius: BorderRadius.circular(10.r),
+                                    border: Border.all(
+                                      color: AppColors.borderGrey,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.add_photo_alternate_outlined,
+                                        size: 18.w,
+                                        color: AppColors.primaryGreen,
+                                      ),
+                                      SizedBox(width: 8.w),
+                                      Expanded(
+                                        child: Text(
+                                          'Attach payment proof (optional)',
+                                          style: TextStyle(
+                                            fontSize: 12.sp,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.textPrimary,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              if (_paymentProofPaths.isNotEmpty) ...[
+                                SizedBox(height: 10.h),
+                                SizedBox(
+                                  height: 58.h,
+                                  child: ListView.separated(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: _paymentProofPaths.length,
+                                    separatorBuilder: (context, index) =>
+                                        SizedBox(width: 8.w),
+                                    itemBuilder: (context, index) {
+                                      final path = _paymentProofPaths[index];
+                                      return Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              10.r,
+                                            ),
+                                            child: Image.file(
+                                              File(path),
+                                              width: 58.w,
+                                              height: 58.h,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                          Positioned(
+                                            top: -6.h,
+                                            right: -6.w,
+                                            child: GestureDetector(
+                                              onTap: () =>
+                                                  _removePaymentProof(path),
+                                              child: Container(
+                                                width: 20.w,
+                                                height: 20.w,
+                                                decoration: const BoxDecoration(
+                                                  color: Color(0xFFEF4F5F),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                                child: Icon(
+                                                  Icons.close,
+                                                  color: AppColors.pureWhite,
+                                                  size: 12.w,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                              SizedBox(height: 10.h),
                               Row(
                                 children: [
                                   Expanded(
@@ -1361,14 +1468,23 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                                       order.total_amount;
                                                   final cubit = context
                                                       .read<PosKdsCubit>();
+                                                  final proofUrls = await cubit
+                                                      .uploadPaymentProofs(
+                                                        _paymentProofPaths,
+                                                      );
                                                   await cubit.payOrder(
                                                     order.id,
                                                     {
                                                       'payment_method': 'CASH',
                                                       'amount': amount,
+                                                      'payment_proofs':
+                                                          proofUrls,
                                                     },
                                                   );
                                                   if (mounted) {
+                                                    setState(
+                                                      _paymentProofPaths.clear,
+                                                    );
                                                     cubit.getOrder(order.id);
                                                   }
                                                 },

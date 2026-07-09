@@ -1,5 +1,5 @@
 interface GreenStepperProps {
-  count: number;
+  count: number | string;
   onIncrement?: () => void;
   onDecrement?: () => void;
 }

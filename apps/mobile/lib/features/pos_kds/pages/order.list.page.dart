@@ -9,7 +9,7 @@ import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.cubit.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
 import 'package:mobile/features/pos_kds/models/order.model.dart';
-import 'package:mobile/features/pos_kds/services/table_side_label_resolver.dart';
+import 'package:mobile/features/pos_kds/services/order_display_formatter.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:shimmer/shimmer.dart';
@@ -60,60 +60,6 @@ class _OrderListPageState extends State<OrderListPage> {
     } catch (e) {
       return timeStr;
     }
-  }
-
-  String _deliveryAddress(OrderModel order) {
-    final addresses = order.user?.addresses ?? const [];
-    for (final address in addresses) {
-      if (address.id == order.delivery_address_id) {
-        final value = _addressValue([
-          address.area,
-          address.locality,
-          address.city,
-          address.state,
-          address.pin_code,
-        ]);
-        if (value.isNotEmpty) {
-          return value;
-        }
-      }
-    }
-    if (addresses.length == 1) {
-      final address = addresses.first;
-      return _addressValue([
-        address.area,
-        address.locality,
-        address.city,
-        address.state,
-        address.pin_code,
-      ]);
-    }
-    return '';
-  }
-
-  String _addressValue(List<String> parts) {
-    return parts.where((part) => part.trim().isNotEmpty).join(', ');
-  }
-
-  String _tableDisplay(OrderModel order) {
-    final tableName = order.table?.table_number.trim().isNotEmpty == true
-        ? order.table!.table_number
-        : '';
-    final sideNames = _sideDisplay(order);
-    if (tableName.isNotEmpty && sideNames.isNotEmpty) {
-      return 'Table $tableName ($sideNames)';
-    }
-    if (tableName.isNotEmpty) {
-      return 'Table $tableName';
-    }
-    if (sideNames.isNotEmpty) {
-      return 'Sides: $sideNames';
-    }
-    return '';
-  }
-
-  String _sideDisplay(OrderModel order) {
-    return TableSideLabelResolver.display(order);
   }
 
   List<OrderModel> _visibleOrders(List<OrderModel> orders) {
@@ -809,8 +755,10 @@ class _OrderListPageState extends State<OrderListPage> {
         ? order.final_paying_price
         : order.total_amount;
     final customer = order.user;
-    final tableDisplay = _tableDisplay(order);
-    final deliveryAddress = _deliveryAddress(order);
+    final fulfillmentTitle = OrderDisplayFormatter.fulfillmentTitle(order);
+    final fulfillmentSubtitle = OrderDisplayFormatter.fulfillmentSubtitle(
+      order,
+    );
     return GestureDetector(
       onTap: () => _openOrder(order),
       child: Container(
@@ -861,7 +809,7 @@ class _OrderListPageState extends State<OrderListPage> {
                           ),
                           SizedBox(width: 4.w),
                           Text(
-                            '${order.order_type}  •  ${_formatTime(order.created_at)}',
+                            '${OrderDisplayFormatter.orderTypeLabel(order.order_type)}  •  ${_formatTime(order.created_at)}',
                             style: TextStyle(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w700,
@@ -939,13 +887,13 @@ class _OrderListPageState extends State<OrderListPage> {
                 SizedBox(width: 12.w),
                 Expanded(
                   child: _buildDetailLine(
-                    order.order_type == 'DINE_IN'
+                    OrderDisplayFormatter.isDineIn(order)
                         ? Icons.table_restaurant_outlined
+                        : OrderDisplayFormatter.isTakeaway(order)
+                        ? Icons.takeout_dining_outlined
                         : Icons.location_on_outlined,
-                    tableDisplay.isNotEmpty ? tableDisplay : 'Fulfillment',
-                    deliveryAddress.isNotEmpty
-                        ? deliveryAddress
-                        : order.order_type,
+                    fulfillmentTitle,
+                    fulfillmentSubtitle,
                   ),
                 ),
               ],
@@ -978,7 +926,7 @@ class _OrderListPageState extends State<OrderListPage> {
                             ),
                           ),
                           Text(
-                            '${item.qty.toStringAsFixed(0)} × ${_formatAmount(item.unit_price)}',
+                            '${OrderDisplayFormatter.quantityText(item)} × ${_formatAmount(item.unit_price)}',
                             style: TextStyle(
                               fontSize: 11.sp,
                               fontWeight: FontWeight.w700,

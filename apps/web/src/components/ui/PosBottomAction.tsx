@@ -1,5 +1,6 @@
 import React from "react";
 import { _MENU_CONSTANTS } from "../../constants/menu.constant";
+import { formatInr } from "@/core/format";
 
 interface PosBottomActionProps {
   totalItems: number;
@@ -26,7 +27,7 @@ export const PosBottomAction = ({ totalItems, totalPrice, onPlaceOrder, isOrderi
             ) : totalItems > 0 ? (
               <>
                 <span className="text-[14px] font-medium">
-                  {_MENU_CONSTANTS._L_A_B_E_L_S.PLACE_ORDER} (₹{totalPrice})
+                  {_MENU_CONSTANTS._L_A_B_E_L_S.PLACE_ORDER} ({formatInr(totalPrice)})
                 </span>
               </>
             ) : (

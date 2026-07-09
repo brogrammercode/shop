@@ -51,6 +51,14 @@ export const _POS_KDS_CONSTANTS = {
     PAYMENT_NOT_FOUND: 'Payment not found',
     INVALID_STATUS: 'Invalid status transition',
     BRANCH_REQUIRED: 'Branch ID is required',
+    MENU_ITEM_NOT_FOUND: 'Menu item not found',
+    SALE_MODE_NOT_FOUND: 'Sale mode not found',
+    TABLE_SESSION_NOT_FOUND: 'Table session not found',
+    TABLE_SESSION_CLOSED: 'Table session is already closed',
+    TABLE_SEATS_OCCUPIED: 'Selected table seats are already occupied by another active bill',
+  },
+  _D_E_F_A_U_L_T_S: {
+    SALE_MODE_LABEL: 'Regular',
   },
   _S_T_A_T_U_S: {
     _O_R_D_E_R: {

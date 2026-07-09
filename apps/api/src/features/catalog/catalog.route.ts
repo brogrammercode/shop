@@ -55,6 +55,10 @@ router.delete(
   _CATALOG_CONSTANTS._R_O_U_T_E_S.MENU_ITEM_BY_ID,
   catalogController.deleteMenuItem,
 );
+router.put(
+  _CATALOG_CONSTANTS._R_O_U_T_E_S.MENU_ITEM_SALE_MODES,
+  catalogController.replaceMenuItemSaleModes,
+);
 
 router.get(
   _CATALOG_CONSTANTS._R_O_U_T_E_S.MODIFIER_GROUPS,

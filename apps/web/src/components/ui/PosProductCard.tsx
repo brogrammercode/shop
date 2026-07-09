@@ -1,5 +1,6 @@
 import React from "react";
 import { GreenStepper } from "./GreenStepper";
+import { formatInr } from "@/core/format";
 
 interface PosProductCardProps {
   title: string;
@@ -60,7 +61,7 @@ export const PosProductCard = ({
           {title}
         </h3>
         <span className="text-[12px] font-medium text-primary-green mt-[4px]">
-          ₹ {price}
+          {formatInr(price)}
         </span>
       </div>
     </div>

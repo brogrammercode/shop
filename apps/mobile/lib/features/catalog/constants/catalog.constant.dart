@@ -12,6 +12,19 @@ class CatalogConstant {
   static const String ITEM_DETAIL_TITLE = 'Item Details';
   static const String VARIANTS_SECTION = 'VARIANTS';
   static const String ADD_VARIANT = 'Add Variant';
+  static const String SALE_MODES_SECTION = 'SALE MODES';
+  static const String ADD_SALE_MODE = 'Add Sale Mode';
+  static const String EDIT_SALE_MODE = 'Edit Sale Mode';
+  static const String SALE_MODE_LABEL = 'Sale Mode Label';
+  static const String PRICE_PER_UNIT = 'Price Per Unit';
+  static const String MIN_QTY = 'Minimum Qty';
+  static const String STEP_QTY = 'Step Qty';
+  static const String ALLOW_DECIMAL = 'Allow Decimal Quantity';
+  static const String DEFAULT_SALE_MODE = 'Default Sale Mode';
+  static const String NO_SALE_MODES = 'No sale modes configured';
+  static const String SALE_MODE_REQUIRED = 'Please add at least one sale mode';
+  static const String SALE_MODE_INVALID = 'Please complete sale mode details';
+  static const String REGULAR_SALE_MODE = 'Regular';
   
   // Variants
   static const String CREATE_VARIANT_TITLE = 'Add Variant';

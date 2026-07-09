@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/components/ui/input.dart';
+import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
 import 'package:mobile/utils/error.dart';
 
 import 'package:mobile/features/catalog/controllers/catalog.cubit.dart';
@@ -15,6 +16,7 @@ import '../controllers/pos_kds.cubit.dart';
 import '../controllers/pos_kds.state.dart';
 import 'dart:async';
 import 'package:mobile/features/pos_kds/pages/order.detail.page.dart';
+import 'package:mobile/features/pos_kds/models/order.model.dart';
 
 class PosCartPage extends StatefulWidget {
   const PosCartPage({super.key});
@@ -69,6 +71,61 @@ class _PosCartPageState extends State<PosCartPage> {
     });
   }
 
+  bool _isActiveDineInBill(OrderModel order) {
+    return order.order_type == 'DINE_IN' &&
+        order.table_session_id.isNotEmpty &&
+        ![
+          'PAID',
+          'CANCELLED',
+          'REFUNDED',
+          'COMPLETED',
+        ].contains(order.status.toUpperCase());
+  }
+
+  bool _sideScopesOverlap(
+    List<String> existingSides,
+    List<String> selectedSides,
+  ) {
+    if (existingSides.isEmpty || selectedSides.isEmpty) {
+      return true;
+    }
+    return selectedSides.any(existingSides.contains);
+  }
+
+  List<OrderModel> _activeBillsForSelection(
+    PosKdsState posState,
+    String? tableId,
+    List<String> sideIds,
+  ) {
+    if (tableId == null || tableId.isEmpty) {
+      return const [];
+    }
+    final bySession = <String, OrderModel>{};
+    for (final order in posState.orders) {
+      if (!_isActiveDineInBill(order) || order.table_id != tableId) {
+        continue;
+      }
+      if (_sideScopesOverlap(order.table_side_ids, sideIds)) {
+        bySession[order.table_session_id] = order;
+      }
+    }
+    return bySession.values.toList();
+  }
+
+  String? _deriveSelectedTableId(PosKdsState posState) {
+    if (_selectedOrderType != 'DINE_IN') {
+      return null;
+    }
+    if (_selectedTableSideIds.isNotEmpty) {
+      for (final table in posState.tables) {
+        if (table.side_labels.contains(_selectedTableSideIds.first)) {
+          return table.id;
+        }
+      }
+    }
+    return _selectedTableId;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<PosKdsCubit, PosKdsState>(
@@ -111,7 +168,7 @@ class _PosCartPageState extends State<PosCartPage> {
                 final crmState = context.watch<CrmCubit>().state;
                 final cartItemsCount = posState.cart.values.fold(
                   0,
-                  (sum, item) => sum + item,
+                  (sum, item) => sum + 1,
                 );
                 final isSearchingCustomer =
                     posState.searchCustomersInfo.status ==
@@ -119,7 +176,7 @@ class _PosCartPageState extends State<PosCartPage> {
                 if (cartItemsCount == 0) {
                   return Center(
                     child: Text(
-                      'Cart is empty',
+                      PosConstant.CART_EMPTY,
                       style: TextStyle(
                         fontSize: 16.sp,
                         color: AppColors.textSecondary,
@@ -131,12 +188,16 @@ class _PosCartPageState extends State<PosCartPage> {
                 double cartTotal = 0.0;
                 final List<Widget> itemWidgets = [];
 
-                posState.cart.forEach((itemId, qty) {
+                posState.cart.forEach((itemId, line) {
                   try {
-                    final item = catalogState.menuItems.firstWhere(
-                      (i) => i.id == itemId,
+                    final item = line.item.copyWith(
+                      selling_price: line.unit_price,
                     );
-                    cartTotal += (item.selling_price * qty);
+                    final qty = line.quantity;
+                    final unit = line.quantity_uom_code.trim().isEmpty
+                        ? ''
+                        : ' ${line.quantity_uom_code}';
+                    cartTotal += line.total;
 
                     itemWidgets.add(
                       Container(
@@ -218,7 +279,7 @@ class _PosCartPageState extends State<PosCartPage> {
                                           onTap: () {
                                             context
                                                 .read<PosKdsCubit>()
-                                                .removeFromCart(item.id);
+                                                .removeFromCart(line.id);
                                           },
                                           child: Padding(
                                             padding: EdgeInsets.symmetric(
@@ -233,7 +294,7 @@ class _PosCartPageState extends State<PosCartPage> {
                                           ),
                                         ),
                                         Text(
-                                          '$qty',
+                                          '${_formatQty(qty)}$unit',
                                           style: TextStyle(
                                             fontSize: 13.sp,
                                             fontWeight: FontWeight.w900,
@@ -244,7 +305,10 @@ class _PosCartPageState extends State<PosCartPage> {
                                           onTap: () {
                                             context
                                                 .read<PosKdsCubit>()
-                                                .addToCart(item.id);
+                                                .setCartQuantity(
+                                                  line.id,
+                                                  line.quantity + line.step_qty,
+                                                );
                                           },
                                           child: Padding(
                                             padding: EdgeInsets.symmetric(
@@ -272,6 +336,15 @@ class _PosCartPageState extends State<PosCartPage> {
                 });
 
                 final selectedCustomer = posState.selectedCustomer;
+                final selectedDineInTableId = _deriveSelectedTableId(posState);
+                final activeDineInBills = _activeBillsForSelection(
+                  posState,
+                  selectedDineInTableId,
+                  _selectedTableSideIds,
+                );
+                final activeDineInBill = activeDineInBills.length == 1
+                    ? activeDineInBills.first
+                    : null;
 
                 return Column(
                   children: [
@@ -526,21 +599,34 @@ class _PosCartPageState extends State<PosCartPage> {
                                               label: table.table_number,
                                               subtitle: table.status,
                                               isSelected:
-                                                  _selectedTableSideIds.any((side) => table.side_labels.contains(side)) || _selectedTableId == table.id,
+                                                  _selectedTableSideIds.any(
+                                                    (side) => table.side_labels
+                                                        .contains(side),
+                                                  ) ||
+                                                  _selectedTableId == table.id,
                                               onTap: () {
                                                 setState(() {
-                                                  if (_expandedTableIds.contains(table.id)) {
-                                                    _expandedTableIds.remove(table.id);
+                                                  if (_expandedTableIds
+                                                      .contains(table.id)) {
+                                                    _expandedTableIds.remove(
+                                                      table.id,
+                                                    );
                                                   } else {
-                                                    _expandedTableIds.add(table.id);
+                                                    _expandedTableIds.add(
+                                                      table.id,
+                                                    );
                                                   }
-                                                  if (table.side_labels.isEmpty) {
+                                                  if (table
+                                                      .side_labels
+                                                      .isEmpty) {
                                                     _selectedTableId = table.id;
                                                   }
                                                 });
                                               },
                                             ),
-                                            if (_expandedTableIds.contains(table.id) &&
+                                            if (_expandedTableIds.contains(
+                                                  table.id,
+                                                ) &&
                                                 table.side_labels.isNotEmpty)
                                               Container(
                                                 margin: EdgeInsets.only(
@@ -640,6 +726,30 @@ class _PosCartPageState extends State<PosCartPage> {
                                           ],
                                         );
                                       }),
+                                    if (activeDineInBill != null) ...[
+                                      SizedBox(height: 10.h),
+                                      Container(
+                                        width: double.infinity,
+                                        padding: EdgeInsets.all(10.w),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFE8F5E9),
+                                          borderRadius: BorderRadius.circular(
+                                            10.r,
+                                          ),
+                                          border: Border.all(
+                                            color: AppColors.primaryGreen,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Adding to active bill #${activeDineInBill.order_no}',
+                                          style: TextStyle(
+                                            fontSize: 12.sp,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.primaryGreen,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                   if (_selectedOrderType == 'DELIVERY') ...[
                                     SizedBox(height: 16.h),
@@ -852,7 +962,8 @@ class _PosCartPageState extends State<PosCartPage> {
                                         OperationStatus.loading,
                                     onPressed: () {
                                       if (_selectedOrderType == 'DINE_IN' &&
-                                          _selectedTableId == null && _selectedTableSideIds.isEmpty) {
+                                          _selectedTableId == null &&
+                                          _selectedTableSideIds.isEmpty) {
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
@@ -880,33 +991,44 @@ class _PosCartPageState extends State<PosCartPage> {
 
                                       final List<Map<String, dynamic>>
                                       orderItemsList = [];
-                                      posState.cart.forEach((itemId, qty) {
-                                        try {
-                                          final item = catalogState.menuItems
-                                              .firstWhere(
-                                                (i) => i.id == itemId,
-                                              );
-                                          orderItemsList.add({
-                                            'menu_item_id': item.id,
-                                            'quantity': qty,
-                                            'unit_price': item.selling_price,
-                                            'total_price':
-                                                item.selling_price * qty,
-                                            'notes': '',
-                                          });
-                                        } catch (_) {}
-                                      });
-
-                                      String? derivedTableId = _selectedTableId;
-                                      if (_selectedTableSideIds.isNotEmpty) {
-                                        for (var table in posState.tables) {
-                                          if (table.side_labels.contains(_selectedTableSideIds.first)) {
-                                            derivedTableId = table.id;
-                                            break;
-                                          }
-                                        }
+                                      for (final line in posState.cart.values) {
+                                        orderItemsList.add({
+                                          'menu_item_id': line.menu_item_id,
+                                          'sale_mode_id': line.sale_mode_id,
+                                          'sale_mode_label':
+                                              line.sale_mode_label,
+                                          'quantity_uom_id':
+                                              line.quantity_uom_id,
+                                          'quantity_uom_code':
+                                              line.quantity_uom_code,
+                                          'quantity': line.quantity,
+                                          'unit_price': line.unit_price,
+                                          'total_price': line.total,
+                                          'notes': '',
+                                        });
                                       }
-                                      
+
+                                      final derivedTableId =
+                                          _deriveSelectedTableId(posState);
+                                      final activeBills =
+                                          _activeBillsForSelection(
+                                            posState,
+                                            derivedTableId,
+                                            _selectedTableSideIds,
+                                          );
+                                      if (activeBills.length > 1) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Selected seats belong to multiple active bills',
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
                                       context
                                           .read<PosKdsCubit>()
                                           .placeOrderFromCart(
@@ -915,15 +1037,27 @@ class _PosCartPageState extends State<PosCartPage> {
                                             _selectedOrderType,
                                             derivedTableId,
                                             _selectedCustomerId,
+                                            tableSessionId:
+                                                activeBills.length == 1
+                                                ? activeBills
+                                                      .first
+                                                      .table_session_id
+                                                : null,
                                             deliveryAddressId:
-                                                _selectedAddressId,
-                                            tableSideIds: _selectedTableSideIds,
-                                            notes: _orderNotesController.text
-                                                .trim()
-                                                .isEmpty
-                                            ? null
-                                            : _orderNotesController.text
-                                                .trim(),
+                                                _selectedOrderType == 'DELIVERY'
+                                                ? _selectedAddressId
+                                                : null,
+                                            tableSideIds:
+                                                _selectedOrderType == 'DINE_IN'
+                                                ? _selectedTableSideIds
+                                                : null,
+                                            notes:
+                                                _orderNotesController.text
+                                                    .trim()
+                                                    .isEmpty
+                                                ? null
+                                                : _orderNotesController.text
+                                                      .trim(),
                                           );
                                     },
                                   ),
@@ -953,6 +1087,8 @@ class _PosCartPageState extends State<PosCartPage> {
             _selectedOrderType = type;
             if (type != 'DINE_IN') {
               _selectedTableId = null;
+              _selectedTableSideIds.clear();
+              _expandedTableIds.clear();
             }
             if (type != 'DELIVERY') {
               _selectedAddressId = null;
@@ -1017,6 +1153,16 @@ class _PosCartPageState extends State<PosCartPage> {
       address.city,
       address.pin_code,
     ].where((part) => part.trim().isNotEmpty).join(', ');
+  }
+
+  String _formatQty(double value) {
+    if (value == value.roundToDouble()) {
+      return value.toInt().toString();
+    }
+    return value
+        .toStringAsFixed(3)
+        .replaceFirst(RegExp(r'0+$'), '')
+        .replaceFirst(RegExp(r'\.$'), '');
   }
 
   Widget _buildSelectableTile({

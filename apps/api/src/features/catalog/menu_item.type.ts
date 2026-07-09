@@ -1,4 +1,4 @@
-// Auto-generated DTO file for MenuItem
+import { MenuItemSaleModeDTO } from './menu_item_sale_mode.type';
 
 export interface MenuItemDTO {
   id: string;
@@ -15,4 +15,5 @@ export interface MenuItemDTO {
   updated_at: string | Date;
   created_by?: string;
   is_deleted: boolean;
+  sale_modes?: MenuItemSaleModeDTO[];
 }

@@ -4,6 +4,22 @@ export interface CustomerMenuItem {
   selling_price: number;
   image_url?: string;
   images?: string[];
+  sale_modes?: CustomerMenuItemSaleMode[];
+}
+
+export interface CustomerMenuItemSaleMode {
+  id: string;
+  label: string;
+  uom_id: string;
+  uom_code?: string;
+  price_per_unit: number;
+  min_qty: number;
+  step_qty: number;
+  allow_decimal: boolean;
+  is_default: boolean;
+  sort_order: number;
+  status: string;
+  is_deleted: boolean;
 }
 
 export interface CustomerMenuCategory {
@@ -16,6 +32,14 @@ export interface CustomerMenuCategory {
 
 export interface CustomerCartItem {
   item: CustomerMenuItem;
+  quantity: number;
+  saleMode: CustomerMenuItemSaleMode;
+  cartKey: string;
+}
+
+export interface CustomerCartLine {
+  menu_item_id: string;
+  sale_mode_id: string;
   quantity: number;
 }
 
@@ -45,6 +69,10 @@ export interface CustomerAddress {
 
 export interface CustomerOrderPayloadItem {
   menu_item_id: string;
+  sale_mode_id?: string;
+  sale_mode_label?: string;
+  quantity_uom_id?: string;
+  quantity_uom_code?: string;
   quantity: number;
   unit_price: number;
 }
@@ -52,6 +80,7 @@ export interface CustomerOrderPayloadItem {
 export interface CustomerOrderPayload {
   branch_id: string;
   table_id?: string;
+  table_session_id?: string;
   table_side_ids?: string[];
   uid?: string;
   delivery_address_id?: string;
@@ -64,5 +93,7 @@ export interface CustomerOrderResponse {
   id: string;
   order_no: number;
   code?: string;
+  table_session_id?: string;
   final_paying_price?: number;
+  payment_proofs?: string[];
 }

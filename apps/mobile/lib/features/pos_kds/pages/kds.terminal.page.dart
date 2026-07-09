@@ -7,7 +7,7 @@ import 'package:mobile/core/di.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.cubit.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
 import 'package:mobile/features/pos_kds/models/order.model.dart';
-import 'package:mobile/features/pos_kds/services/table_side_label_resolver.dart';
+import 'package:mobile/features/pos_kds/services/order_display_formatter.dart';
 import 'package:mobile/features/catalog/controllers/catalog.cubit.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/components/ui/loader.dart';
@@ -57,65 +57,6 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
 
   void _fetchOrders() {
     context.read<PosKdsCubit>().listOrders();
-  }
-
-  String _deliveryAddress(OrderModel order) {
-    final addresses = order.user?.addresses ?? const [];
-    for (final address in addresses) {
-      if (address.id == order.delivery_address_id) {
-        final value = _addressValue([
-          address.area,
-          address.locality,
-          address.city,
-          address.state,
-          address.pin_code,
-        ]);
-        if (value.isNotEmpty) {
-          return value;
-        }
-      }
-    }
-    if (addresses.length == 1) {
-      final address = addresses.first;
-      return _addressValue([
-        address.area,
-        address.locality,
-        address.city,
-        address.state,
-        address.pin_code,
-      ]);
-    }
-    return '';
-  }
-
-  String _addressValue(List<String> parts) {
-    return parts.where((part) => part.trim().isNotEmpty).join(', ');
-  }
-
-  String _tableDisplay(OrderModel order, PosKdsState posState) {
-    final table =
-        order.table ??
-        posState.tables
-            .where((table) => table.id == order.table_id)
-            .firstOrNull;
-    final tableName = table?.table_number.trim().isNotEmpty == true
-        ? table!.table_number
-        : '';
-    final sideNames = _sideDisplay(order, table?.side_labels ?? const []);
-    if (tableName.isNotEmpty && sideNames.isNotEmpty) {
-      return 'Table $tableName ($sideNames)';
-    }
-    if (tableName.isNotEmpty) {
-      return 'Table $tableName';
-    }
-    if (sideNames.isNotEmpty) {
-      return 'Sides: $sideNames';
-    }
-    return '';
-  }
-
-  String _sideDisplay(OrderModel order, List<String> labels) {
-    return TableSideLabelResolver.display(order);
   }
 
   @override
@@ -903,8 +844,19 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
     final customer = order.user;
 
     final posState = context.read<PosKdsCubit>().state;
-    final tableDisplay = _tableDisplay(order, posState);
-    final deliveryAddress = _deliveryAddress(order);
+    final table =
+        order.table ??
+        posState.tables
+            .where((table) => table.id == order.table_id)
+            .firstOrNull;
+    final displayOrder = order.copyWith(table: table);
+    final tableDisplay = OrderDisplayFormatter.tableDisplay(displayOrder);
+    final fulfillmentTitle = OrderDisplayFormatter.fulfillmentTitle(
+      displayOrder,
+    );
+    final fulfillmentSubtitle = OrderDisplayFormatter.fulfillmentSubtitle(
+      displayOrder,
+    );
 
     return GestureDetector(
       onLongPress: () {
@@ -952,15 +904,19 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                         Row(
                           children: [
                             Icon(
-                              order.order_type == 'DINE_IN'
+                              OrderDisplayFormatter.isDineIn(displayOrder)
                                   ? Icons.table_restaurant_outlined
-                                  : Icons.takeout_dining_outlined,
+                                  : OrderDisplayFormatter.isTakeaway(
+                                      displayOrder,
+                                    )
+                                  ? Icons.takeout_dining_outlined
+                                  : Icons.delivery_dining_outlined,
                               size: 13.w,
                               color: AppColors.textSecondary,
                             ),
                             SizedBox(width: 4.w),
                             Text(
-                              '${order.order_type}  •  ${_timeAgo(order.created_at)}',
+                              '${OrderDisplayFormatter.orderTypeLabel(order.order_type)}  •  ${_timeAgo(order.created_at)}',
                               style: TextStyle(
                                 fontSize: 12.sp,
                                 fontWeight: FontWeight.w700,
@@ -1016,15 +972,15 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                       SizedBox(width: 12.w),
                       Expanded(
                         child: _buildDetailLine(
-                          order.order_type == 'DINE_IN'
+                          OrderDisplayFormatter.isDineIn(displayOrder)
                               ? Icons.table_restaurant_outlined
+                              : OrderDisplayFormatter.isTakeaway(displayOrder)
+                              ? Icons.takeout_dining_outlined
                               : Icons.location_on_outlined,
                           tableDisplay.isNotEmpty
                               ? tableDisplay
-                              : 'Fulfillment',
-                          deliveryAddress.isNotEmpty
-                              ? deliveryAddress
-                              : order.order_type,
+                              : fulfillmentTitle,
+                          fulfillmentSubtitle,
                         ),
                       ),
                     ],
@@ -1080,7 +1036,7 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
-                                  width: 32.w,
+                                  width: 58.w,
                                   height: 32.w,
                                   alignment: Alignment.center,
                                   decoration: BoxDecoration(
@@ -1091,9 +1047,9 @@ class _KdsTerminalPageState extends State<KdsTerminalPage> {
                                     ),
                                   ),
                                   child: Text(
-                                    '${item.qty.toInt()}x',
+                                    OrderDisplayFormatter.quantityBadge(item),
                                     style: TextStyle(
-                                      fontSize: 14.sp,
+                                      fontSize: 12.sp,
                                       fontWeight: FontWeight.w900,
                                       color: AppColors.textPrimary,
                                     ),

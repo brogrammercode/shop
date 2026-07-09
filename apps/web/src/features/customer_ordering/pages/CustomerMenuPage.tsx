@@ -4,22 +4,23 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PosCategoryScroll } from '@/components/ui/PosCategoryScroll';
 import { PosProductCard } from '@/components/ui/PosProductCard';
-import { useUserStore } from '@/core/store/user.store';
 import { ChevronRight } from 'lucide-react';
 import { CustomerOrderHeader } from '../components/CustomerOrderHeader';
 import {
-  CUSTOMER_ORDER_TYPES,
   CUSTOMER_ORDERING_DEFAULTS,
-  CUSTOMER_ORDERING_ROUTES,
   CUSTOMER_ORDERING_STORAGE_KEYS,
   CUSTOMER_ORDERING_TEXT,
 } from '../constants/customer_ordering.constants';
 import { CustomerOrderingApi } from '../services/customer_ordering.api';
-import { CustomerMenuCategory, CustomerOrderingContext } from '../types/customer_ordering.types';
+import { CustomerCartLine, CustomerMenuCategory, CustomerMenuItem, CustomerOrderingContext } from '../types/customer_ordering.types';
 import {
+  activeSaleModes,
   buildCartItems,
   calculateSubtotal,
+  cartKeyFor,
+  defaultSaleMode,
   flattenItems,
+  formatAmount,
   imageForCategory,
   imageForItem,
   readOrderingContext,
@@ -32,19 +33,21 @@ export const CustomerMenuPage = () => {
   ));
   const [categories, setCategories] = useState<CustomerMenuCategory[]>([]);
   const [activeCategoryId, setActiveCategoryId] = useState<string>(CUSTOMER_ORDERING_DEFAULTS.ACTIVE_CATEGORY_ID);
-  const [cart, setCart] = useState<Record<string, number>>(() => {
+  const [cart, setCart] = useState<Record<string, CustomerCartLine>>(() => {
     if (typeof window === 'undefined') {
       return {};
     }
     const storedCart = sessionStorage.getItem(CUSTOMER_ORDERING_STORAGE_KEYS.CART);
-    return storedCart ? JSON.parse(storedCart) as Record<string, number> : {};
+    return storedCart ? normalizeStoredCart(JSON.parse(storedCart)) : {};
   });
+  const [saleModeItem, setSaleModeItem] = useState<CustomerMenuItem | null>(null);
   const [isLoading, setIsLoading] = useState(Boolean(orderingContext?.branchId));
   const [error, setError] = useState('');
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
+    const timer = window.setTimeout(() => setIsMounted(true), 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {
@@ -90,17 +93,33 @@ export const CustomerMenuPage = () => {
     })),
   ], [categories]);
 
-  const updateCart = (itemId: string, delta: number) => {
+  const updateCart = (item: CustomerMenuItem, saleMode = defaultSaleMode(item), delta: number) => {
     setCart((current) => {
-      const nextQuantity = Math.max(0, (current[itemId] || 0) + delta);
+      const cartKey = cartKeyFor(item, saleMode);
+      const currentLine = current[cartKey];
+      const currentQuantity = currentLine?.quantity || 0;
+      const nextQuantity = Math.max(0, currentQuantity + saleMode.step_qty * delta);
       const next = { ...current };
       if (nextQuantity === 0) {
-        delete next[itemId];
+        delete next[cartKey];
       } else {
-        next[itemId] = nextQuantity;
+        next[cartKey] = {
+          menu_item_id: item.id,
+          sale_mode_id: saleMode.id,
+          quantity: saleMode.allow_decimal ? Number(nextQuantity.toFixed(3)) : Math.round(nextQuantity),
+        };
       }
       return next;
     });
+  };
+
+  const handleAdd = (item: CustomerMenuItem) => {
+    const modes = activeSaleModes(item);
+    if (modes.length <= 1) {
+      updateCart(item, modes[0], 1);
+      return;
+    }
+    setSaleModeItem(item);
   };
 
 
@@ -151,12 +170,15 @@ export const CustomerMenuPage = () => {
               <PosProductCard
                 key={item.id}
                 title={item.display_name}
-                price={item.selling_price}
+                price={defaultSaleMode(item).price_per_unit}
                 imageUrl={imageForItem(item)}
-                quantity={cart[item.id] || 0}
-                onAdd={() => updateCart(item.id, 1)}
-                onIncrement={() => updateCart(item.id, 1)}
-                onDecrement={() => updateCart(item.id, -1)}
+                quantity={cartItems.filter((line) => line.item.id === item.id).length}
+                onAdd={() => handleAdd(item)}
+                onIncrement={() => handleAdd(item)}
+                onDecrement={() => {
+                  const line = cartItems.find((line) => line.item.id === item.id);
+                  if (line) updateCart(line.item, line.saleMode, -1);
+                }}
               />
             ))}
           </div>
@@ -178,7 +200,7 @@ export const CustomerMenuPage = () => {
               </span>
               <div className="w-[1px] h-3 bg-pure-white/30" />
               <span className="text-[14px] font-semibold text-pure-white">
-                ₹ {payable.toFixed(2)}
+                {formatAmount(payable)}
               </span>
             </div>
             <div className="flex items-center gap-1">
@@ -188,6 +210,70 @@ export const CustomerMenuPage = () => {
           </button>
         </div>
       )}
+
+      {saleModeItem ? (
+        <div className="fixed inset-0 z-[60] bg-black/40 flex items-end">
+          <div className="w-full bg-pure-white rounded-t-[24px] px-5 pt-4 pb-6">
+            <div className="w-10 h-1 bg-border-grey rounded-full mx-auto mb-5" />
+            <h2 className="text-[18px] font-bold text-text-primary">
+              {CUSTOMER_ORDERING_TEXT.SELECT_SALE_MODE}
+            </h2>
+            <p className="text-[13px] font-medium text-text-secondary mt-1 mb-4">
+              {saleModeItem.display_name}
+            </p>
+            <div className="flex flex-col gap-3">
+              {activeSaleModes(saleModeItem).map((mode) => (
+                <button
+                  key={mode.id}
+                  type="button"
+                  onClick={() => {
+                    updateCart(saleModeItem, mode, 1);
+                    setSaleModeItem(null);
+                  }}
+                  className="w-full rounded-[14px] border border-border-grey bg-[#FAFAFA] px-4 py-3 flex items-center justify-between text-left"
+                >
+                  <span>
+                    <span className="block text-[14px] font-bold text-text-primary">
+                      {mode.label}
+                    </span>
+                    <span className="block text-[12px] font-medium text-text-secondary mt-1">
+                      {formatAmount(mode.price_per_unit)} / {mode.uom_code || CUSTOMER_ORDERING_TEXT.DEFAULT_SALE_MODE}
+                    </span>
+                  </span>
+                  <span className="text-primary-green text-[13px] font-bold">
+                    ADD
+                  </span>
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setSaleModeItem(null)}
+              className="w-full mt-4 h-11 rounded-[14px] border border-border-grey text-[14px] font-semibold text-text-secondary"
+            >
+              {CUSTOMER_ORDERING_TEXT.CONTINUE}
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
+};
+
+const normalizeStoredCart = (value: unknown): Record<string, CustomerCartLine> => {
+  if (!value || typeof value !== 'object') {
+    return {};
+  }
+  return Object.entries(value as Record<string, unknown>).reduce<Record<string, CustomerCartLine>>((next, [key, entry]) => {
+    if (typeof entry === 'number') {
+      return next;
+    }
+    if (entry && typeof entry === 'object') {
+      const line = entry as CustomerCartLine;
+      if (line.menu_item_id && line.sale_mode_id) {
+        next[key] = line;
+      }
+    }
+    return next;
+  }, {});
 };

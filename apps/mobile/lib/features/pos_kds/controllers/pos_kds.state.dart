@@ -5,6 +5,7 @@ import 'package:mobile/features/pos_kds/models/table.model.dart';
 import 'package:mobile/features/pos_kds/models/kitchen_order_ticket.model.dart';
 import 'package:mobile/features/pos_kds/models/advance_payment.model.dart';
 import 'package:mobile/features/pos_kds/models/table_zone.model.dart';
+import 'package:mobile/features/pos_kds/models/pos_cart_line.model.dart';
 
 class PosKdsState {
   final List<OrderModel> orders;
@@ -17,7 +18,7 @@ class PosKdsState {
   final UserModel? selectedCustomer;
   final List<String> printLogs;
 
-  final Map<String, int> cart;
+  final Map<String, PosCartLineModel> cart;
 
   final OperationInfo loadOrdersInfo;
   final OperationInfo saveOrdersInfo;
@@ -78,7 +79,7 @@ class PosKdsState {
     UserModel? selectedCustomer,
     List<String>? printLogs,
     bool clearSelectedCustomer = false,
-    Map<String, int>? cart,
+    Map<String, PosCartLineModel>? cart,
     OperationInfo? loadOrdersInfo,
     OperationInfo? saveOrdersInfo,
     OperationInfo? loadTablesInfo,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/features/pos_kds/models/table.model.dart';
+import 'package:mobile/features/pos_kds/services/table_qr_url_builder.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class TableQrPage extends StatelessWidget {
@@ -77,12 +78,10 @@ class TableQrPage extends StatelessWidget {
                           SizedBox(height: 32.h),
                       itemBuilder: (context, index) {
                         final side = sides[index];
-                        final qrData = Uri.https('web.app', '/menu', {
-                          'branch_id': table.branch_id,
-                          'table_id': table.id,
-                          'table_side_id': side,
-                          'order_type': 'DINE_IN',
-                        }).toString();
+                        final qrData = TableQrUrlBuilder.sideUrl(
+                          table: table,
+                          side: side,
+                        );
 
                         return Container(
                           padding: EdgeInsets.all(24.w),

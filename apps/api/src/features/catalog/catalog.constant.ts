@@ -5,6 +5,7 @@ export const _CATALOG_CONSTANTS = {
     MENU_CATEGORY_BY_ID: '/menu-categories/:id',
     MENU_ITEMS: '/menu-items',
     MENU_ITEM_BY_ID: '/menu-items/:id',
+    MENU_ITEM_SALE_MODES: '/menu-items/:id/sale-modes',
     MODIFIER_GROUPS: '/modifier-groups',
     MODIFIER_GROUP_MODIFIERS: '/modifier-groups/:id/modifiers',
     MODIFIER_BY_ID: '/modifiers/:id',
@@ -16,6 +17,8 @@ export const _CATALOG_CONSTANTS = {
   _E_R_R_O_R_S: {
     MENU_CATEGORY_NOT_FOUND: 'Menu category not found',
     MENU_ITEM_NOT_FOUND: 'Menu item not found',
+    SALE_MODE_NOT_FOUND: 'Sale mode not found',
+    SALE_MODE_UOM_REQUIRED: 'Sale mode UOM is required',
     MODIFIER_GROUP_NOT_FOUND: 'Modifier group not found',
     MODIFIER_NOT_FOUND: 'Modifier not found',
     COMBO_MEAL_NOT_FOUND: 'Combo meal not found',
@@ -34,6 +37,7 @@ export const _CATALOG_CONSTANTS = {
     MENU_ITEM_FOUND: 'Menu item fetched successfully',
     MENU_ITEM_UPDATED: 'Menu item updated successfully',
     MENU_ITEM_DELETED: 'Menu item deleted successfully',
+    SALE_MODES_UPDATED: 'Sale modes updated successfully',
 
     MODIFIER_GROUP_CREATED: 'Modifier group created successfully',
     MODIFIER_GROUP_FETCHED: 'Modifier groups fetched successfully',
@@ -123,4 +127,20 @@ export const _CATALOG_FIELDS = {
   FIXED_PRICE: 'fixed_price',
   QTY_INCLUDED: 'qty_included',
   CREATED_BY: 'created_by',
+  SALE_MODES: 'sale_modes',
+  UOM_ID: 'uom_id',
+  LABEL: 'label',
+  PRICE_PER_UNIT: 'price_per_unit',
+  MIN_QTY: 'min_qty',
+  STEP_QTY: 'step_qty',
+  ALLOW_DECIMAL: 'allow_decimal',
+  IS_DEFAULT: 'is_default',
+  SORT_ORDER: 'sort_order',
+} as const;
+
+export const _CATALOG_DEFAULTS = {
+  DEFAULT_SALE_MODE_LABEL: 'Regular',
+  DEFAULT_MIN_QTY: 1,
+  DEFAULT_STEP_QTY: 1,
+  DEFAULT_SORT_ORDER: 0,
 } as const;

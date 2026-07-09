@@ -1,11 +1,27 @@
 class PosConstant {
-  // Table Management
   static const String TABLE_ZONE_TITLE = 'Table Zones';
   static const String CREATE_ZONE = 'Create Zone';
   static const String TABLE_LIST_TITLE = 'Floor Plan';
   static const String FILTER_BY_ZONE = 'Filter by Zone...';
+  static const String TABLE_SIDE_QR_TITLE = 'Table QR';
+  static const String TABLE_SIDE_QR_SUBTITLE = 'Scan to order';
+  static const String TABLE_SIDE_QR_CLOSE = 'Close';
+  static const String TABLE_QR_PATH = '/menu';
+  static const String TABLE_QR_BRANCH_ID_QUERY = 'branch_id';
+  static const String TABLE_QR_TABLE_ID_QUERY = 'table_id';
+  static const String TABLE_QR_TABLE_SIDE_ID_QUERY = 'table_side_id';
+  static const String TABLE_QR_ORDER_TYPE_QUERY = 'order_type';
+  static const List<String> ACTIVE_TABLE_ORDER_STATUSES = [
+    'OPEN',
+    'PLACED',
+    'PREPARING',
+    'READY',
+    'BILLED',
+    'OUT_FOR_DELIVERY',
+    'DELIVERED',
+    'FAILED_DELIVERY',
+  ];
 
-  // POS Terminal
   static const String POS_TITLE = 'POS Terminal';
   static const String CATALOG_TAB = 'Menu / Catalog';
   static const String CART_TAB = 'Current Order';
@@ -13,12 +29,23 @@ class PosConstant {
   static const String TABLE_ORDER = 'Table (Dine-in)';
   static const String TAKEAWAY_ORDER = 'Takeaway';
   static const String ONLINE_ORDER = 'Online/Delivery';
+  static const String ORDER_TYPE_DINE_IN = 'DINE_IN';
+  static const String ORDER_TYPE_DELIVERY = 'DELIVERY';
+  static const String ORDER_TYPE_TAKEAWAY = 'TAKEAWAY';
+  static const String DINE_IN_LABEL = 'Dine in';
+  static const String DELIVERY_LABEL = 'Delivery';
+  static const String TAKEAWAY_LABEL = 'Takeaway';
+  static const String FULFILLMENT_LABEL = 'Fulfillment';
   static const String SELECT_CHAIR = 'Select Chair / Side';
   static const String SELECT_PARTNER = 'Delivery Partner';
   static const String SEND_TO_KITCHEN = 'Send KOT';
   static const String GENERATE_BILL = 'Generate Bill & Pay';
+  static const String SELECT_SALE_MODE = 'Select Sale Mode';
+  static const String SALE_MODE_FALLBACK = 'Regular';
+  static const String CART_EMPTY = 'Cart is empty';
+  static const String ORDER_SUMMARY = 'Order Summary';
+  static const String PLACE_ORDER = 'Place Order';
 
-  // Orders
   static const String ORDER_LIST_TITLE = 'All Orders';
   static const String ORDER_DETAIL_TITLE = 'Order Receipt';
   static const String PRINT_BILL = 'Print Bill';
@@ -125,8 +152,8 @@ class PosConstant {
   static const String USB_ERROR_EPSON_NOT_DETECTED = 'EPSON_NOT_DETECTED';
   static const bool RECEIPT_USE_RUPEE_SYMBOL = false;
   static const int RECEIPT_PAPER_COLUMNS = 48;
-  static const int RECEIPT_NAME_WIDTH = 31;
-  static const int RECEIPT_QTY_WIDTH = 5;
+  static const int RECEIPT_NAME_WIDTH = 26;
+  static const int RECEIPT_QTY_WIDTH = 10;
   static const int RECEIPT_RATE_WIDTH = 0;
   static const int RECEIPT_TOTAL_WIDTH = 10;
   static const int RECEIPT_END_FEED_LINES = 8;
@@ -140,14 +167,12 @@ class PosConstant {
   static const int RECEIPT_PAID_STAMP_HEIGHT = 140;
   static const int RECEIPT_IMAGE_THRESHOLD = 210;
 
-  // Payments & Deliveries
   static const String ADVANCE_PAYMENT_TITLE = 'Advance Payment';
   static const String AMOUNT = 'Payment Amount';
   static const String PAYMENT_METHOD = 'Payment Method';
   static const String RECORD_PAYMENT = 'Record Payment';
   static const String PARTNER_LIST_TITLE = 'Delivery Partners';
 
-  // KDS
   static const String KDS_TITLE = 'Kitchen Display (KDS)';
   static const String MARK_PREPARING = 'Preparing';
   static const String MARK_READY = 'Ready to Serve';

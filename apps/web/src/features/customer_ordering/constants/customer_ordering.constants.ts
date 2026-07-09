@@ -3,6 +3,13 @@ export const CUSTOMER_ORDERING_ROUTES = {
   LOGIN: "/login",
 } as const;
 
+export const CUSTOMER_ORDERING_CARD_QR = {
+  QUERY_KEY: "qr",
+  QUERY_VALUE: "card",
+  BRANCH_ID: "1783064192233",
+  ORDER_TYPE: "DELIVERY",
+} as const;
+
 export const CUSTOMER_ORDERING_STORAGE_KEYS = {
   BRANCH_ID: "qr_branch_id",
   TABLE_ID: "qr_table_id",
@@ -71,6 +78,8 @@ export const CUSTOMER_ORDERING_TEXT = {
   SIDE_PREFIX: "Side",
   CHANGE: "Change",
   CONTEXT_MISSING: "Scan a valid QR code to load this restaurant menu.",
+  SELECT_SALE_MODE: "Select sale mode",
+  DEFAULT_SALE_MODE: "Regular",
 } as const;
 
 export const CUSTOMER_ORDER_TYPES = {

@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:mobile/constants/api.dart';
 import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
 import 'package:mobile/features/pos_kds/models/order.model.dart';
-import 'package:mobile/features/pos_kds/services/table_side_label_resolver.dart';
+import 'package:mobile/features/pos_kds/services/order_display_formatter.dart';
 
 class ReceiptPrintFormatter {
   const ReceiptPrintFormatter();
@@ -58,7 +58,11 @@ class ReceiptPrintFormatter {
       _reverseFeedDots(bytes, PosConstant.RECEIPT_PAID_STAMP_HEIGHT);
     }
     _left(bytes);
-    _field(bytes, 'TYPE', order.order_type);
+    _field(
+      bytes,
+      'TYPE',
+      OrderDisplayFormatter.orderTypeLabel(order.order_type),
+    );
     _table(bytes, order);
     if (order.user != null) {
       _field(
@@ -91,7 +95,12 @@ class ReceiptPrintFormatter {
       final name =
           item.menu_item?.display_name ??
           '${PosConstant.RECEIPT_ITEM_FALLBACK} ${item.menu_item_id}';
-      _item(bytes, name, _formatQty(item.qty), _formatAmount(item.total_price));
+      _item(
+        bytes,
+        name,
+        OrderDisplayFormatter.quantityText(item),
+        _formatAmount(item.total_price),
+      );
     }
     _separator(bytes);
     _amount(
@@ -310,79 +319,18 @@ class ReceiptPrintFormatter {
   }
 
   void _table(List<int> bytes, OrderModel order) {
-    final tableName = order.table?.table_number.trim().isNotEmpty == true
-        ? order.table!.table_number
-        : '';
-    final sideNames = _sideDisplay(order);
-    if (tableName.isEmpty && sideNames.isEmpty) {
+    if (!OrderDisplayFormatter.isDineIn(order)) {
       return;
     }
-    if (tableName.isNotEmpty && sideNames.isNotEmpty) {
-      _field(
-        bytes,
-        PosConstant.RECEIPT_TABLE_LABEL.toUpperCase(),
-        '$tableName ($sideNames)',
-      );
+    final table = OrderDisplayFormatter.tableDisplay(order);
+    if (table.isEmpty) {
       return;
     }
-    if (tableName.isNotEmpty) {
-      _field(bytes, PosConstant.RECEIPT_TABLE_LABEL.toUpperCase(), tableName);
-      return;
-    }
-    _field(
-      bytes,
-      PosConstant.RECEIPT_TABLE_SIDES_LABEL.toUpperCase(),
-      sideNames,
-    );
-  }
-
-  String _sideDisplay(OrderModel order) {
-    return TableSideLabelResolver.display(order);
+    _field(bytes, PosConstant.RECEIPT_TABLE_LABEL.toUpperCase(), table);
   }
 
   String _deliveryAddress(OrderModel order) {
-    final addresses = order.user?.addresses ?? const [];
-    for (final address in addresses) {
-      if (address.id == order.delivery_address_id) {
-        final value = _addressValue(
-          area: address.area,
-          locality: address.locality,
-          city: address.city,
-          state: address.state,
-          pinCode: address.pin_code,
-        );
-        if (value.isNotEmpty) {
-          return value;
-        }
-      }
-    }
-    if (addresses.length == 1) {
-      final address = addresses.first;
-      return _addressValue(
-        area: address.area,
-        locality: address.locality,
-        city: address.city,
-        state: address.state,
-        pinCode: address.pin_code,
-      );
-    }
-    return '';
-  }
-
-  String _addressValue({
-    required String area,
-    required String locality,
-    required String city,
-    required String state,
-    required String pinCode,
-  }) {
-    return [
-      area,
-      locality,
-      city,
-      state,
-      pinCode,
-    ].where((part) => part.trim().isNotEmpty).join(', ');
+    return OrderDisplayFormatter.deliveryAddress(order);
   }
 
   void _field(List<int> bytes, String label, String value) {
@@ -466,13 +414,6 @@ class ReceiptPrintFormatter {
         ? PosConstant.RECEIPT_RUPEE_SYMBOL
         : PosConstant.RECEIPT_RUPEE_FALLBACK;
     return '$prefix ${value.toStringAsFixed(2)}';
-  }
-
-  String _formatQty(double value) {
-    if (value == value.roundToDouble()) {
-      return value.toInt().toString();
-    }
-    return value.toStringAsFixed(2);
   }
 
   List<String> _wrap(String value, int width) {

@@ -81,6 +81,13 @@ class PosKdsRepo {
     });
   }
 
+  TaskResult<String> uploadImage(String filePath) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.uploadFile('/upload/image', filePath);
+      return response.data['data']['url'] as String;
+    });
+  }
+
   TaskResult<dynamic> refundOrder(String id) async {
     return tryCatchAsync(() async {
       final response = await _apiClient.patch(PosKdsEndpoints.refundOrder(id));
@@ -206,10 +213,7 @@ class PosKdsRepo {
     });
   }
 
-  TaskResult<OrderModel> updateOrderStatus(
-    String id,
-    String status,
-  ) async {
+  TaskResult<OrderModel> updateOrderStatus(String id, String status) async {
     return tryCatchAsync(() async {
       final response = await _apiClient.patch(
         PosKdsEndpoints.orderStatus(id),

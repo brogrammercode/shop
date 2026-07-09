@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
   Package,
-  Clock,
-  CheckCircle2,
   XCircle,
-  RotateCcw,
   Utensils,
   Truck,
   ShoppingBag,
@@ -16,6 +13,7 @@ import {
 } from "lucide-react";
 import { useUserStore } from "@/core/store/user.store";
 import { apiClient } from "@/core/api/client";
+import { formatInr, formatQuantityWithUnit } from "@/core/format";
 
 type OrderStatus = "OPEN" | "BILLED" | "PAID" | "REFUNDED" | "CANCELLED" | "COMPLETED";
 type OrderType = "DINE_IN" | "DELIVERY" | "TAKEAWAY";
@@ -25,6 +23,8 @@ interface OrderItem {
   qty: number;
   unit_price: number;
   total_price: number;
+  quantity_uom_code?: string | null;
+  base_uom_code?: string | null;
   menu_item: { id: string; display_name: string };
 }
 
@@ -35,6 +35,7 @@ interface MyOrder {
   order_type: OrderType;
   status: OrderStatus;
   final_paying_price: number;
+  payment_proofs?: string[];
   created_at: string;
   branch: { id: string; name: string };
   items: OrderItem[];
@@ -198,7 +199,7 @@ export default function OrdersPage() {
                           </span>
                           {/* Amount */}
                           <span className="text-[15px] font-bold text-[#1C1C1E]">
-                            ₹{Math.round(order.final_paying_price).toLocaleString("en-IN")}
+                            {formatInr(order.final_paying_price)}
                           </span>
                         </div>
                       </div>
@@ -235,15 +236,15 @@ export default function OrdersPage() {
                           {order.items.map((item) => (
                             <div key={item.id} className="flex items-center justify-between py-2">
                               <div className="flex items-center gap-2 min-w-0">
-                                <span className="w-5 h-5 rounded-full bg-[#F0FDF4] flex items-center justify-center text-[10px] font-bold text-[#1CB15A] shrink-0">
-                                  {item.qty}
+                                <span className="min-w-8 h-5 px-1.5 rounded-full bg-[#F0FDF4] flex items-center justify-center text-[10px] font-bold text-[#1CB15A] shrink-0">
+                                  {formatQuantityWithUnit(item.qty, item.quantity_uom_code || item.base_uom_code)}
                                 </span>
                                 <span className="text-[13px] font-medium text-[#1C1C1E] truncate">
                                   {item.menu_item.display_name}
                                 </span>
                               </div>
                               <span className="text-[12px] font-semibold text-[#8A8A8E] shrink-0 ml-3">
-                                ₹{Math.round(item.total_price).toLocaleString("en-IN")}
+                                {formatInr(item.total_price)}
                               </span>
                             </div>
                           ))}
@@ -253,7 +254,7 @@ export default function OrdersPage() {
                         <div className="flex items-center justify-between mt-2 pt-2" style={{ borderTop: "1px solid #EBEBEB" }}>
                           <span className="text-[12px] font-bold text-[#1C1C1E]">Total Paid</span>
                           <span className="text-[14px] font-extrabold text-[#1C1C1E]">
-                            ₹{Math.round(order.final_paying_price).toLocaleString("en-IN")}
+                            {formatInr(order.final_paying_price)}
                           </span>
                         </div>
                       </div>

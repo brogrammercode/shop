@@ -7,6 +7,7 @@ class OrderModel {
   final int order_no;
   final String branch_id;
   final String table_id;
+  final String table_session_id;
   final List<String> table_side_ids;
   final String code;
   final String uid;
@@ -24,6 +25,7 @@ class OrderModel {
   final double final_paying_price;
   final String fulfillment_date;
   final String notes;
+  final List<String> payment_proofs;
   final String created_at;
   final String updated_at;
   final List<OrderItemModel> items;
@@ -33,6 +35,7 @@ class OrderModel {
     required this.order_no,
     required this.branch_id,
     required this.table_id,
+    required this.table_session_id,
     required this.table_side_ids,
     required this.code,
     required this.uid,
@@ -50,6 +53,7 @@ class OrderModel {
     required this.final_paying_price,
     required this.fulfillment_date,
     required this.notes,
+    this.payment_proofs = const [],
     required this.created_at,
     required this.updated_at,
     this.items = const [],
@@ -61,6 +65,7 @@ class OrderModel {
       order_no: json['order_no'] ?? 0,
       branch_id: json['branch_id'] ?? '',
       table_id: json['table_id'] ?? '',
+      table_session_id: json['table_session_id'] ?? '',
       table_side_ids:
           (json['table_side_ids'] as List?)
               ?.map<String>((value) => value.toString())
@@ -83,6 +88,11 @@ class OrderModel {
           (json['final_paying_price'] as num?)?.toDouble() ?? 0.0,
       fulfillment_date: json['fulfillment_date'] ?? '',
       notes: json['notes'] ?? '',
+      payment_proofs:
+          (json['payment_proofs'] as List?)
+              ?.map<String>((value) => value.toString())
+              .toList() ??
+          const [],
       created_at: json['created_at'] ?? '',
       updated_at: json['updated_at'] ?? '',
       items:
@@ -99,6 +109,7 @@ class OrderModel {
       'order_no': order_no,
       'branch_id': branch_id,
       'table_id': table_id,
+      'table_session_id': table_session_id,
       'table_side_ids': table_side_ids,
       'code': code,
       'uid': uid,
@@ -116,6 +127,7 @@ class OrderModel {
       'final_paying_price': final_paying_price,
       'fulfillment_date': fulfillment_date,
       'notes': notes,
+      'payment_proofs': payment_proofs,
       'created_at': created_at,
       'updated_at': updated_at,
       'items': items.map((e) => e.toJson()).toList(),
@@ -127,6 +139,7 @@ class OrderModel {
     int? order_no,
     String? branch_id,
     String? table_id,
+    String? table_session_id,
     List<String>? table_side_ids,
     String? code,
     String? uid,
@@ -144,6 +157,7 @@ class OrderModel {
     double? final_paying_price,
     String? fulfillment_date,
     String? notes,
+    List<String>? payment_proofs,
     String? created_at,
     String? updated_at,
     List<OrderItemModel>? items,
@@ -153,6 +167,7 @@ class OrderModel {
       order_no: order_no ?? this.order_no,
       branch_id: branch_id ?? this.branch_id,
       table_id: table_id ?? this.table_id,
+      table_session_id: table_session_id ?? this.table_session_id,
       table_side_ids: table_side_ids ?? this.table_side_ids,
       code: code ?? this.code,
       uid: uid ?? this.uid,
@@ -170,6 +185,7 @@ class OrderModel {
       final_paying_price: final_paying_price ?? this.final_paying_price,
       fulfillment_date: fulfillment_date ?? this.fulfillment_date,
       notes: notes ?? this.notes,
+      payment_proofs: payment_proofs ?? this.payment_proofs,
       created_at: created_at ?? this.created_at,
       updated_at: updated_at ?? this.updated_at,
       items: items ?? this.items,

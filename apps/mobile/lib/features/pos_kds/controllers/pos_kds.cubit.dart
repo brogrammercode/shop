@@ -6,6 +6,9 @@ import 'package:mobile/utils/error.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.repo.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
 import 'package:mobile/features/pos_kds/models/order.model.dart';
+import 'package:mobile/features/catalog/models/menu_item.model.dart';
+import 'package:mobile/features/catalog/models/menu_item_sale_mode.model.dart';
+import 'package:mobile/features/pos_kds/models/pos_cart_line.model.dart';
 import 'package:mobile/features/pos_kds/services/receipt_printer_exception.dart';
 import 'package:mobile/features/pos_kds/services/usb_receipt_printer_service.dart';
 
@@ -20,30 +23,52 @@ class PosKdsCubit extends Cubit<PosKdsState> {
        _receiptPrinterService = receiptPrinterService,
        super(const PosKdsState());
 
-  void addToCart(String menuItemId) {
-    final currentCart = Map<String, int>.from(state.cart);
-    currentCart[menuItemId] = (currentCart[menuItemId] ?? 0) + 1;
+  void addToCart(MenuItemModel item, MenuItemSaleModeModel saleMode) {
+    final currentCart = Map<String, PosCartLineModel>.from(state.cart);
+    final line = PosCartLineModel.fromItem(item: item, saleMode: saleMode);
+    final existing = currentCart[line.id];
+    if (existing == null) {
+      currentCart[line.id] = line;
+    } else {
+      currentCart[line.id] = existing.copyWith(
+        quantity: _normalizeQuantity(
+          existing.quantity + existing.step_qty,
+          existing,
+        ),
+        item: item,
+      );
+    }
     emit(state.copyWith(cart: currentCart));
   }
 
-  void removeFromCart(String menuItemId) {
-    final currentCart = Map<String, int>.from(state.cart);
-    if (currentCart.containsKey(menuItemId)) {
-      if (currentCart[menuItemId]! > 1) {
-        currentCart[menuItemId] = currentCart[menuItemId]! - 1;
+  void removeFromCart(String cartLineId) {
+    final currentCart = Map<String, PosCartLineModel>.from(state.cart);
+    final existing = currentCart[cartLineId];
+    if (existing != null) {
+      final nextQuantity = existing.quantity - existing.step_qty;
+      if (nextQuantity >= existing.min_qty) {
+        currentCart[cartLineId] = existing.copyWith(
+          quantity: _normalizeQuantity(nextQuantity, existing),
+        );
       } else {
-        currentCart.remove(menuItemId);
+        currentCart.remove(cartLineId);
       }
       emit(state.copyWith(cart: currentCart));
     }
   }
 
-  void setCartQuantity(String menuItemId, int quantity) {
-    final currentCart = Map<String, int>.from(state.cart);
-    if (quantity > 0) {
-      currentCart[menuItemId] = quantity;
+  void setCartQuantity(String cartLineId, double quantity) {
+    final currentCart = Map<String, PosCartLineModel>.from(state.cart);
+    final existing = currentCart[cartLineId];
+    if (existing == null) {
+      return;
+    }
+    if (quantity >= existing.min_qty) {
+      currentCart[cartLineId] = existing.copyWith(
+        quantity: _normalizeQuantity(quantity, existing),
+      );
     } else {
-      currentCart.remove(menuItemId);
+      currentCart.remove(cartLineId);
     }
     emit(state.copyWith(cart: currentCart));
   }
@@ -52,12 +77,18 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     emit(state.copyWith(cart: {}));
   }
 
+  double _normalizeQuantity(double quantity, PosCartLineModel line) {
+    final value = line.allow_decimal ? quantity : quantity.roundToDouble();
+    return double.parse(value.toStringAsFixed(3));
+  }
+
   Future<void> placeOrderFromCart(
     double totalAmount,
     List<Map<String, dynamic>> items,
     String orderType,
     String? tableId,
     String? customerId, {
+    String? tableSessionId,
     String? deliveryAddressId,
     double? finalPayingPrice,
     List<String>? tableSideIds,
@@ -68,6 +99,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     final payload = <String, dynamic>{
       'order_type': orderType,
       'table_id': tableId,
+      'table_session_id': tableSessionId,
       'table_side_ids': tableSideIds,
       'uid': customerId,
       'delivery_address_id': deliveryAddressId,
@@ -274,6 +306,18 @@ class PosKdsCubit extends Cubit<PosKdsState> {
         getOrder(id);
       },
     );
+  }
+
+  Future<List<String>> uploadPaymentProofs(List<String> filePaths) async {
+    final urls = <String>[];
+    for (final filePath in filePaths) {
+      final result = await _repo.uploadImage(filePath);
+      result.fold(
+        (failure) => Fluttertoast.showToast(msg: failure.message),
+        (url) => urls.add(url),
+      );
+    }
+    return urls;
   }
 
   Future<void> cancelOrder(String id) async {

@@ -55,6 +55,12 @@ export const updateMenuItem = asyncHandler(async (req: Request, res: Response) =
   return sendSuccess(res, result, _CATALOG_CONSTANTS._M_E_S_S_A_G_E_S.MENU_ITEM_UPDATED, HttpStatus.OK);
 });
 
+export const replaceMenuItemSaleModes = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as Record<string, string>;
+  const result = await catalogService.replaceMenuItemSaleModes(id, req.employee.branch_id, req.body.sale_modes || []);
+  return sendSuccess(res, result, _CATALOG_CONSTANTS._M_E_S_S_A_G_E_S.SALE_MODES_UPDATED, HttpStatus.OK);
+});
+
 export const deleteMenuItem = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as Record<string, string>;
   const result = await catalogService.deleteMenuItem(id, req.employee.branch_id);
@@ -139,8 +145,6 @@ export const removeComboItem = asyncHandler(async (req: Request, res: Response) 
 });
 
 export const getFullMenu = asyncHandler(async (req: Request, res: Response) => {
-  // Public or auth doesn't matter, we can use branch_id from query or req.employee
-  // Usually this is public, so let's check query branch_id
   const branchId = (req.query.branch_id as string) || (req.employee?.branch_id);
   if (!branchId) throw new Error('Branch ID required');
   const result = await catalogService.getFullMenu(branchId);

@@ -8,6 +8,8 @@ import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
 import 'package:mobile/features/pos_kds/pages/pos.cart.page.dart';
 import 'package:mobile/features/catalog/controllers/catalog.cubit.dart';
 import 'package:mobile/features/catalog/controllers/catalog.state.dart';
+import 'package:mobile/features/catalog/models/menu_item.model.dart';
+import 'package:mobile/features/catalog/models/menu_item_sale_mode.model.dart';
 import 'package:mobile/features/notification/notification.icon.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/components/ui/loader.dart';
@@ -159,9 +161,7 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
         itemBuilder: (context, index) {
           final item = items[index];
           return GestureDetector(
-            onTap: () {
-              context.read<PosKdsCubit>().addToCart(item.id);
-            },
+            onTap: () => _handleItemTap(item),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -226,7 +226,7 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
                 ),
                 SizedBox(height: 2.h),
                 Text(
-                  '₹ ${item.selling_price.toStringAsFixed(0)}',
+                  _priceLabel(item),
                   style: TextStyle(
                     fontSize: 11.sp,
                     fontWeight: FontWeight.w900,
@@ -294,24 +294,18 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
                 builder: (context, posState) {
                   final cartItemsCount = posState.cart.values.fold(
                     0,
-                    (sum, item) => sum + item,
+                    (sum, item) => sum + 1,
                   );
                   if (cartItemsCount == 0) return const SizedBox.shrink();
 
                   double cartTotal = 0.0;
                   String? lastAddedImageUrl;
-                  final catalogState = context.read<CatalogCubit>().state;
-                  posState.cart.forEach((itemId, qty) {
-                    try {
-                      final item = catalogState.menuItems.firstWhere(
-                        (i) => i.id == itemId,
-                      );
-                      cartTotal += (item.selling_price * qty);
-                      if (item.images.isNotEmpty) {
-                        lastAddedImageUrl = item.images.first;
-                      }
-                    } catch (_) {}
-                  });
+                  for (final line in posState.cart.values) {
+                    cartTotal += line.total;
+                    if (line.item.images.isNotEmpty) {
+                      lastAddedImageUrl = line.item.images.first;
+                    }
+                  }
 
                   return Positioned(
                     bottom: 66.h,
@@ -350,7 +344,7 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       image: DecorationImage(
-                                        image: NetworkImage(lastAddedImageUrl!),
+                                        image: NetworkImage(lastAddedImageUrl),
                                         fit: BoxFit.cover,
                                       ),
                                       border: Border.all(
@@ -473,6 +467,166 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
           ),
         ],
       ),
+    );
+  }
+
+  void _handleItemTap(MenuItemModel item) {
+    final saleModes = _activeSaleModes(item);
+    if (saleModes.length <= 1) {
+      context.read<PosKdsCubit>().addToCart(item, saleModes.first);
+      return;
+    }
+    _showSaleModeSelector(item, saleModes);
+  }
+
+  List<MenuItemSaleModeModel> _activeSaleModes(MenuItemModel item) {
+    final modes = item.sale_modes
+        .where((mode) => !mode.is_deleted && mode.status == 'ACTIVE')
+        .toList();
+    if (modes.isNotEmpty) {
+      modes.sort((a, b) => a.sort_order.compareTo(b.sort_order));
+      return modes;
+    }
+    return [
+      MenuItemSaleModeModel(
+        id: 'default-${item.id}',
+        branch_id: item.branch_id,
+        menu_item_id: item.id,
+        uom_id: '',
+        uom_code: '',
+        label: PosConstant.SALE_MODE_FALLBACK,
+        price_per_unit: item.selling_price,
+        min_qty: 1,
+        step_qty: 1,
+        allow_decimal: false,
+        is_default: true,
+        sort_order: 0,
+        status: 'ACTIVE',
+        created_at: '',
+        updated_at: '',
+        is_deleted: false,
+      ),
+    ];
+  }
+
+  String _priceLabel(MenuItemModel item) {
+    final saleModes = _activeSaleModes(item);
+    final mode = saleModes.firstWhere(
+      (mode) => mode.is_default,
+      orElse: () => saleModes.first,
+    );
+    final unit = mode.uom_code.trim().isEmpty ? '' : ' / ${mode.uom_code}';
+    return '₹ ${mode.price_per_unit.toStringAsFixed(0)}$unit';
+  }
+
+  void _showSaleModeSelector(
+    MenuItemModel item,
+    List<MenuItemSaleModeModel> saleModes,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
+          decoration: BoxDecoration(
+            color: AppColors.pureWhite,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: AppColors.borderGrey,
+                    borderRadius: BorderRadius.circular(2.r),
+                  ),
+                ),
+              ),
+              SizedBox(height: 18.h),
+              Text(
+                PosConstant.SELECT_SALE_MODE,
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: 6.h),
+              Text(
+                item.display_name,
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              ...saleModes.map((mode) {
+                final unit = mode.uom_code.trim().isEmpty
+                    ? ''
+                    : ' / ${mode.uom_code}';
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.read<PosKdsCubit>().addToCart(item, mode);
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.only(bottom: 10.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 14.w,
+                      vertical: 12.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF9FAFB),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(color: AppColors.borderGrey),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                mode.label,
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              SizedBox(height: 4.h),
+                              Text(
+                                '₹ ${mode.price_per_unit.toStringAsFixed(2)}$unit',
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Icon(
+                          Icons.add_circle,
+                          color: AppColors.primaryGreen,
+                          size: 22.w,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
     );
   }
 }

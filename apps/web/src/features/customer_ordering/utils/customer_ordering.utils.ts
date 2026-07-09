@@ -8,11 +8,14 @@ import {
 } from "../constants/customer_ordering.constants";
 import {
   CustomerCartItem,
+  CustomerCartLine,
   CustomerMenuCategory,
   CustomerMenuItem,
+  CustomerMenuItemSaleMode,
   CustomerOrderingContext,
   CustomerTable,
 } from "../types/customer_ordering.types";
+import { formatInr, formatQuantity as formatCoreQuantity } from "@/core/format";
 
 export const readOrderingContext = (): CustomerOrderingContext => {
   const params = new URLSearchParams(window.location.search);
@@ -78,12 +81,18 @@ export const imageForItem = (item: CustomerMenuItem): string => {
 
 export const buildCartItems = (
   items: CustomerMenuItem[],
-  cart: Record<string, number>,
+  cart: Record<string, CustomerCartLine>,
 ): CustomerCartItem[] => {
   return Object.entries(cart)
-    .map(([id, quantity]) => {
-      const item = items.find((menuItem) => menuItem.id === id);
-      return item ? { item, quantity } : null;
+    .map(([cartKey, line]) => {
+      const item = items.find((menuItem) => menuItem.id === line.menu_item_id);
+      if (!item) {
+        return null;
+      }
+      const saleMode =
+        activeSaleModes(item).find((mode) => mode.id === line.sale_mode_id) ||
+        defaultSaleMode(item);
+      return item ? { item, quantity: line.quantity, saleMode, cartKey } : null;
     })
     .filter((value): value is CustomerCartItem => Boolean(value));
 };
@@ -91,13 +100,55 @@ export const buildCartItems = (
 export const calculateSubtotal = (cartItems: CustomerCartItem[]): number => {
   return cartItems.reduce(
     (total, cartItem) =>
-      total + cartItem.item.selling_price * cartItem.quantity,
+      total + cartItem.saleMode.price_per_unit * cartItem.quantity,
     0,
   );
 };
 
+export const activeSaleModes = (
+  item: CustomerMenuItem,
+): CustomerMenuItemSaleMode[] => {
+  const modes = (item.sale_modes || [])
+    .filter((mode) => !mode.is_deleted && mode.status === "ACTIVE")
+    .sort((a, b) => a.sort_order - b.sort_order);
+  return modes.length ? modes : [defaultSaleMode(item)];
+};
+
+export const defaultSaleMode = (
+  item: CustomerMenuItem,
+): CustomerMenuItemSaleMode => {
+  return (
+    (item.sale_modes || []).find((mode) => mode.is_default) ||
+    (item.sale_modes || [])[0] || {
+      id: `default-${item.id}`,
+      label: CUSTOMER_ORDERING_TEXT.DEFAULT_SALE_MODE,
+      uom_id: "",
+      uom_code: "",
+      price_per_unit: item.selling_price,
+      min_qty: 1,
+      step_qty: 1,
+      allow_decimal: false,
+      is_default: true,
+      sort_order: 0,
+      status: "ACTIVE",
+      is_deleted: false,
+    }
+  );
+};
+
+export const cartKeyFor = (
+  item: CustomerMenuItem,
+  saleMode: CustomerMenuItemSaleMode,
+): string => {
+  return `${item.id}:${saleMode.id}`;
+};
+
+export const formatQuantity = (quantity: number): string => {
+  return formatCoreQuantity(quantity);
+};
+
 export const formatAmount = (amount: number): string => {
-  return `₹ ${Math.round(amount)}`;
+  return formatInr(amount);
 };
 
 export const seatOptionsForContext = (

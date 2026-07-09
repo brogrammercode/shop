@@ -1,8 +1,8 @@
-import { AddressType, OrderStatus, KOTStatus, OrderType, PayMethod } from '@prisma/client';
+import { AddressType, OrderStatus, KOTStatus, OrderType, PayMethod, TableSessionStatus } from '@prisma/client';
 import prisma from '../../infra/database/client';
 
 export class PosKdsRepo {
-  async createOrder(data: { branch_id: string; order_no: number; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; table_side_ids?: string[]; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; final_paying_price?: number; employee_id?: string; partner_id?: string; code: string; notes?: string }) {
+  async createOrder(data: { branch_id: string; order_no: number; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; table_session_id?: string; table_side_ids?: string[]; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; final_paying_price?: number; employee_id?: string; partner_id?: string; code: string; notes?: string; payment_proofs?: string[] }) {
     return prisma.order.create({ data: data as any });
   }
 
@@ -32,7 +32,7 @@ export class PosKdsRepo {
   }
 
   async findOrdersByBranch(branchId: string) {
-    const orders = await prisma.order.findMany({ where: { branch_id: branchId }, include: { user: true, table: true, items: { include: { menu_item: true } } }, orderBy: { created_at: 'desc' } });
+    const orders = await prisma.order.findMany({ where: { branch_id: branchId }, include: { user: true, table: true, table_session: true, items: { include: { menu_item: true } } }, orderBy: { created_at: 'desc' } });
     return this.withUserAddresses(orders);
   }
 
@@ -50,7 +50,7 @@ export class PosKdsRepo {
   }
 
   async findOrderById(id: string) {
-    const order = await prisma.order.findUnique({ where: { id }, include: { user: true, table: true, items: { include: { menu_item: true } }, kots: true, advance_payments: true } });
+    const order = await prisma.order.findUnique({ where: { id }, include: { user: true, table: true, table_session: true, items: { include: { menu_item: true } }, kots: true, advance_payments: true } });
     if (!order) {
       return order;
     }
@@ -58,7 +58,21 @@ export class PosKdsRepo {
     return orders[0];
   }
 
-  private async withUserAddresses<T extends { uid: string | null; user?: any }>(orders: T[]) {
+  async findActiveCustomerOrder(branchId: string, uid: string, orderType: OrderType, deliveryAddressId?: string) {
+    return prisma.order.findFirst({
+      where: {
+        branch_id: branchId,
+        uid,
+        order_type: orderType,
+        status: { notIn: [OrderStatus.PAID, OrderStatus.CANCELLED, OrderStatus.REFUNDED] },
+        ...(orderType === OrderType.DELIVERY ? { delivery_address_id: deliveryAddressId || null } : {}),
+      },
+      include: { items: true },
+      orderBy: { created_at: 'desc' },
+    });
+  }
+
+  private async withUserAddresses<T extends { uid: string | null; order_type?: string | null; user?: any }>(orders: T[]) {
     const userIds = orders.map((order) => order.uid).filter((uid): uid is string => Boolean(uid));
     if (userIds.length === 0) {
       return orders;
@@ -69,7 +83,9 @@ export class PosKdsRepo {
       user: order.user
         ? {
             ...order.user,
-            addresses: addresses.filter((address) => address.entity_id === order.uid),
+            addresses: order.order_type === OrderType.DELIVERY
+              ? addresses.filter((address) => address.entity_id === order.uid)
+              : [],
           }
         : order.user,
     }));
@@ -79,12 +95,82 @@ export class PosKdsRepo {
     return prisma.order.update({ where: { id }, data: { status } });
   }
 
+  async updateOrder(id: string, data: any) {
+    return prisma.order.update({ where: { id }, data });
+  }
+
+  async findActiveTableSessions(branchId: string, tableId: string) {
+    return prisma.tableSession.findMany({
+      where: {
+        branch_id: branchId,
+        table_id: tableId,
+        status: { in: [TableSessionStatus.ACTIVE, TableSessionStatus.BILLED] },
+      },
+      include: {
+        orders: {
+          where: {
+            status: { notIn: [OrderStatus.PAID, OrderStatus.CANCELLED, OrderStatus.REFUNDED] },
+          },
+          include: { items: true },
+          orderBy: { created_at: 'desc' },
+        },
+      },
+    });
+  }
+
+  async findTableSessionById(id: string) {
+    return prisma.tableSession.findUnique({
+      where: { id },
+      include: {
+        orders: {
+          where: {
+            status: { notIn: [OrderStatus.PAID, OrderStatus.CANCELLED, OrderStatus.REFUNDED] },
+          },
+          include: { items: true },
+          orderBy: { created_at: 'desc' },
+        },
+      },
+    });
+  }
+
+  async createTableSession(data: { branch_id: string; table_id: string; table_side_ids?: string[]; uid?: string }) {
+    return prisma.tableSession.create({ data: data as any });
+  }
+
+  async updateTableSession(id: string, data: { status?: TableSessionStatus; closed_at?: Date }) {
+    return prisma.tableSession.update({ where: { id }, data });
+  }
+
   async createOrderItem(data: { branch_id: string; order_id: string; menu_item_id: string; qty: number; unit_price: number; total_price: number; notes?: string }) {
     return prisma.orderItem.create({ data });
   }
 
-  async createOrderItems(items: { branch_id: string; order_id: string; menu_item_id: string; qty: number; unit_price: number; total_price: number; notes?: string }[]) {
+  async createOrderItems(items: { branch_id: string; order_id: string; menu_item_id: string; sale_mode_id?: string; qty: number; unit_price: number; total_price: number; sale_mode_label?: string; quantity_uom_id?: string; quantity_uom_code?: string; base_quantity?: number; base_uom_id?: string; base_uom_code?: string; notes?: string }[]) {
     return prisma.orderItem.createMany({ data: items });
+  }
+
+  async findMenuItemForSale(menuItemId: string, branchId: string) {
+    return prisma.menuItem.findFirst({
+      where: { id: menuItemId, branch_id: branchId, is_deleted: false },
+      include: {
+        variant: { include: { uom: true } },
+        sale_modes: {
+          where: { is_deleted: false, status: 'ACTIVE' },
+          include: { uom: true },
+          orderBy: { sort_order: 'asc' },
+        },
+      },
+    });
+  }
+
+  async findUOMConversion(branchId: string, fromUomId: string, toUomId: string) {
+    return prisma.uOMConversion.findFirst({
+      where: {
+        branch_id: branchId,
+        from_uom_id: fromUomId,
+        to_uom_id: toUomId,
+      },
+    });
   }
 
   async createTable(data: { branch_id: string; zone_id: string; table_number: string; capacity: number; side_count?: number; side_labels?: string[] }) {

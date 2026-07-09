@@ -1,7 +1,19 @@
 import { catalogRepo } from "./catalog.repo";
-import { _CATALOG_CONSTANTS } from "./catalog.constant";
-import { AppError, NotFoundError, ConflictError } from "../../utils/error";
-import { HttpStatus } from "../../constants/status";
+import { _CATALOG_CONSTANTS, _CATALOG_DEFAULTS, _CATALOG_MESSAGES } from "./catalog.constant";
+import { BadRequestError, NotFoundError } from "../../utils/error";
+import prisma from "../../infra/database/client";
+
+type SaleModeInput = {
+  uom_id?: string;
+  label?: string;
+  price_per_unit?: number;
+  min_qty?: number;
+  step_qty?: number;
+  allow_decimal?: boolean;
+  is_default?: boolean;
+  sort_order?: number;
+  status?: string;
+};
 
 export class CatalogService {
   async createMenuCategory(branchId: string, data: any) {
@@ -34,8 +46,10 @@ export class CatalogService {
   }
 
   async createMenuItem(branchId: string, data: any) {
+    const sale_modes = await this.normalizeSaleModes(branchId, data);
     return catalogRepo.createMenuItem({
       ...data,
+      sale_modes,
       branch_id: branchId,
     });
   }
@@ -53,8 +67,26 @@ export class CatalogService {
   }
 
   async updateMenuItem(id: string, branchId: string, data: any) {
-    await this.getMenuItemById(id, branchId);
-    return catalogRepo.updateMenuItem(id, data);
+    const item = await this.getMenuItemById(id, branchId);
+    const payload = { ...data };
+    if (Array.isArray(data.sale_modes)) {
+      payload.sale_modes = await this.normalizeSaleModes(branchId, {
+        ...data,
+        variant_id: data.variant_id || item.variant_id,
+        selling_price: data.selling_price ?? item.selling_price,
+      });
+    }
+    return catalogRepo.updateMenuItem(id, payload);
+  }
+
+  async replaceMenuItemSaleModes(id: string, branchId: string, saleModes: any[]) {
+    const item = await this.getMenuItemById(id, branchId);
+    const normalized = await this.normalizeSaleModes(branchId, {
+      variant_id: item.variant_id,
+      selling_price: item.selling_price,
+      sale_modes: saleModes,
+    });
+    return catalogRepo.replaceMenuItemSaleModes(id, branchId, normalized);
   }
 
   async deleteMenuItem(id: string, branchId: string) {
@@ -179,6 +211,51 @@ export class CatalogService {
 
   async getFullMenu(branchId: string) {
     return catalogRepo.getFullMenu(branchId);
+  }
+
+  private async normalizeSaleModes(branchId: string, data: any) {
+    const rawModes: SaleModeInput[] = Array.isArray(data.sale_modes) ? data.sale_modes : [];
+    const modes = rawModes.length
+      ? rawModes
+      : [await this.defaultSaleMode(branchId, data.variant_id, data.selling_price)];
+    const defaultIndex = modes.findIndex((mode: SaleModeInput) => Boolean(mode.is_default));
+    return modes.map((mode: SaleModeInput, index: number) => {
+      if (!mode.uom_id) {
+        throw new BadRequestError(_CATALOG_CONSTANTS._E_R_R_O_R_S.SALE_MODE_UOM_REQUIRED);
+      }
+      return {
+        uom_id: mode.uom_id,
+        label: mode.label || _CATALOG_DEFAULTS.DEFAULT_SALE_MODE_LABEL,
+        price_per_unit: Number(mode.price_per_unit ?? data.selling_price ?? 0),
+        min_qty: Number(mode.min_qty ?? _CATALOG_DEFAULTS.DEFAULT_MIN_QTY),
+        step_qty: Number(mode.step_qty ?? _CATALOG_DEFAULTS.DEFAULT_STEP_QTY),
+        allow_decimal: Boolean(mode.allow_decimal),
+        is_default: defaultIndex === -1 ? index === 0 : index === defaultIndex,
+        sort_order: Number(mode.sort_order ?? index),
+        status: mode.status ?? "ACTIVE",
+      };
+    });
+  }
+
+  private async defaultSaleMode(branchId: string, variantId: string, sellingPrice: number) {
+    const variant = await prisma.itemVariant.findFirst({
+      where: { id: variantId, branch_id: branchId, is_deleted: false },
+      include: { uom: true },
+    });
+    if (!variant) {
+      throw new NotFoundError(_CATALOG_MESSAGES.VARIANT_NOT_FOUND);
+    }
+    return {
+      uom_id: variant.uom_id,
+      label: variant.uom?.code || _CATALOG_DEFAULTS.DEFAULT_SALE_MODE_LABEL,
+      price_per_unit: sellingPrice,
+      min_qty: _CATALOG_DEFAULTS.DEFAULT_MIN_QTY,
+      step_qty: _CATALOG_DEFAULTS.DEFAULT_STEP_QTY,
+      allow_decimal: false,
+      is_default: true,
+      sort_order: _CATALOG_DEFAULTS.DEFAULT_SORT_ORDER,
+      status: "ACTIVE",
+    };
   }
 }
 

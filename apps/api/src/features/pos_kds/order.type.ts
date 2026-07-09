@@ -5,6 +5,7 @@ export interface OrderDTO {
   order_no: number;
   branch_id: string;
   table_id?: string;
+  table_session_id?: string;
   table_side_ids?: string[];
   uid?: string;
   delivery_address_id?: string;
@@ -19,6 +20,7 @@ export interface OrderDTO {
   final_paying_price?: number;
   fulfillment_date?: string | Date;
   notes?: string;
+  payment_proofs?: string[];
   created_at: string | Date;
   updated_at: string | Date;
   items?: OrderItemDTO[];
