@@ -33,6 +33,17 @@ class _SplashPageState extends State<SplashPage> {
       return;
     }
 
+    final user = savedProfile['user'] as Map<String, dynamic>;
+    final phone = (user['phone'] ?? '').toString();
+    final requiresPhone = savedProfile['requires_phone'] == true ||
+        phone.isEmpty ||
+        phone.startsWith('no-phone-') ||
+        phone.startsWith('merged_');
+    if (requiresPhone) {
+      if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.completePhone);
+      return;
+    }
+
     final hasEmployee = savedProfile['employee'] != null;
     final String? branchId = hasEmployee ? (savedProfile['employee']['branch_id'] as String?) : null;
     final hasBranch = branchId != null && branchId.isNotEmpty;

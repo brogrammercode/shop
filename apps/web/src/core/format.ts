@@ -1,11 +1,10 @@
 export const formatInr = (amount: number, fractionDigits = 0): string => {
   const value = Number.isFinite(amount) ? amount : 0;
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
+  const formattedAmount = new Intl.NumberFormat("en-IN", {
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   }).format(value);
+  return `\u20B9${formattedAmount}`;
 };
 
 export const formatQuantity = (quantity: number): string => {

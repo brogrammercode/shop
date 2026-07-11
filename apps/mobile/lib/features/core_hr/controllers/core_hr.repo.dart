@@ -17,6 +17,7 @@ import 'package:mobile/features/core_hr/models/user_log.model.dart';
 class CoreHrEndpoints {
   static const String login = '/hr/auth/login';
   static const String sendOtp = '/hr/auth/send-otp';
+  static const String completePhone = '/hr/auth/complete-phone';
   static const String me = '/hr/auth/me';
   static const String branch = '/hr/branch';
   static const String searchBranch = '/hr/branch/search';
@@ -67,7 +68,7 @@ class CoreHrRepo {
       }
       final response = await _apiClient.post(
         CoreHrEndpoints.login,
-        data: {'idToken': idToken},
+        data: {'id_token': idToken},
       );
       final data = response.data['data'];
       await _localStorage.saveToken(data['tokens']['accessToken']);
@@ -77,6 +78,26 @@ class CoreHrRepo {
         'employee': data['employee'] != null
             ? EmployeeModel.fromJson(data['employee'])
             : null,
+        'requires_phone': data['requires_phone'] == true,
+      };
+    });
+  }
+
+  TaskResult<Map<String, dynamic>> completePhone(String phoneNumber) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.post(
+        CoreHrEndpoints.completePhone,
+        data: {'phone': phoneNumber},
+      );
+      final data = response.data['data'];
+      await _localStorage.saveToken(data['tokens']['accessToken']);
+      await _localStorage.saveRefreshToken(data['tokens']['refreshToken']);
+      return {
+        'user': UserModel.fromJson(data['user']),
+        'employee': data['employee'] != null
+            ? EmployeeModel.fromJson(data['employee'])
+            : null,
+        'requires_phone': data['requires_phone'] == true,
       };
     });
   }
@@ -108,6 +129,7 @@ class CoreHrRepo {
         'employee': data['employee'] != null
             ? EmployeeModel.fromJson(data['employee'])
             : null,
+        'requires_phone': data['requires_phone'] == true,
       };
     });
   }
@@ -170,6 +192,7 @@ class CoreHrRepo {
             (data['employee'] != null && data['employee']['branch'] != null)
             ? BranchModel.fromJson(data['employee']['branch'])
             : null,
+        'requires_phone': data['requires_phone'] == true,
       };
     });
   }

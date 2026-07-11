@@ -45,11 +45,15 @@ interface UserState {
   addresses: AddressModel[];
   bankDetails: BankDetailModel[];
   employeeContext: EmployeeContext | null;
+  hasHydrated: boolean;
+  requiresPhone: boolean;
 
-  setAuth: (token: string, user: UserModel) => void;
+  setAuth: (token: string, user: UserModel, requiresPhone?: boolean) => void;
   setAddresses: (addresses: AddressModel[]) => void;
   setBankDetails: (details: BankDetailModel[]) => void;
   setEmployeeContext: (context: EmployeeContext) => void;
+  setRequiresPhone: (requiresPhone: boolean) => void;
+  setHasHydrated: (hasHydrated: boolean) => void;
   clearContext: () => void;
 }
 
@@ -61,11 +65,27 @@ export const useUserStore = create<UserState>()(
       addresses: [],
       bankDetails: [],
       employeeContext: null,
+      hasHydrated: false,
+      requiresPhone: false,
 
-      setAuth: (token, user) => set({ token, user }),
+      setAuth: (token, user, requiresPhone) =>
+        set((state) => ({
+          token,
+          user,
+          requiresPhone:
+            requiresPhone ??
+            (
+              !user.phone ||
+              user.phone.startsWith("no-phone-") ||
+              user.phone.startsWith("merged_") ||
+              state.requiresPhone
+            ),
+        })),
       setAddresses: (addresses) => set({ addresses }),
       setBankDetails: (bankDetails) => set({ bankDetails }),
       setEmployeeContext: (employeeContext) => set({ employeeContext }),
+      setRequiresPhone: (requiresPhone) => set({ requiresPhone }),
+      setHasHydrated: (hasHydrated) => set({ hasHydrated }),
 
       clearContext: () =>
         set({
@@ -74,10 +94,14 @@ export const useUserStore = create<UserState>()(
           addresses: [],
           bankDetails: [],
           employeeContext: null,
+          requiresPhone: false,
         }),
     }),
     {
       name: "ladyluck-user-storage",
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     },
   ),
 );

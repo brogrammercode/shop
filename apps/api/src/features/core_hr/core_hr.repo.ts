@@ -1,5 +1,6 @@
-import { JoinRequestStatus } from '@prisma/client';
+import { AddressType, BankDetailType, JoinRequestStatus, Prisma } from '@prisma/client';
 import prisma from '../../infra/database/client';
+import { _CORE_HR_CONSTANTS } from './core_hr.constant';
 
 export class CoreHrRepo {
   private async _logAction(tx: any, uid: string, action: string, title: string, description: string, meta: any, ref_link: string = '') {
@@ -26,6 +27,14 @@ export class CoreHrRepo {
     avatar: string | null,
   ) {
     let existing = await prisma.user.findUnique({ where: { id: firebaseUid } });
+    if (
+      existing?.is_deleted &&
+      firebaseUid.startsWith(_CORE_HR_CONSTANTS._D_E_F_A_U_L_T_S.GOOGLE_UID_PREFIX) &&
+      existing.phone.startsWith(_CORE_HR_CONSTANTS._D_E_F_A_U_L_T_S.MERGED_FIELD_PREFIX)
+    ) {
+      await this.deleteMergedGoogleUser(firebaseUid);
+      existing = null;
+    }
     if (existing) return existing;
 
     if (phone) {
@@ -57,8 +66,101 @@ export class CoreHrRepo {
     return prisma.user.findUnique({ where: { phone } });
   }
 
+  async findUserByEmail(email: string) {
+    return prisma.user.findUnique({ where: { email } });
+  }
+
   async findUserById(id: string) {
     return prisma.user.findUnique({ where: { id } });
+  }
+
+  async createPhoneCustomer(actorUid: string, phone: string, name: string) {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            name,
+            phone,
+          },
+        });
+        await this._logAction(tx, actorUid, 'CREATE_PHONE_CUSTOMER', 'Phone Customer Created', `Created customer for ${phone}`, { user_id: user.id, phone }, `/user/${user.id}`);
+        return user;
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        const existing = await prisma.user.findUnique({ where: { phone } });
+        if (existing) return existing;
+      }
+      throw error;
+    }
+  }
+
+  async updateUserPhone(uid: string, phone: string) {
+    return prisma.user.update({ where: { id: uid }, data: { phone } });
+  }
+
+  async deleteMergedGoogleUser(uid: string) {
+    const user = await prisma.user.findUnique({ where: { id: uid } });
+    if (
+      !user ||
+      !user.is_deleted ||
+      !user.id.startsWith(_CORE_HR_CONSTANTS._D_E_F_A_U_L_T_S.GOOGLE_UID_PREFIX) ||
+      !user.phone.startsWith(_CORE_HR_CONSTANTS._D_E_F_A_U_L_T_S.MERGED_FIELD_PREFIX)
+    ) {
+      return user;
+    }
+    return prisma.user.delete({ where: { id: uid } });
+  }
+
+  async mergeUsers(primaryUid: string, secondaryUid: string) {
+    return prisma.$transaction(async (tx) => {
+      const primary = await tx.user.findUnique({ where: { id: primaryUid } });
+      const secondary = await tx.user.findUnique({ where: { id: secondaryUid } });
+
+      if (!primary || !secondary) {
+        return primary;
+      }
+
+      await tx.order.updateMany({ where: { uid: secondaryUid }, data: { uid: primaryUid } });
+      await tx.tableSession.updateMany({ where: { uid: secondaryUid }, data: { uid: primaryUid } });
+      await tx.address.updateMany({ where: { entity_type: AddressType.USER, entity_id: secondaryUid }, data: { entity_id: primaryUid } });
+      await tx.bankDetail.updateMany({ where: { entity_type: BankDetailType.USER, entity_id: secondaryUid }, data: { entity_id: primaryUid } });
+      await tx.loyaltyTrans.updateMany({ where: { uid: secondaryUid }, data: { uid: primaryUid } });
+      await tx.complaint.updateMany({ where: { uid: secondaryUid }, data: { uid: primaryUid } });
+      await tx.userDeviceToken.updateMany({ where: { uid: secondaryUid }, data: { uid: primaryUid } });
+      await tx.userLog.updateMany({ where: { uid: secondaryUid }, data: { uid: primaryUid } });
+      await tx.joinRequest.updateMany({ where: { uid: secondaryUid }, data: { uid: primaryUid } });
+      await tx.joinRequest.updateMany({ where: { reviewed_by: secondaryUid }, data: { reviewed_by: primaryUid } });
+      await tx.userSession.deleteMany({ where: { uid: secondaryUid } });
+
+      const primaryEmployee = await tx.employee.findUnique({ where: { uid: primaryUid } });
+      const secondaryEmployee = await tx.employee.findUnique({ where: { uid: secondaryUid } });
+      if (!primaryEmployee && secondaryEmployee) {
+        await tx.employee.update({ where: { id: secondaryEmployee.id }, data: { uid: primaryUid } });
+      }
+
+      const nextEmail = primary.email || secondary.email || undefined;
+      const nextAvatar = primary.avatar || secondary.avatar || undefined;
+      const nextName = primary.name === 'Unknown' && secondary.name !== 'Unknown'
+        ? secondary.name
+        : primary.name;
+
+      const updatedPrimary = await tx.user.update({
+        where: { id: primaryUid },
+        data: {
+          name: nextName,
+          email: nextEmail,
+          avatar: nextAvatar,
+        },
+      });
+
+      await this._logAction(tx, primaryUid, 'MERGE_USERS', 'Users Merged', `Merged ${secondaryUid} into ${primaryUid}`, { primary_uid: primaryUid, secondary_uid: secondaryUid }, `/user/${primaryUid}`);
+      await tx.user.delete({ where: { id: secondaryUid } });
+      return updatedPrimary;
+    }, {
+      maxWait: 15000,
+      timeout: 20000,
+    });
   }
 
   async findEmployeeByUid(uid: string) {
@@ -71,6 +173,20 @@ export class CoreHrRepo {
         post_rel: true,
         shift_rel: true,
       },
+    });
+  }
+
+  async findUserAddresses(uid: string) {
+    return prisma.address.findMany({
+      where: { entity_type: AddressType.USER, entity_id: uid },
+      orderBy: { created_at: 'desc' },
+    });
+  }
+
+  async findUserBankDetails(uid: string) {
+    return prisma.bankDetail.findMany({
+      where: { entity_type: BankDetailType.USER, entity_id: uid },
+      orderBy: { created_at: 'desc' },
     });
   }
 

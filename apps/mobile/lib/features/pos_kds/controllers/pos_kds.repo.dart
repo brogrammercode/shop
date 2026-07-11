@@ -15,6 +15,7 @@ class PosKdsEndpoints {
   static String cancelOrder(String id) => '/pos-kds/orders/$id/cancel';
   static String customersByPhone(String phone) =>
       '/pos-kds/customers/${Uri.encodeComponent(phone)}';
+  static const String resolveCustomerPhone = '/pos-kds/customers/resolve-phone';
 
   static const String tables = '/pos-kds/tables';
   static String table(String id) => '/pos-kds/tables/$id';
@@ -61,6 +62,16 @@ class PosKdsRepo {
       );
       final data = response.data['data'] as List;
       return data.map((e) => UserModel.fromJson(e)).toList();
+    });
+  }
+
+  TaskResult<UserModel> resolveCustomerByPhone(String phone) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.post(
+        PosKdsEndpoints.resolveCustomerPhone,
+        data: {'phone': phone},
+      );
+      return UserModel.fromJson(response.data['data']);
     });
   }
 

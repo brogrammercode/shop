@@ -15,6 +15,14 @@ class CoreHrCubit extends Cubit<CoreHrState> {
     : _repo = repo,
       super(const CoreHrState());
 
+  bool _requiresPhone(UserModel? user, [bool? explicitValue]) {
+    if (explicitValue == true) return true;
+    final phone = user?.phone.trim() ?? '';
+    return phone.isEmpty ||
+        phone.startsWith('no-phone-') ||
+        phone.startsWith('merged_');
+  }
+
   Future<void> loginWithSavedProfile() async {
     emit(
       state.copyWith(
@@ -26,14 +34,20 @@ class CoreHrCubit extends Cubit<CoreHrState> {
     try {
       final profile = await _cache.getSavedProfile();
       if (profile != null) {
+        final user = profile['user'] != null
+            ? UserModel.fromJson(profile['user'])
+            : null;
+        final requiresPhone = _requiresPhone(
+          user,
+          profile['requires_phone'] == true,
+        );
         emit(
           state.copyWith(
-            currentUser: profile['user'] != null
-                ? UserModel.fromJson(profile['user'])
-                : null,
+            currentUser: user,
             currentEmployee: profile['employee'] != null
                 ? EmployeeModel.fromJson(profile['employee'])
                 : null,
+            requiresPhone: requiresPhone,
             loginWithSavedProfileInfo: const OperationInfo(
               status: OperationStatus.success,
             ),
@@ -79,16 +93,70 @@ class CoreHrCubit extends Cubit<CoreHrState> {
         );
       },
       (data) {
+        final user = data['user'] as UserModel?;
+        final requiresPhone = _requiresPhone(
+          user,
+          data['requires_phone'] == true,
+        );
         final profile = {
-          'user': data['user']?.toJson(),
+          'user': user?.toJson(),
           'employee': data['employee']?.toJson(),
+          'requires_phone': requiresPhone,
         };
         _cache.saveSavedProfile(profile);
         emit(
           state.copyWith(
-            currentUser: data['user'],
+            currentUser: user,
             currentEmployee: data['employee'],
+            requiresPhone: requiresPhone,
             googleSignInInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> completePhone(String phoneNumber) async {
+    emit(
+      state.copyWith(
+        completePhoneInfo: const OperationInfo(
+          status: OperationStatus.loading,
+        ),
+      ),
+    );
+    final result = await _repo.completePhone(phoneNumber);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            completePhoneInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (data) async {
+        final user = data['user'] as UserModel?;
+        final requiresPhone = _requiresPhone(
+          user,
+          data['requires_phone'] == true,
+        );
+        final profile = {
+          'user': user?.toJson(),
+          'employee': data['employee']?.toJson(),
+          'requires_phone': requiresPhone,
+        };
+        await _cache.saveSavedProfile(profile);
+        emit(
+          state.copyWith(
+            currentUser: user,
+            currentEmployee: data['employee'],
+            requiresPhone: requiresPhone,
+            completePhoneInfo: const OperationInfo(
               status: OperationStatus.success,
             ),
           ),
@@ -154,15 +222,22 @@ class CoreHrCubit extends Cubit<CoreHrState> {
         );
       },
       (data) {
+        final user = data['user'] as UserModel?;
+        final requiresPhone = _requiresPhone(
+          user,
+          data['requires_phone'] == true,
+        );
         final profile = {
-          'user': data['user']?.toJson(),
+          'user': user?.toJson(),
           'employee': data['employee']?.toJson(),
+          'requires_phone': requiresPhone,
         };
         _cache.saveSavedProfile(profile);
         emit(
           state.copyWith(
-            currentUser: data['user'],
+            currentUser: user,
             currentEmployee: data['employee'],
+            requiresPhone: requiresPhone,
             loginInfo: const OperationInfo(status: OperationStatus.success),
           ),
         );
@@ -292,10 +367,16 @@ class CoreHrCubit extends Cubit<CoreHrState> {
         );
       },
       (data) {
+        final user = data['user'] as UserModel?;
+        final requiresPhone = _requiresPhone(
+          user,
+          data['requires_phone'] == true,
+        );
         emit(
           state.copyWith(
-            currentUser: data['user'],
+            currentUser: user,
             currentEmployee: data['employee'],
+            requiresPhone: requiresPhone,
             getMeInfo: const OperationInfo(status: OperationStatus.success),
           ),
         );
@@ -310,9 +391,15 @@ class CoreHrCubit extends Cubit<CoreHrState> {
         // Will be handled globally by ApiClient
       },
       (data) async {
+        final user = data['user'] as UserModel?;
+        final requiresPhone = _requiresPhone(
+          user,
+          data['requires_phone'] == true,
+        );
         final profile = {
-          'user': data['user']?.toJson(),
+          'user': user?.toJson(),
           'employee': data['employee']?.toJson(),
+          'requires_phone': requiresPhone,
         };
         await _cache.saveSavedProfile(profile);
 
@@ -332,8 +419,9 @@ class CoreHrCubit extends Cubit<CoreHrState> {
 
         emit(
           state.copyWith(
-            currentUser: data['user'],
+            currentUser: user,
             currentEmployee: data['employee'],
+            requiresPhone: requiresPhone,
           ),
         );
       },
@@ -369,6 +457,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
         await _cache.saveSavedProfile({
           'user': state.currentUser?.toJson(),
           'employee': employee?.toJson(),
+          'requires_phone': state.requiresPhone,
         });
         if (employee != null && employee.branch_id.isNotEmpty) {
           await _cache.saveBusinessContext({

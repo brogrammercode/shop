@@ -23,6 +23,7 @@ export const _CORE_HR_CONSTANTS = {
     OPEN_CASH_REGISTER: '/cash-registers/:id/open',
     CLOSE_CASH_REGISTER: '/cash-registers/:id/close',
     USER_LOGS: '/user-logs',
+    COMPLETE_PHONE: '/auth/complete-phone',
   },
   _M_E_S_S_A_G_E_S: {
     OTP_SENT: 'OTP sent successfully',
@@ -54,6 +55,7 @@ export const _CORE_HR_CONSTANTS = {
     CASH_REGISTER_OPENED: 'Cash register opened successfully',
     CASH_REGISTER_CLOSED: 'Cash register closed successfully',
     USER_LOGS_LISTED: 'User logs fetched successfully',
+    PHONE_COMPLETED: 'Phone number saved successfully',
   },
   _E_R_R_O_R_S: {
     INVALID_OTP: 'Invalid OTP',
@@ -77,6 +79,10 @@ export const _CORE_HR_CONSTANTS = {
     NOT_CLOCKED_IN: 'Employee is not clocked in',
     ALREADY_CLOCKED_IN: 'An open time log already exists for this employee',
     FIREBASE_TOKEN_INVALID: 'Firebase ID token is invalid',
+    PHONE_REQUIRED: 'Phone number is required',
+    INVALID_PHONE: 'Invalid phone number',
+    PHONE_REGISTERED_WITH_ANOTHER_ACCOUNT: 'This phone number is already registered with another account',
+    GOOGLE_ACCOUNT_REQUIRED: 'Please login with Google first',
   },
   _F_I_E_L_D_S: {
     _U_I_D: 'uid',
@@ -132,7 +138,9 @@ export const _CORE_HR_CONSTANTS = {
   OTP_SMS_BODY: 'Your Shop verification code is: ',
   _D_E_F_A_U_L_T_S: {
     UNKNOWN_USER: 'Unknown',
+    CUSTOMER_NAME_PREFIX: 'Customer',
+    GOOGLE_UID_PREFIX: 'google_',
+    MERGED_FIELD_PREFIX: 'merged_',
+    NO_PHONE_PREFIX: 'no-phone-',
   },
 };
-
-

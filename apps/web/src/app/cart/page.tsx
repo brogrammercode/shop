@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { useUserStore } from "@/core/store/user.store";
+import { AuthRepo } from "@/features/auth/repo/auth.repo";
 import { CustomerContextPanel } from "@/features/customer_ordering/components/CustomerContextPanel";
 import { GreenStepper } from "@/components/ui/GreenStepper";
 import {
@@ -31,7 +32,7 @@ import {
 
 export default function CartPage() {
   const router = useRouter();
-  const { token, user, addresses } = useUserStore();
+  const { token, user, addresses, hasHydrated, requiresPhone } = useUserStore();
 
   const [isMounted, setIsMounted] = useState(false);
   const [orderingContext] = useState<CustomerOrderingContext | null>(() =>
@@ -61,6 +62,13 @@ export default function CartPage() {
     const timer = window.setTimeout(() => setIsMounted(true), 0);
     return () => window.clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (!hasHydrated || !token) {
+      return;
+    }
+    AuthRepo.loadCurrentUser().catch(() => undefined);
+  }, [hasHydrated, token]);
 
   useEffect(() => {
     if (!orderingContext?.branchId) return;
@@ -102,6 +110,14 @@ export default function CartPage() {
   );
   const subtotal = useMemo(() => calculateSubtotal(cartItems), [cartItems]);
   const payable = subtotal;
+  const activeAddressId = selectedAddressId || addresses[0]?.id || "";
+  const phoneRequiresCompletion =
+    requiresPhone ||
+    Boolean(user && (
+      !user.phone ||
+      user.phone.startsWith("no-phone-") ||
+      user.phone.startsWith("merged_")
+    ));
 
   const updateCart = (cartKey: string, delta: number) => {
     setCart((current) => {
@@ -143,6 +159,19 @@ export default function CartPage() {
       return;
     }
 
+    if (!user) {
+      setError("Loading your profile. Please try again.");
+      AuthRepo.loadCurrentUser().catch(() => undefined);
+      return;
+    }
+
+    if (phoneRequiresCompletion) {
+      router.push(
+        `${CUSTOMER_ORDERING_ROUTES.COMPLETE_PHONE}?next=${encodeURIComponent(window.location.pathname + window.location.search)}`,
+      );
+      return;
+    }
+
     if (
       orderingContext.orderType === CUSTOMER_ORDER_TYPES.DINE_IN &&
       selectedSeatIds.length === 0
@@ -153,7 +182,7 @@ export default function CartPage() {
 
     if (
       orderingContext.orderType === CUSTOMER_ORDER_TYPES.DELIVERY &&
-      !selectedAddressId
+      !activeAddressId
     ) {
       setError(CUSTOMER_ORDERING_TEXT.ADDRESS_REQUIRED);
       return;
@@ -167,7 +196,7 @@ export default function CartPage() {
         table_id: orderingContext.tableId || undefined,
         table_side_ids: selectedSeatIds,
         uid: user?.id,
-        delivery_address_id: selectedAddressId || undefined,
+        delivery_address_id: activeAddressId || undefined,
         order_type: orderingContext.orderType,
         final_paying_price: payable,
         items: cartItems.map((cartItem) => ({
@@ -191,7 +220,7 @@ export default function CartPage() {
     }
   };
 
-  if (!isMounted || isLoading) {
+  if (!isMounted || !hasHydrated || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
         <div className="w-8 h-8 border-2 border-primary-green border-t-transparent rounded-full animate-spin" />
@@ -321,7 +350,7 @@ export default function CartPage() {
       <CustomerContextPanel
         context={orderingContext}
         selectedSeatIds={selectedSeatIds}
-        selectedAddressId={selectedAddressId}
+        selectedAddressId={activeAddressId}
         addresses={addresses}
         tables={tables}
         onToggleSeat={toggleSeat}

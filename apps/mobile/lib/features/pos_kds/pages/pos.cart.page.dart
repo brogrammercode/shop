@@ -130,8 +130,23 @@ class _PosCartPageState extends State<PosCartPage> {
   Widget build(BuildContext context) {
     return BlocListener<PosKdsCubit, PosKdsState>(
       listenWhen: (previous, current) =>
-          previous.saveOrdersInfo.status != current.saveOrdersInfo.status,
+          previous.saveOrdersInfo.status != current.saveOrdersInfo.status ||
+          previous.selectedCustomer?.id != current.selectedCustomer?.id,
       listener: (context, state) {
+        final selectedCustomer = state.selectedCustomer;
+        if (selectedCustomer != null &&
+            selectedCustomer.id != _selectedCustomerId) {
+          setState(() {
+            _selectedCustomerId = selectedCustomer.id;
+            _customerName = selectedCustomer.name.isEmpty
+                ? 'Selected customer'
+                : selectedCustomer.name;
+            _phoneController.text = selectedCustomer.phone;
+            _selectedAddressId = selectedCustomer.addresses.isEmpty
+                ? null
+                : selectedCustomer.addresses.first.id;
+          });
+        }
         if (state.saveOrdersInfo.status == OperationStatus.success) {
           Navigator.pushReplacement(
             context,

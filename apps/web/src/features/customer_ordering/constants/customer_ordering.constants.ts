@@ -1,6 +1,7 @@
 export const CUSTOMER_ORDERING_ROUTES = {
   MENU: "/menu",
   LOGIN: "/login",
+  COMPLETE_PHONE: "/complete-phone",
 } as const;
 
 export const CUSTOMER_ORDERING_CARD_QR = {

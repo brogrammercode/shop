@@ -4,6 +4,7 @@ export const _POS_KDS_CONSTANTS = {
     PUBLIC_TABLES: '/public/tables',
     _O_R_D_E_R_S: '/orders',
     CUSTOMER_BY_PHONE: '/customers/:phone',
+    CUSTOMER_RESOLVE_PHONE: '/customers/resolve-phone',
     ORDER_BY_ID: '/orders/:id',
     ORDER_PAY: '/orders/:id/pay',
     ORDER_REFUND: '/orders/:id/refund',

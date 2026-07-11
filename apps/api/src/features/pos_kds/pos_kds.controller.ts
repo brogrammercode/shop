@@ -4,6 +4,7 @@ import { sendSuccess, BadRequestError } from '../../utils/error';
 import { HttpStatus } from '../../constants/status';
 import { posKdsService } from './pos_kds.service';
 import { _POS_KDS_CONSTANTS } from './pos_kds.constant';
+import { coreHrService } from '../core_hr/core_hr.service';
 
 export const listOrders = asyncHandler(async (req: Request, res: Response) => {
   const result = await posKdsService.listOrders(req.employee.branch_id);
@@ -164,4 +165,10 @@ export const getCustomerByPhone = asyncHandler(async (req: Request, res: Respons
   const { phone } = req.params as Record<string, string>;
   const result = await posKdsService.getCustomerByPhone(phone);
   return sendSuccess(res, result, 'Customer retrieved successfully', HttpStatus.OK);
+});
+
+export const resolveCustomerByPhone = asyncHandler(async (req: Request, res: Response) => {
+  const { phone } = req.body;
+  const result = await coreHrService.resolvePhoneCustomer(phone, req.user!.uid);
+  return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.CUSTOMER_RETRIEVED, HttpStatus.OK);
 });

@@ -7,6 +7,7 @@ import 'package:mobile/features/catalog/pages/create.menu.item.page.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/features/core_hr/pages/splash.page.dart';
 import 'package:mobile/features/core_hr/pages/auth.page.dart';
+import 'package:mobile/features/core_hr/pages/complete_phone.page.dart';
 import 'package:mobile/features/core_hr/pages/home.layout.page.dart';
 import 'package:mobile/features/core_hr/pages/crossroad.page.dart';
 import 'package:mobile/features/core_hr/pages/join.branch.page.dart';
@@ -95,6 +96,7 @@ import 'package:mobile/features/notification/notification.page.dart';
 class AppRoutes {
   static const String splash = '/splash';
   static const String login = '/login';
+  static const String completePhone = '/complete-phone';
   static const String home = '/home';
   static const String crossRoad = '/crossroad';
   static const String joinBranchForm = '/join-branch-form';
@@ -198,6 +200,7 @@ class AppRoutes {
   static Map<String, WidgetBuilder> get routes => {
     splash: (context) => const SplashPage(),
     login: (context) => const AuthPage(),
+    completePhone: (context) => const CompletePhonePage(),
     home: (context) => const HomeLayoutPage(),
     crossRoad: (context) => const CrossRoadPage(),
     joinBranchForm: (context) => const JoinBranchPage(),

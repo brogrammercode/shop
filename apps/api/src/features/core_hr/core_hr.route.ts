@@ -13,6 +13,7 @@ router.post('/auth/refresh', coreHrController.refresh);
 // Authenticated routes
 router.use(authenticate);
 router.post('/auth/logout', coreHrController.logout);
+router.post(_CORE_HR_CONSTANTS._R_O_U_T_E_S.COMPLETE_PHONE, coreHrController.completePhone);
 router.get('/auth/sessions', coreHrController.getSessions);
 router.delete('/auth/sessions/:id', coreHrController.terminateSession);
 router.post('/auth/activity', coreHrController.logActivity);

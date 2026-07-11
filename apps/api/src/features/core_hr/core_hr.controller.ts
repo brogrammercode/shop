@@ -12,10 +12,10 @@ export const sendOtp = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
-  const { idToken, phone_number, otp } = req.body;
+  const { idToken, id_token, phone_number, otp } = req.body;
   const ipAddress = req.ip || req.connection.remoteAddress;
   const deviceInfo = req.headers['user-agent'];
-  const result = await coreHrService.login(idToken, phone_number, otp, ipAddress, deviceInfo);
+  const result = await coreHrService.login(idToken || id_token, phone_number, otp, ipAddress, deviceInfo);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.LOGIN_SUCCESS, HttpStatus.OK);
 });
 
@@ -23,6 +23,14 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
   const result = await coreHrService.refreshAccessToken(refreshToken);
   return sendSuccess(res, result, 'Token refreshed successfully', HttpStatus.OK);
+});
+
+export const completePhone = asyncHandler(async (req: Request, res: Response) => {
+  const { phone } = req.body;
+  const ipAddress = req.ip || req.connection.remoteAddress;
+  const deviceInfo = req.headers['user-agent'];
+  const result = await coreHrService.completePhone(req.user!.uid, phone, ipAddress, deviceInfo);
+  return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.PHONE_COMPLETED, HttpStatus.OK);
 });
 
 export const logout = asyncHandler(async (req: Request, res: Response) => {

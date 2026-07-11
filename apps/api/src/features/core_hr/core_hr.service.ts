@@ -7,6 +7,7 @@ import { HttpStatus } from '../../constants/status';
 import { SmsService } from '../../infra/messaging/sms.service';
 import { randomInt, randomBytes } from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
+import { isSyntheticPhone, normalizePhoneNumber } from './phone.util';
 
 
 export class CoreHrService {
@@ -14,14 +15,8 @@ export class CoreHrService {
   private googleClient = new OAuth2Client(config.GOOGLE_SERVER_CLIENT_ID);
 
   async sendOtp(phoneNumber: string) {
-    if (!phoneNumber) throw new BadRequestError('Phone number is required');
-
-    // Normalize to E.164 format
-    const normalized = phoneNumber.startsWith('+')
-      ? phoneNumber
-      : phoneNumber.length === 10
-        ? `+91${phoneNumber}`           // Default to India if bare 10-digit
-        : `+${phoneNumber}`;
+    if (!phoneNumber) throw new BadRequestError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.PHONE_REQUIRED);
+    const normalized = normalizePhoneNumber(phoneNumber);
 
     let user = await coreHrRepo.findUserByPhone(normalized);
     if (!user) {
@@ -69,7 +64,7 @@ export class CoreHrService {
       if (idToken) {
         const ticket = await this.googleClient.verifyIdToken({
           idToken,
-          audience: [config.GOOGLE_CLIENT_ID, config.GOOGLE_USER_CLIENT_ID, config.GOOGLE_SERVER_CLIENT_ID],
+          audience: [config.GOOGLE_CLIENT_ID, config.GOOGLE_USER_CLIENT_ID, config.GOOGLE_WEB_CLIENT_ID, config.GOOGLE_SERVER_CLIENT_ID],
         });
         const payload = ticket.getPayload();
         if (!payload) {
@@ -80,12 +75,7 @@ export class CoreHrService {
         email = payload.email || null;
         picture = payload.picture || null;
       } else if (phoneNumber && otp) {
-        // Normalize to same E.164 format used during sendOtp
-        const normalizedPhone = phoneNumber.startsWith('+')
-          ? phoneNumber
-          : phoneNumber.length === 10
-            ? `+91${phoneNumber}`
-            : `+${phoneNumber}`;
+        const normalizedPhone = normalizePhoneNumber(phoneNumber);
 
         user = await coreHrRepo.findUserByPhone(normalizedPhone);
         if (!user) {
@@ -113,28 +103,17 @@ export class CoreHrService {
         user = await coreHrRepo.findOrCreateUser(
           uid,
           name || 'Unknown',
-          phone_number || `no-phone-${uid}`,
+          phone_number || `${_CORE_HR_CONSTANTS._D_E_F_A_U_L_T_S.NO_PHONE_PREFIX}${uid}`,
           email || null,
           picture || null,
         );
       }
 
       const employee = await coreHrRepo.findEmployeeByUid(user.id);
+      const addresses = await coreHrRepo.findUserAddresses(user.id);
+      const bankDetails = await coreHrRepo.findUserBankDetails(user.id);
 
-      const token = Jwt.sign({ uid: user.id, id: user.id }, config.JWT_SECRET, {
-        expiresIn: config.JWT_EXPIRES_IN as any,
-      });
-
-      const refreshToken = randomBytes(40).toString('hex');
-
-      await coreHrRepo.createSession(user.id, {
-        uid: user.id,
-        access_token: token,
-        refresh_token: refreshToken,
-        ip_address: ipAddress || null,
-        device_info: deviceInfo || null,
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-      });
+      const tokens = await this.createTokensForUser(user.id, ipAddress, deviceInfo);
 
       await coreHrRepo.createUserLog({
         uid: user.id,
@@ -149,7 +128,14 @@ export class CoreHrService {
         ref_link: `/user/${user.id}`,
       });
 
-      return { user, employee, tokens: { accessToken: token, refreshToken } };
+      return {
+        user,
+        employee,
+        addresses,
+        bankDetails,
+        requires_phone: isSyntheticPhone(user.phone),
+        tokens,
+      };
     } catch (e: any) {
       console.error('Login verification failed:', e);
       if (e instanceof AppError) throw e;
@@ -170,6 +156,78 @@ export class CoreHrService {
     });
 
     return { accessToken: token };
+  }
+
+  async completePhone(uid: string, phone: string, ipAddress?: string, deviceInfo?: string) {
+    const currentUser = await coreHrRepo.findUserById(uid);
+    if (!currentUser) {
+      throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.USER_NOT_FOUND);
+    }
+
+    const normalizedPhone = normalizePhoneNumber(phone);
+    const phoneUser = await coreHrRepo.findUserByPhone(normalizedPhone);
+    let user = currentUser;
+
+    if (!phoneUser) {
+      user = await coreHrRepo.updateUserPhone(uid, normalizedPhone);
+    } else if (phoneUser.id === uid) {
+      user = phoneUser;
+    } else if (phoneUser.email) {
+      throw new BadRequestError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.PHONE_REGISTERED_WITH_ANOTHER_ACCOUNT);
+    } else {
+      const merged = await coreHrRepo.mergeUsers(phoneUser.id, uid);
+      if (!merged) {
+        throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.USER_NOT_FOUND);
+      }
+      user = merged;
+    }
+
+    const employee = await coreHrRepo.findEmployeeByUid(user.id);
+    const addresses = await coreHrRepo.findUserAddresses(user.id);
+    const bankDetails = await coreHrRepo.findUserBankDetails(user.id);
+    const tokens = await this.createTokensForUser(user.id, ipAddress, deviceInfo);
+
+    return {
+      user,
+      employee,
+      addresses,
+      bankDetails,
+      requires_phone: isSyntheticPhone(user.phone),
+      tokens,
+    };
+  }
+
+  async resolvePhoneCustomer(phone: string, actorUid: string) {
+    const normalizedPhone = normalizePhoneNumber(phone);
+    const user = await coreHrRepo.findUserByPhone(normalizedPhone);
+    if (user) {
+      return user;
+    }
+
+    const lastFour = normalizedPhone.slice(-4);
+    return coreHrRepo.createPhoneCustomer(
+      actorUid,
+      normalizedPhone,
+      `${_CORE_HR_CONSTANTS._D_E_F_A_U_L_T_S.CUSTOMER_NAME_PREFIX} ${lastFour}`,
+    );
+  }
+
+  private async createTokensForUser(uid: string, ipAddress?: string, deviceInfo?: string) {
+    const accessToken = Jwt.sign({ uid, id: uid }, config.JWT_SECRET, {
+      expiresIn: config.JWT_EXPIRES_IN as any,
+    });
+    const refreshToken = randomBytes(40).toString('hex');
+
+    await coreHrRepo.createSession(uid, {
+      uid,
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      ip_address: ipAddress || null,
+      device_info: deviceInfo || null,
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    });
+
+    return { accessToken, refreshToken };
   }
 
   async logout(actorUid: string, sessionId: string) {
@@ -198,7 +256,9 @@ export class CoreHrService {
       throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.USER_NOT_FOUND);
     }
     const employee = await coreHrRepo.findEmployeeByUid(uid);
-    return { user, employee };
+    const addresses = await coreHrRepo.findUserAddresses(uid);
+    const bankDetails = await coreHrRepo.findUserBankDetails(uid);
+    return { user, employee, addresses, bankDetails, requires_phone: isSyntheticPhone(user.phone) };
   }
 
   async createBranch(uid: string, name: string, isHq: boolean, addresses?: any[], bank_details?: any[]) {

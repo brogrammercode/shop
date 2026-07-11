@@ -34,6 +34,7 @@ const envSchema = z.object({
 
     GOOGLE_CLIENT_ID: z.string().min(1).default('1023990619577-7lqnj25jkb70mu9kqmm2jef9p7h7uafn.apps.googleusercontent.com'),
     GOOGLE_USER_CLIENT_ID: z.string().min(1).default('1023990619577-og52aa64h0120nn1joe1ahehmlpcskb3.apps.googleusercontent.com'),
+    GOOGLE_WEB_CLIENT_ID: z.string().min(1).default('1023990619577-e8af1ibsndo2jipsuoq35fhc736f9f2d.apps.googleusercontent.com'),
     GOOGLE_SERVER_CLIENT_ID: z.string().min(1).default('1023990619577-jjpkdq0on45odss3n3dci76rl70j153c.apps.googleusercontent.com'),
 });
 

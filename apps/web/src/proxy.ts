@@ -5,7 +5,7 @@ import {
   CUSTOMER_ORDERING_ROUTES,
 } from "@/features/customer_ordering/constants/customer_ordering.constants";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { nextUrl } = request;
 
   if (

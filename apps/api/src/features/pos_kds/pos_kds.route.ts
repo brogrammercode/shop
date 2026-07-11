@@ -17,6 +17,10 @@ router.get('/orders/my', authenticate, posKdsController.listMyOrders);
 // Protected POS routes
 router.use(authenticate, requirePosKdsAccess);
 
+router.post(
+  _POS_KDS_CONSTANTS._R_O_U_T_E_S.CUSTOMER_RESOLVE_PHONE,
+  posKdsController.resolveCustomerByPhone,
+);
 router.get(
   _POS_KDS_CONSTANTS._R_O_U_T_E_S.CUSTOMER_BY_PHONE,
   posKdsController.getCustomerByPhone,

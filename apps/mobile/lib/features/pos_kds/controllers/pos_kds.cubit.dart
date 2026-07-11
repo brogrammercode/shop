@@ -143,8 +143,8 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     );
 
     final result = await _repo.searchCustomersByPhone(query);
-    result.fold(
-      (failure) {
+    await result.fold(
+      (failure) async {
         Fluttertoast.showToast(msg: failure.message);
         emit(
           state.copyWith(
@@ -157,7 +157,38 @@ class PosKdsCubit extends Cubit<PosKdsState> {
           ),
         );
       },
-      (customers) {
+      (customers) async {
+        final digits = query.replaceAll(RegExp(r'\D'), '');
+        if (customers.isEmpty && digits.length >= 10) {
+          final resolveResult = await _repo.resolveCustomerByPhone(query);
+          resolveResult.fold(
+            (failure) {
+              Fluttertoast.showToast(msg: failure.message);
+              emit(
+                state.copyWith(
+                  matchingCustomers: const [],
+                  searchCustomersInfo: OperationInfo(
+                    status: OperationStatus.error,
+                    error: failure,
+                  ),
+                  clearSelectedCustomer: true,
+                ),
+              );
+            },
+            (customer) {
+              emit(
+                state.copyWith(
+                  selectedCustomer: customer,
+                  matchingCustomers: const [],
+                  searchCustomersInfo: const OperationInfo(
+                    status: OperationStatus.success,
+                  ),
+                ),
+              );
+            },
+          );
+          return;
+        }
         emit(
           state.copyWith(
             matchingCustomers: customers,

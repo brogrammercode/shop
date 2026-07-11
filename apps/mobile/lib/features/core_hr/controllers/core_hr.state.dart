@@ -26,9 +26,11 @@ class CoreHrState {
   final List<dynamic> joinRequests;
   final List<dynamic> sessions;
   final List<dynamic> activities;
+  final bool requiresPhone;
 
   final OperationInfo loginInfo;
   final OperationInfo googleSignInInfo;
+  final OperationInfo completePhoneInfo;
   final OperationInfo sendOtpInfo;
   final OperationInfo getMeInfo;
   final OperationInfo branchInfo;
@@ -62,8 +64,10 @@ class CoreHrState {
     this.joinRequests = const [],
     this.sessions = const [],
     this.activities = const [],
+    this.requiresPhone = false,
     this.loginInfo = const OperationInfo(status: OperationStatus.initial),
     this.googleSignInInfo = const OperationInfo(status: OperationStatus.initial),
+    this.completePhoneInfo = const OperationInfo(status: OperationStatus.initial),
     this.sendOtpInfo = const OperationInfo(status: OperationStatus.initial),
     this.getMeInfo = const OperationInfo(status: OperationStatus.initial),
     this.branchInfo = const OperationInfo(status: OperationStatus.initial),
@@ -102,6 +106,7 @@ class CoreHrState {
     List<dynamic>? joinRequests,
     OperationInfo? loginInfo,
     OperationInfo? googleSignInInfo,
+    OperationInfo? completePhoneInfo,
     OperationInfo? sendOtpInfo,
     OperationInfo? getMeInfo,
     OperationInfo? branchInfo,
@@ -116,6 +121,7 @@ class CoreHrState {
     OperationInfo? cashRegisterInfo,
     List<dynamic>? sessions,
     List<dynamic>? activities,
+    bool? requiresPhone,
     OperationInfo? logoutInfo,
     OperationInfo? sessionInfo,
     OperationInfo? activityInfo,
@@ -137,6 +143,7 @@ class CoreHrState {
       joinRequests: joinRequests ?? this.joinRequests,
       loginInfo: loginInfo ?? this.loginInfo,
       googleSignInInfo: googleSignInInfo ?? this.googleSignInInfo,
+      completePhoneInfo: completePhoneInfo ?? this.completePhoneInfo,
       sendOtpInfo: sendOtpInfo ?? this.sendOtpInfo,
       getMeInfo: getMeInfo ?? this.getMeInfo,
       branchInfo: branchInfo ?? this.branchInfo,
@@ -151,6 +158,7 @@ class CoreHrState {
       cashRegisterInfo: cashRegisterInfo ?? this.cashRegisterInfo,
       sessions: sessions ?? this.sessions,
       activities: activities ?? this.activities,
+      requiresPhone: requiresPhone ?? this.requiresPhone,
       logoutInfo: logoutInfo ?? this.logoutInfo,
       sessionInfo: sessionInfo ?? this.sessionInfo,
       activityInfo: activityInfo ?? this.activityInfo,
