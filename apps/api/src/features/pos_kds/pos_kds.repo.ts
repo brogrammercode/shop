@@ -6,16 +6,12 @@ export class PosKdsRepo {
     return prisma.order.create({ data: data as any });
   }
 
-  async countOrdersByCreatedRange(branchId: string, start: Date, end: Date) {
-    return prisma.order.count({
-      where: {
-        branch_id: branchId,
-        created_at: {
-          gte: start,
-          lt: end,
-        },
-      },
+  async findNextOrderNo(branchId: string) {
+    const result = await prisma.order.aggregate({
+      where: { branch_id: branchId },
+      _max: { order_no: true },
     });
+    return (result._max.order_no || 0) + 1;
   }
 
   async findUserByPhone(phone: string) {
@@ -151,7 +147,7 @@ export class PosKdsRepo {
 
   async findMenuItemForSale(menuItemId: string, branchId: string) {
     return prisma.menuItem.findFirst({
-      where: { id: menuItemId, branch_id: branchId, is_deleted: false },
+      where: { id: menuItemId, branch_id: branchId, is_deleted: false, status: 'ACTIVE' },
       include: {
         variant: { include: { uom: true } },
         sale_modes: {

@@ -8,6 +8,7 @@ import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
 import 'package:mobile/features/pos_kds/pages/pos.cart.page.dart';
 import 'package:mobile/features/catalog/controllers/catalog.cubit.dart';
 import 'package:mobile/features/catalog/controllers/catalog.state.dart';
+import 'package:mobile/features/catalog/constants/catalog.constant.dart';
 import 'package:mobile/features/catalog/models/menu_item.model.dart';
 import 'package:mobile/features/catalog/models/menu_item_sale_mode.model.dart';
 import 'package:mobile/features/notification/notification.icon.dart';
@@ -33,7 +34,11 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
 
   Widget _buildCategoryBar(CatalogState state) {
     final categories = state.menuCategories
-        .where((c) => !c.is_deleted)
+        .where(
+          (category) =>
+              !category.is_deleted &&
+              category.status == CatalogConstant.ACTIVE,
+        )
         .toList();
     if (categories.isEmpty) return SizedBox(height: 16.h);
 
@@ -124,7 +129,12 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
   }
 
   Widget _buildProductsGrid(CatalogState state) {
-    var items = state.menuItems.where((i) => !i.is_deleted).toList();
+    var items = state.menuItems
+        .where(
+          (item) =>
+              !item.is_deleted && item.status == CatalogConstant.ACTIVE,
+        )
+        .toList();
     if (_selectedCategoryId != 'all') {
       items = items.where((i) => i.category_id == _selectedCategoryId).toList();
     }
@@ -189,26 +199,6 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
                               )
                             : null,
                       ),
-                      if (item.status != 'ACTIVE')
-                        Positioned.fill(
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.6),
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                            alignment: Alignment.center,
-                            child: Text(
-                              'Not\\nAvailable',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: AppColors.pureWhite,
-                                fontSize: 10.sp,
-                                fontWeight: FontWeight.w800,
-                                height: 1.1,
-                              ),
-                            ),
-                          ),
-                        ),
                     ],
                   ),
                 ),
@@ -481,7 +471,10 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
 
   List<MenuItemSaleModeModel> _activeSaleModes(MenuItemModel item) {
     final modes = item.sale_modes
-        .where((mode) => !mode.is_deleted && mode.status == 'ACTIVE')
+        .where(
+          (mode) =>
+              !mode.is_deleted && mode.status == CatalogConstant.ACTIVE,
+        )
         .toList();
     if (modes.isNotEmpty) {
       modes.sort((a, b) => a.sort_order.compareTo(b.sort_order));
@@ -501,7 +494,7 @@ class _PosTerminalPageState extends State<PosTerminalPage> {
         allow_decimal: false,
         is_default: true,
         sort_order: 0,
-        status: 'ACTIVE',
+        status: CatalogConstant.ACTIVE,
         created_at: '',
         updated_at: '',
         is_deleted: false,

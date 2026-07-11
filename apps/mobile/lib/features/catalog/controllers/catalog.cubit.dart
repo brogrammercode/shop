@@ -276,6 +276,22 @@ class CatalogCubit extends Cubit<CatalogState> {
     );
   }
 
+  Future<void> deleteMenuItem(String id) async {
+    emit(state.copyWith(saveMenuItemsInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _repo.deleteMenuItem(id);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(state.copyWith(saveMenuItemsInfo: OperationInfo(status: OperationStatus.error, error: failure)));
+      },
+      (_) {
+        Fluttertoast.showToast(msg: 'Menu Item deleted');
+        emit(state.copyWith(saveMenuItemsInfo: const OperationInfo(status: OperationStatus.success)));
+        listMenuItems();
+      },
+    );
+  }
+
   Future<void> listModifierGroups() async {
     emit(
       state.copyWith(

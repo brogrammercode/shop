@@ -15,6 +15,14 @@ class CatalogConstant {
   static const String SALE_MODES_SECTION = 'SALE MODES';
   static const String ADD_SALE_MODE = 'Add Sale Mode';
   static const String EDIT_SALE_MODE = 'Edit Sale Mode';
+  static const String EDIT_MENU_ITEM = 'Edit Item';
+  static const String DELETE_MENU_ITEM = 'Delete Item';
+  static const String MARK_MENU_ITEM_ACTIVE = 'Mark Active';
+  static const String MARK_MENU_ITEM_INACTIVE = 'Mark Inactive';
+  static const String DELETE_MENU_ITEM_TITLE = 'Delete menu item';
+  static const String DELETE_MENU_ITEM_MESSAGE =
+      'This item will be removed from catalog and POS terminal.';
+  static const String DELETE_MENU_ITEM_CONFIRM = 'Delete';
   static const String SALE_MODE_LABEL = 'Sale Mode Label';
   static const String PRICE_PER_UNIT = 'Price Per Unit';
   static const String MIN_QTY = 'Minimum Qty';

@@ -3,10 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/core/routes.dart';
+import 'package:mobile/components/ui/dialog.dart';
+import 'package:mobile/features/catalog/constants/catalog.constant.dart';
+import 'package:mobile/features/catalog/controllers/catalog.cubit.dart';
+import 'package:mobile/features/catalog/controllers/catalog.state.dart';
 import 'package:mobile/features/catalog/models/menu_item.model.dart';
 import 'package:mobile/core/widgets/action_bottom_sheet.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.cubit.dart';
 import 'package:mobile/features/pos_kds/controllers/pos_kds.state.dart';
+import 'package:mobile/utils/error.dart';
 
 class MenuItemDetailPage extends StatefulWidget {
   const MenuItemDetailPage({super.key});
@@ -16,6 +21,8 @@ class MenuItemDetailPage extends StatefulWidget {
 }
 
 class _MenuItemDetailPageState extends State<MenuItemDetailPage> {
+  bool _returnAfterSave = false;
+
   @override
   void initState() {
     super.initState();
@@ -28,9 +35,19 @@ class _MenuItemDetailPageState extends State<MenuItemDetailPage> {
   Widget build(BuildContext context) {
     final item = ModalRoute.of(context)!.settings.arguments as MenuItemModel;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFFAFAFA),
-      body: BlocBuilder<PosKdsCubit, PosKdsState>(
+    return BlocListener<CatalogCubit, CatalogState>(
+      listenWhen: (previous, current) =>
+          previous.saveMenuItemsInfo.status != current.saveMenuItemsInfo.status,
+      listener: (context, state) {
+        if (_returnAfterSave &&
+            state.saveMenuItemsInfo.status == OperationStatus.success) {
+          _returnAfterSave = false;
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFFAFAFA),
+        body: BlocBuilder<PosKdsCubit, PosKdsState>(
         builder: (context, posState) {
           final ordersWithItem = posState.orders
               .where((o) => o.items.any((i) => i.menu_item_id == item.id))
@@ -83,27 +100,7 @@ class _MenuItemDetailPageState extends State<MenuItemDetailPage> {
                           : AppColors.textPrimary,
                     ),
                     onPressed: () {
-                      ActionBottomSheet.show(
-                        context,
-                        groups: [
-                          BottomSheetActionGroup(
-                            actions: [
-                              BottomSheetAction(
-                                label: 'Edit Item',
-                                icon: Icons.edit,
-                                onTap: () {
-                                  Navigator.pop(context);
-                                  Navigator.pushNamed(
-                                    context,
-                                    '/create-menu-item',
-                                    arguments: item,
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
+                      _showItemActions(item);
                     },
                   ),
                 ],
@@ -150,7 +147,7 @@ class _MenuItemDetailPageState extends State<MenuItemDetailPage> {
                               vertical: 8.h,
                             ),
                             decoration: BoxDecoration(
-                              color: item.status == 'ACTIVE'
+                              color: item.status == CatalogConstant.ACTIVE
                                   ? AppColors.primaryGreen.withOpacity(0.1)
                                   : AppColors.error.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8.r),
@@ -160,7 +157,7 @@ class _MenuItemDetailPageState extends State<MenuItemDetailPage> {
                               style: TextStyle(
                                 fontSize: 11.sp,
                                 fontWeight: FontWeight.w800,
-                                color: item.status == 'ACTIVE'
+                                color: item.status == CatalogConstant.ACTIVE
                                     ? AppColors.primaryGreen
                                     : AppColors.error,
                               ),
@@ -366,7 +363,77 @@ class _MenuItemDetailPageState extends State<MenuItemDetailPage> {
             ],
           );
         },
+        ),
       ),
     );
+  }
+
+  void _showItemActions(MenuItemModel item) {
+    final isActive = item.status == CatalogConstant.ACTIVE;
+    ActionBottomSheet.show(
+      context,
+      groups: [
+        BottomSheetActionGroup(
+          actions: [
+            BottomSheetAction(
+              label: CatalogConstant.EDIT_MENU_ITEM,
+              icon: Icons.edit,
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.createMenuItem,
+                  arguments: item,
+                );
+              },
+            ),
+            BottomSheetAction(
+              label: isActive
+                  ? CatalogConstant.MARK_MENU_ITEM_INACTIVE
+                  : CatalogConstant.MARK_MENU_ITEM_ACTIVE,
+              icon: isActive ? Icons.visibility_off : Icons.visibility,
+              onTap: () => _toggleStatus(item),
+            ),
+          ],
+        ),
+        BottomSheetActionGroup(
+          actions: [
+            BottomSheetAction(
+              label: CatalogConstant.DELETE_MENU_ITEM,
+              icon: Icons.delete_outline,
+              labelColor: AppColors.error,
+              iconColor: AppColors.error,
+              onTap: () => _deleteItem(item),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _toggleStatus(MenuItemModel item) {
+    _returnAfterSave = true;
+    final nextStatus = item.status == CatalogConstant.ACTIVE
+        ? CatalogConstant.INACTIVE
+        : CatalogConstant.ACTIVE;
+    context.read<CatalogCubit>().updateMenuItem(
+      item.id,
+      {'status': nextStatus},
+      item.category_id,
+    );
+  }
+
+  Future<void> _deleteItem(MenuItemModel item) async {
+    final confirmed = await AppDialog.showConfirmation(
+      context: context,
+      title: CatalogConstant.DELETE_MENU_ITEM_TITLE,
+      message: CatalogConstant.DELETE_MENU_ITEM_MESSAGE,
+      confirmText: CatalogConstant.DELETE_MENU_ITEM_CONFIRM,
+      isDestructive: true,
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
+    _returnAfterSave = true;
+    context.read<CatalogCubit>().deleteMenuItem(item.id);
   }
 }

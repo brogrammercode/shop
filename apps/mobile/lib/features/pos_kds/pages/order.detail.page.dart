@@ -40,7 +40,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     super.initState();
     final order = context.read<PosKdsCubit>().state.selectedOrder;
     if (order != null) {
-      _finalPayingPriceController.text = order.total_amount.toStringAsFixed(2);
+      _finalPayingPriceController.text = _payableAmount(order).toStringAsFixed(2);
     }
   }
 
@@ -84,6 +84,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   void _removePaymentProof(String path) {
     setState(() => _paymentProofPaths.remove(path));
+  }
+
+  double _payableAmount(OrderModel order) {
+    return order.final_paying_price > 0
+        ? order.final_paying_price
+        : order.total_amount;
   }
 
   Widget _buildStatusBadge(String status) {

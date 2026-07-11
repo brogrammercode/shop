@@ -46,13 +46,7 @@ export class PosKdsService {
     const discount_amount = 0;
     const total_amount = subtotal + tax_amount - discount_amount;
     const final_paying_price = Number(data.final_paying_price ?? total_amount);
-    const orderWindow = this.getOrderWindowAfterFour();
-    const order_no =
-      (await posKdsRepo.countOrdersByCreatedRange(
-        branchId,
-        orderWindow.start,
-        orderWindow.end,
-      )) + 1;
+    const order_no = await posKdsRepo.findNextOrderNo(branchId);
     const isDineIn = data.order_type === OrderType.DINE_IN;
     const isDelivery = data.order_type === OrderType.DELIVERY;
     const table = isDineIn && data.table_id
@@ -394,18 +388,6 @@ export class PosKdsService {
     }, []);
   }
 
-  private getOrderWindowAfterFour() {
-    const now = new Date();
-    const start = new Date(now);
-    start.setHours(4, 0, 0, 0);
-    if (now < start) {
-      start.setDate(start.getDate() - 1);
-    }
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
-    return { start, end };
-  }
-
   async getCustomerByPhone(phone: string) {
     return posKdsRepo.findUserByPhone(phone);
   }
@@ -472,6 +454,7 @@ export class PosKdsService {
       : [];
     await posKdsRepo.updateOrder(id, {
       status: "PAID",
+      final_paying_price: Number(amount),
       payment_proofs: [...((order as any).payment_proofs || []), ...proofUrls],
     });
 

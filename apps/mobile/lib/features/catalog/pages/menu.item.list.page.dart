@@ -5,6 +5,7 @@ import 'package:mobile/components/ui/app_refresher.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/catalog/controllers/catalog.cubit.dart';
 import 'package:mobile/features/catalog/controllers/catalog.state.dart';
+import 'package:mobile/features/catalog/constants/catalog.constant.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/components/ui/loader.dart';
 import 'package:mobile/core/routes.dart';
@@ -259,7 +260,7 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
                                     vertical: 2.h,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: item.status == 'ACTIVE'
+                                    color: item.status == CatalogConstant.ACTIVE
                                         ? AppColors.primaryGreen.withOpacity(
                                             0.1,
                                           )
@@ -271,7 +272,7 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
                                     style: TextStyle(
                                       fontSize: 10.sp,
                                       fontWeight: FontWeight.w600,
-                                      color: item.status == 'ACTIVE'
+                                      color: item.status == CatalogConstant.ACTIVE
                                           ? AppColors.primaryGreen
                                           : AppColors.error,
                                     ),
