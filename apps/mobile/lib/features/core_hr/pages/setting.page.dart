@@ -46,18 +46,7 @@ class _SettingPageState extends State<SettingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<CoreHrCubit, CoreHrState>(
-      listenWhen: (previous, current) =>
-          previous.logoutInfo.status != current.logoutInfo.status,
-      listener: (context, state) {
-        if (state.logoutInfo.status == OperationStatus.success) {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            AppRoutes.login,
-            (route) => false,
-          );
-        }
-      },
+    return BlocBuilder<CoreHrCubit, CoreHrState>(
       builder: (context, state) {
         final isLoggingOut = state.logoutInfo.status == OperationStatus.loading;
         return Scaffold(
@@ -175,7 +164,15 @@ class _SettingPageState extends State<SettingPage> {
                 isDestructive: true,
               );
               if (confirm == true && context.mounted) {
-                context.read<CoreHrCubit>().logout();
+                final loggedOut = await context.read<CoreHrCubit>().logout();
+                if (!context.mounted || !loggedOut) {
+                  return;
+                }
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  AppRoutes.login,
+                  (route) => false,
+                );
               }
             },
       child: Container(

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/routes.dart';
+import 'package:mobile/services/local_storage.dart';
 import 'package:mobile/services/json_cache.dart';
-import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';import 'package:mobile/components/ui/loader.dart';
-
+import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';
+import 'package:mobile/components/ui/loader.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -15,6 +16,7 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> {
   final JsonCache _cache = JsonCache();
+  final LocalStorage _localStorage = LocalStorage();
 
   @override
   void initState() {
@@ -33,19 +35,34 @@ class _SplashPageState extends State<SplashPage> {
       return;
     }
 
+    final token = await _localStorage.getToken();
+    final refreshToken = await _localStorage.getRefreshToken();
+    if ((token == null || token.isEmpty) &&
+        (refreshToken == null || refreshToken.isEmpty)) {
+      await _cache.clearAll();
+      await _localStorage.clearSession();
+      if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.login);
+      return;
+    }
+
     final user = savedProfile['user'] as Map<String, dynamic>;
     final phone = (user['phone'] ?? '').toString();
-    final requiresPhone = savedProfile['requires_phone'] == true ||
+    final requiresPhone =
+        savedProfile['requires_phone'] == true ||
         phone.isEmpty ||
         phone.startsWith('no-phone-') ||
         phone.startsWith('merged_');
     if (requiresPhone) {
-      if (mounted) Navigator.pushReplacementNamed(context, AppRoutes.completePhone);
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, AppRoutes.completePhone);
+      }
       return;
     }
 
     final hasEmployee = savedProfile['employee'] != null;
-    final String? branchId = hasEmployee ? (savedProfile['employee']['branch_id'] as String?) : null;
+    final String? branchId = hasEmployee
+        ? (savedProfile['employee']['branch_id'] as String?)
+        : null;
     final hasBranch = branchId != null && branchId.isNotEmpty;
 
     if (hasBranch) {

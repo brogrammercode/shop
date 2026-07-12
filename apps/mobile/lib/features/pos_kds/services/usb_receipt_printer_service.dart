@@ -159,10 +159,14 @@ class UsbReceiptPrinterService {
   Future<void> printOrderReceipt(
     OrderModel order, {
     ReceiptPrinterLogSink? onLog,
+    int copies = PosConstant.PRINT_BILL_SINGLE_COPIES,
   }) async {
     await _preparePrinter(onLog: onLog);
     onLog?.call(PosConstant.PRINT_LOG_FORMATTING_ORDER);
-    final bytes = await _formatter.formatOrderReceipt(order);
+    final bytes = await _formatter.formatOrderReceiptCopies(
+      order,
+      copies: copies,
+    );
     onLog?.call('${PosConstant.PRINT_LOG_RECEIPT_BYTES}: ${bytes.length}');
     await printReceiptBytes(bytes, onLog: onLog);
   }

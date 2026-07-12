@@ -40,7 +40,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     super.initState();
     final order = context.read<PosKdsCubit>().state.selectedOrder;
     if (order != null) {
-      _finalPayingPriceController.text = _payableAmount(order).toStringAsFixed(2);
+      _finalPayingPriceController.text = _payableAmount(
+        order,
+      ).toStringAsFixed(2);
     }
   }
 
@@ -1537,25 +1539,105 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           ),
                         ),
                       AppBottomAction(
-                        child: AppButton(
-                          text: PosConstant.PRINT_BILL,
-                          isLoading:
-                              state.printReceiptInfo.status ==
-                              OperationStatus.loading,
-                          onPressed:
-                              state.printReceiptInfo.status ==
-                                  OperationStatus.loading
-                              ? () {}
-                              : () {
-                                  final amount =
-                                      double.tryParse(
-                                        _finalPayingPriceController.text.trim(),
-                                      ) ??
-                                      order.total_amount;
-                                  context.read<PosKdsCubit>().printOrderReceipt(
-                                    order.copyWith(final_paying_price: amount),
-                                  );
-                                },
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: AppButton(
+                                text: PosConstant.PRINT_BILL,
+                                isLoading:
+                                    state.printReceiptInfo.status ==
+                                    OperationStatus.loading,
+                                onPressed:
+                                    state.printReceiptInfo.status ==
+                                        OperationStatus.loading
+                                    ? () {}
+                                    : () {
+                                        final amount =
+                                            double.tryParse(
+                                              _finalPayingPriceController.text
+                                                  .trim(),
+                                            ) ??
+                                            order.total_amount;
+                                        context
+                                            .read<PosKdsCubit>()
+                                            .printOrderReceipt(
+                                              order.copyWith(
+                                                final_paying_price: amount,
+                                              ),
+                                            );
+                                      },
+                              ),
+                            ),
+                            SizedBox(width: 10.w),
+                            GestureDetector(
+                              onTap:
+                                  state.printReceiptInfo.status ==
+                                      OperationStatus.loading
+                                  ? null
+                                  : () {
+                                      final amount =
+                                          double.tryParse(
+                                            _finalPayingPriceController.text
+                                                .trim(),
+                                          ) ??
+                                          order.total_amount;
+                                      context
+                                          .read<PosKdsCubit>()
+                                          .printOrderReceipt(
+                                            order.copyWith(
+                                              final_paying_price: amount,
+                                            ),
+                                            copies: PosConstant
+                                                .PRINT_BILL_DOUBLE_COPIES,
+                                          );
+                                    },
+                              child: Container(
+                                width: 56.w,
+                                height: 56.h,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFE8F5E9),
+                                  borderRadius: BorderRadius.circular(16.r),
+                                  border: Border.all(
+                                    color: AppColors.primaryGreen,
+                                  ),
+                                ),
+                                child:
+                                    state.printReceiptInfo.status ==
+                                        OperationStatus.loading
+                                    ? Center(
+                                        child: SizedBox(
+                                          width: 18.w,
+                                          height: 18.w,
+                                          child:
+                                              const CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: AppColors.primaryGreen,
+                                              ),
+                                        ),
+                                      )
+                                    : Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.print_outlined,
+                                            color: AppColors.primaryGreen,
+                                            size: 18.w,
+                                          ),
+                                          SizedBox(height: 2.h),
+                                          Text(
+                                            PosConstant.PRINT_BILL_DOUBLE,
+                                            style: TextStyle(
+                                              fontSize: 11.sp,
+                                              fontWeight: FontWeight.w900,
+                                              color: AppColors.primaryGreen,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

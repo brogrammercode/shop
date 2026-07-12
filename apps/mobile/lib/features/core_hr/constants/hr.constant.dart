@@ -31,6 +31,41 @@ class HrConstant {
 
   // Security
   static const String USER_LOG_TITLE = 'Audit Logs';
+  static const String USER_LIST_TITLE = 'Users';
+  static const String USER_LIST_EMPTY = 'No users found';
+  static const String USER_DELETE_TITLE = 'Delete user';
+  static const String USER_DELETE_MESSAGE =
+      'This will delete the user and all related records. This action cannot be undone.';
+  static const String USER_DELETE_CONFIRM = 'Delete';
+  static const String USER_DELETED = 'User deleted';
+  static const String USER_DETAILS = 'User Details';
+  static const String USER_ACTIVITY = 'Activity';
+  static const String USER_ADDRESSES = 'Addresses';
+  static const String USER_BANK_DETAILS = 'Bank Details';
+  static const String USER_EMPLOYEE_ID = 'Employee ID';
+  static const String USER_ID = 'User ID';
+  static const String ORDERS = 'Orders';
+  static const String SESSIONS = 'Sessions';
+  static const String COMPLAINTS = 'Complaints';
+  static const String LOYALTY = 'Loyalty';
+  static const String DEVICES = 'Devices';
+  static const String LOGS = 'Logs';
+  static const String DELETE = 'Delete';
+  static const String NAME = 'Name';
+  static const String PHONE = 'Phone';
+  static const String EMAIL = 'Email';
+  static const String STATUS = 'Status';
+  static const String CREATED = 'Created';
+  static const String UPDATED = 'Updated';
+  static const String UNKNOWN = 'Unknown';
+  static const String NOT_AVAILABLE = 'N/A';
+  static const String ADDRESS = 'Address';
+  static const String BANK = 'Bank';
+  static const String BRANCH = 'Branch';
+  static const String ROLE = 'Role';
+  static const String DEPARTMENT = 'Department';
+  static const String POST = 'Post';
+  static const String SHIFT = 'Shift';
 
   // Auth
   static const String CHOOSE_YOUR_ACCOUNT = 'Choose your account';

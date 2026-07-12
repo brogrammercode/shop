@@ -22,6 +22,7 @@ class CoreHrState {
   final List<ShiftModel> shifts;
   final List<TimeLogModel> timeLogs;
   final List<CashRegisterModel> cashRegisters;
+  final List<UserModel> users;
   final List<UserLogModel> userLogs;
   final List<dynamic> joinRequests;
   final List<dynamic> sessions;
@@ -43,6 +44,8 @@ class CoreHrState {
   final OperationInfo shiftInfo;
   final OperationInfo timeLogInfo;
   final OperationInfo cashRegisterInfo;
+  final OperationInfo userInfo;
+  final OperationInfo deleteUserInfo;
   final OperationInfo logoutInfo;
   final OperationInfo sessionInfo;
   final OperationInfo activityInfo;
@@ -60,14 +63,19 @@ class CoreHrState {
     this.shifts = const [],
     this.timeLogs = const [],
     this.cashRegisters = const [],
+    this.users = const [],
     this.userLogs = const [],
     this.joinRequests = const [],
     this.sessions = const [],
     this.activities = const [],
     this.requiresPhone = false,
     this.loginInfo = const OperationInfo(status: OperationStatus.initial),
-    this.googleSignInInfo = const OperationInfo(status: OperationStatus.initial),
-    this.completePhoneInfo = const OperationInfo(status: OperationStatus.initial),
+    this.googleSignInInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
+    this.completePhoneInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
     this.sendOtpInfo = const OperationInfo(status: OperationStatus.initial),
     this.getMeInfo = const OperationInfo(status: OperationStatus.initial),
     this.branchInfo = const OperationInfo(status: OperationStatus.initial),
@@ -84,10 +92,14 @@ class CoreHrState {
     this.cashRegisterInfo = const OperationInfo(
       status: OperationStatus.initial,
     ),
+    this.userInfo = const OperationInfo(status: OperationStatus.initial),
+    this.deleteUserInfo = const OperationInfo(status: OperationStatus.initial),
     this.logoutInfo = const OperationInfo(status: OperationStatus.initial),
     this.sessionInfo = const OperationInfo(status: OperationStatus.initial),
     this.activityInfo = const OperationInfo(status: OperationStatus.initial),
-    this.loginWithSavedProfileInfo = const OperationInfo(status: OperationStatus.initial),
+    this.loginWithSavedProfileInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
   });
 
   CoreHrState copyWith({
@@ -102,6 +114,7 @@ class CoreHrState {
     List<ShiftModel>? shifts,
     List<TimeLogModel>? timeLogs,
     List<CashRegisterModel>? cashRegisters,
+    List<UserModel>? users,
     List<UserLogModel>? userLogs,
     List<dynamic>? joinRequests,
     OperationInfo? loginInfo,
@@ -119,6 +132,8 @@ class CoreHrState {
     OperationInfo? shiftInfo,
     OperationInfo? timeLogInfo,
     OperationInfo? cashRegisterInfo,
+    OperationInfo? userInfo,
+    OperationInfo? deleteUserInfo,
     List<dynamic>? sessions,
     List<dynamic>? activities,
     bool? requiresPhone,
@@ -139,6 +154,7 @@ class CoreHrState {
       shifts: shifts ?? this.shifts,
       timeLogs: timeLogs ?? this.timeLogs,
       cashRegisters: cashRegisters ?? this.cashRegisters,
+      users: users ?? this.users,
       userLogs: userLogs ?? this.userLogs,
       joinRequests: joinRequests ?? this.joinRequests,
       loginInfo: loginInfo ?? this.loginInfo,
@@ -156,13 +172,16 @@ class CoreHrState {
       shiftInfo: shiftInfo ?? this.shiftInfo,
       timeLogInfo: timeLogInfo ?? this.timeLogInfo,
       cashRegisterInfo: cashRegisterInfo ?? this.cashRegisterInfo,
+      userInfo: userInfo ?? this.userInfo,
+      deleteUserInfo: deleteUserInfo ?? this.deleteUserInfo,
       sessions: sessions ?? this.sessions,
       activities: activities ?? this.activities,
       requiresPhone: requiresPhone ?? this.requiresPhone,
       logoutInfo: logoutInfo ?? this.logoutInfo,
       sessionInfo: sessionInfo ?? this.sessionInfo,
       activityInfo: activityInfo ?? this.activityInfo,
-      loginWithSavedProfileInfo: loginWithSavedProfileInfo ?? this.loginWithSavedProfileInfo,
+      loginWithSavedProfileInfo:
+          loginWithSavedProfileInfo ?? this.loginWithSavedProfileInfo,
     );
   }
 }

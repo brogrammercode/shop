@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
 import 'package:mobile/core/routes.dart';
+import 'package:mobile/features/core_hr/constants/hr.constant.dart';
 
 class BillingPage extends StatelessWidget {
   const BillingPage({super.key});
@@ -25,14 +26,13 @@ class EmployeesPage extends StatelessWidget {
 class RoleAndDeptPage extends StatelessWidget {
   const RoleAndDeptPage({super.key});
   @override
-  Widget build(BuildContext context) => const Center(child: Text("Role & Dept"));
+  Widget build(BuildContext context) =>
+      const Center(child: Text("Role & Dept"));
 }
-
-
 
 enum MainTab { billing, orders, kds, more }
 
-enum MoreTab { employees, roleAndDept, settings }
+enum MoreTab { users, employees, roleAndDept, settings }
 
 enum ProcurementTab { suppliers, purchaseOrders, receipts }
 
@@ -82,7 +82,7 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
     if (_currentRoute != null && AppRoutes.routes.containsKey(_currentRoute)) {
       return AppRoutes.routes[_currentRoute]!(context);
     }
-    
+
     if (_mainTab == MainTab.billing) {
       return const BillingPage();
     } else if (_mainTab == MainTab.orders) {
@@ -210,18 +210,97 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                     if (_showMoreNav) {
                       _mainTab = MainTab.more;
                       if (_moreTab == null) {
-                        _moreTab = MoreTab.employees;
-                        _currentRoute = '/employee-list';
+                        _moreTab = MoreTab.users;
+                        _currentRoute = AppRoutes.userList;
                       } else {
-                        if (_moreTab == MoreTab.employees) _currentRoute = '/employee-list';
-                        if (_moreTab == MoreTab.roleAndDept) _currentRoute = '/role-list';
-                        if (_moreTab == MoreTab.settings) _currentRoute = AppRoutes.settings;
+                        if (_moreTab == MoreTab.users) {
+                          _currentRoute = AppRoutes.userList;
+                        }
+                        if (_moreTab == MoreTab.employees) {
+                          _currentRoute = '/employee-list';
+                        }
+                        if (_moreTab == MoreTab.roleAndDept) {
+                          _currentRoute = '/role-list';
+                        }
+                        if (_moreTab == MoreTab.settings) {
+                          _currentRoute = AppRoutes.settings;
+                        }
                       }
                     }
                   });
                 },
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDenaryNavBar() {
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutBack,
+      bottom: _showMoreNav
+          ? (24.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h +
+                60.h +
+                6.h)
+          : -600.h,
+      left: 0,
+      right: 0,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: _showMoreNav ? 1.0 : 0.0,
+        child: Center(
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: AppColors.pureWhite,
+              borderRadius: BorderRadius.circular(40.r),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x14000000),
+                  blurRadius: 24,
+                  spreadRadius: 0,
+                  offset: Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildNavItem(
+                  icon: Icons.supervised_user_circle_outlined,
+                  label: HrConstant.USER_LIST_TITLE,
+                  isActive:
+                      _moreTab == MoreTab.users && _mainTab == MainTab.more,
+                  onTap: () {
+                    setState(() {
+                      _mainTab = MainTab.more;
+                      _moreTab = MoreTab.users;
+                      _showMoreNav = false;
+                      _currentRoute = AppRoutes.userList;
+                    });
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -278,7 +357,7 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                   icon: Icons.restaurant_menu_outlined,
                   label: 'Menu Categories',
                   isActive: false,
-                  
+
                   onTap: () {
                     setState(() {
                       _showMoreNav = false;
@@ -291,11 +370,12 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                   icon: Icons.fastfood_outlined,
                   label: 'Menu Items',
                   isActive: false,
-                  
+
                   onTap: () {
                     setState(() {
                       _showMoreNav = false;
-                      _currentRoute = '/menu-items'; // this doesn't exist, wait, the user didn't even have an item list. But we will navigate to some placeholder or menu-items if available. Actually, I can just leave it as it was but change Navigator to _currentRoute.
+                      _currentRoute =
+                          '/menu-items'; // this doesn't exist, wait, the user didn't even have an item list. But we will navigate to some placeholder or menu-items if available. Actually, I can just leave it as it was but change Navigator to _currentRoute.
                     });
                   },
                 ),
@@ -359,11 +439,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _financeTab = FinanceTab.accounts;
                       _showMoreNav = false;
-      _currentRoute = '/finance-account-list';
-    });
+                      _currentRoute = '/finance-account-list';
+                    });
                   },
                 ),
                 _buildNavItem(
@@ -374,11 +454,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _financeTab = FinanceTab.ledger;
                       _showMoreNav = false;
-      _currentRoute = '/finance-ledger-list';
-    });
+                      _currentRoute = '/finance-ledger-list';
+                    });
                   },
                 ),
                 _buildNavItem(
@@ -389,11 +469,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _financeTab = FinanceTab.assets;
                       _showMoreNav = false;
-      _currentRoute = '/finance-asset-list';
-    });
+                      _currentRoute = '/finance-asset-list';
+                    });
                   },
                 ),
               ],
@@ -454,11 +534,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _coreHrTab = CoreHrTab.shifts;
                       _showMoreNav = false;
-      _currentRoute = '/shift-list';
-    });
+                      _currentRoute = '/shift-list';
+                    });
                   },
                 ),
                 _buildNavItem(
@@ -469,11 +549,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _coreHrTab = CoreHrTab.registers;
                       _showMoreNav = false;
-      _currentRoute = '/cash-register-list';
-    });
+                      _currentRoute = '/cash-register-list';
+                    });
                   },
                 ),
                 _buildNavItem(
@@ -483,11 +563,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _coreHrTab == CoreHrTab.depts && _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _coreHrTab = CoreHrTab.depts;
                       _showMoreNav = false;
-      _currentRoute = '/department-list';
-    });
+                      _currentRoute = '/department-list';
+                    });
                   },
                 ),
               ],
@@ -544,11 +624,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                   isActive: _posTab == PosTab.pos && _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _posTab = PosTab.pos;
                       _showMoreNav = false;
-      _currentRoute = '/pos-terminal';
-    });
+                      _currentRoute = '/pos-terminal';
+                    });
                   },
                 ),
                 _buildNavItem(
@@ -557,11 +637,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                   isActive: _posTab == PosTab.kds && _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _posTab = PosTab.kds;
                       _showMoreNav = false;
-      _currentRoute = '/kds-terminal';
-    });
+                      _currentRoute = '/kds-terminal';
+                    });
                   },
                 ),
                 _buildNavItem(
@@ -571,11 +651,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _posTab == PosTab.tables && _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _posTab = PosTab.tables;
                       _showMoreNav = false;
-      _currentRoute = '/table-list';
-    });
+                      _currentRoute = '/table-list';
+                    });
                   },
                 ),
               ],
@@ -624,11 +704,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _productionTab = ProductionTab.stock;
                       _showMoreNav = false;
-      _currentRoute = '/stock-ledger';
-    });
+                      _currentRoute = '/stock-ledger';
+                    });
                   },
                 ),
                 _buildNavItem(
@@ -639,11 +719,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _productionTab = ProductionTab.recipes;
                       _showMoreNav = false;
-      _currentRoute = '/bom-list';
-    });
+                      _currentRoute = '/bom-list';
+                    });
                   },
                 ),
                 _buildNavItem(
@@ -654,11 +734,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _productionTab = ProductionTab.kitchen;
                       _showMoreNav = false;
-      _currentRoute = '/production-batch-list';
-    });
+                      _currentRoute = '/production-batch-list';
+                    });
                   },
                 ),
               ],
@@ -707,11 +787,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _catalogTab = CatalogTab.items;
                       _showMoreNav = false;
-      _currentRoute = '/item-list';
-    });
+                      _currentRoute = '/item-list';
+                    });
                   },
                 ),
                 _buildNavItem(
@@ -722,11 +802,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _catalogTab = CatalogTab.categories;
                       _showMoreNav = false;
-      _currentRoute = '/category-list';
-    });
+                      _currentRoute = '/category-list';
+                    });
                   },
                 ),
                 _buildNavItem(
@@ -736,11 +816,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _catalogTab == CatalogTab.uom && _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _catalogTab = CatalogTab.uom;
                       _showMoreNav = false;
-      _currentRoute = '/uom-list';
-    });
+                      _currentRoute = '/uom-list';
+                    });
                   },
                 ),
               ],
@@ -787,11 +867,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _procurementTab = ProcurementTab.suppliers;
                       _showMoreNav = false;
-      _currentRoute = '/supplier-list';
-    });
+                      _currentRoute = '/supplier-list';
+                    });
                   },
                 ),
                 _buildNavItem(
@@ -802,11 +882,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _mainTab = MainTab.more;
+                      _mainTab = MainTab.more;
                       _procurementTab = ProcurementTab.purchaseOrders;
                       _showMoreNav = false;
-      _currentRoute = '/po-list';
-    });
+                      _currentRoute = '/po-list';
+                    });
                   },
                 ),
                 _buildNavItem(
@@ -879,7 +959,8 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                   icon: Icons.manage_accounts,
                   label: 'Role & Dept',
                   isActive:
-                      _moreTab == MoreTab.roleAndDept && _mainTab == MainTab.more,
+                      _moreTab == MoreTab.roleAndDept &&
+                      _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
                       _mainTab = MainTab.more;
@@ -896,9 +977,9 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                       _moreTab == MoreTab.settings && _mainTab == MainTab.more,
                   onTap: () {
                     setState(() {
-      _showMoreNav = false;
-      _currentRoute = AppRoutes.settings;
-    });
+                      _showMoreNav = false;
+                      _currentRoute = AppRoutes.settings;
+                    });
                   },
                 ),
               ],
@@ -928,6 +1009,7 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                 child: Container(color: Colors.black.withOpacity(0.1)),
               ),
             ),
+          _buildDenaryNavBar(),
           _buildNonaryNavBar(),
           _buildOctonaryNavBar(),
           _buildSeptenaryNavBar(),

@@ -76,200 +76,190 @@ class _CompletePhonePageState extends State<CompletePhonePage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<CoreHrCubit, CoreHrState>(
-      listenWhen: (previous, current) =>
-          previous.completePhoneInfo.status != current.completePhoneInfo.status,
-      listener: (context, state) {
-        if (state.completePhoneInfo.status == OperationStatus.success) {
-          _continueAfterPhone(state);
-        }
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.primaryGreen,
-        body: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.w),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Image.asset('assets/logo.png', width: 80.w, height: 80.w),
-                      SizedBox(height: 20.h),
-                      Text(
-                        'Complete profile',
-                        style: TextStyle(
-                          fontSize: 28.sp,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.pureWhite,
-                        ),
+    return Scaffold(
+      backgroundColor: AppColors.primaryGreen,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.w),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Image.asset('assets/logo.png', width: 80.w, height: 80.w),
+                    SizedBox(height: 20.h),
+                    Text(
+                      'Complete profile',
+                      style: TextStyle(
+                        fontSize: 28.sp,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.pureWhite,
                       ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        'Add your phone number to continue',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.pureWhite.withValues(alpha: 0.85),
-                        ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      'Add your phone number to continue',
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.pureWhite.withValues(alpha: 0.85),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, 24.h),
-                decoration: BoxDecoration(
-                  color: AppColors.pureWhite,
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(24.r),
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        GestureDetector(
-                          onTap: _showCountryPicker,
-                          child: Container(
-                            height: 46.h,
-                            padding: EdgeInsets.symmetric(horizontal: 12.w),
-                            decoration: BoxDecoration(
-                              color: AppColors.pureWhite,
-                              borderRadius: BorderRadius.circular(10.r),
-                              border: Border.all(
-                                color: const Color(0xFFCCCCCC),
+            ),
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.fromLTRB(20.w, 24.h, 20.w, 24.h),
+              decoration: BoxDecoration(
+                color: AppColors.pureWhite,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      GestureDetector(
+                        onTap: _showCountryPicker,
+                        child: Container(
+                          height: 46.h,
+                          padding: EdgeInsets.symmetric(horizontal: 12.w),
+                          decoration: BoxDecoration(
+                            color: AppColors.pureWhite,
+                            borderRadius: BorderRadius.circular(10.r),
+                            border: Border.all(color: const Color(0xFFCCCCCC)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _selectedCountry.flag,
+                                style: TextStyle(fontSize: 16.sp),
                               ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _selectedCountry.flag,
-                                  style: TextStyle(fontSize: 16.sp),
-                                ),
-                                SizedBox(width: 6.w),
-                                Icon(
-                                  Icons.arrow_drop_down,
-                                  color: AppColors.textPrimary,
-                                  size: 18.w,
-                                ),
-                              ],
-                            ),
+                              SizedBox(width: 6.w),
+                              Icon(
+                                Icons.arrow_drop_down,
+                                color: AppColors.textPrimary,
+                                size: 18.w,
+                              ),
+                            ],
                           ),
                         ),
-                        SizedBox(width: 10.w),
-                        Expanded(
-                          child: Container(
-                            height: 46.h,
-                            padding: EdgeInsets.symmetric(horizontal: 12.w),
-                            decoration: BoxDecoration(
-                              color: AppColors.pureWhite,
-                              borderRadius: BorderRadius.circular(10.r),
-                              border: Border.all(
-                                color: const Color(0xFFCCCCCC),
+                      ),
+                      SizedBox(width: 10.w),
+                      Expanded(
+                        child: Container(
+                          height: 46.h,
+                          padding: EdgeInsets.symmetric(horizontal: 12.w),
+                          decoration: BoxDecoration(
+                            color: AppColors.pureWhite,
+                            borderRadius: BorderRadius.circular(10.r),
+                            border: Border.all(color: const Color(0xFFCCCCCC)),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                '${_selectedCountry.dialCode} ',
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  '${_selectedCountry.dialCode} ',
+                              Expanded(
+                                child: TextField(
+                                  controller: _phoneController,
+                                  keyboardType: TextInputType.phone,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(
+                                      _selectedCountry.maxLength,
+                                    ),
+                                  ],
+                                  decoration: InputDecoration(
+                                    hintText: HrConstant.ENTER_PHONE_NUMBER,
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                    hintStyle: TextStyle(
+                                      fontSize: 14.sp,
+                                      color: AppColors.textTertiary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                                   style: TextStyle(
                                     fontSize: 14.sp,
                                     fontWeight: FontWeight.w800,
                                     color: AppColors.textPrimary,
                                   ),
                                 ),
-                                Expanded(
-                                  child: TextField(
-                                    controller: _phoneController,
-                                    keyboardType: TextInputType.phone,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                      LengthLimitingTextInputFormatter(
-                                        _selectedCountry.maxLength,
-                                      ),
-                                    ],
-                                    decoration: InputDecoration(
-                                      hintText: HrConstant.ENTER_PHONE_NUMBER,
-                                      border: InputBorder.none,
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.zero,
-                                      hintStyle: TextStyle(
-                                        fontSize: 14.sp,
-                                        color: AppColors.textTertiary,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    style: TextStyle(
-                                      fontSize: 14.sp,
-                                      fontWeight: FontWeight.w800,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                    SizedBox(height: 18.h),
-                    BlocBuilder<CoreHrCubit, CoreHrState>(
-                      buildWhen: (previous, current) =>
-                          previous.completePhoneInfo.status !=
-                          current.completePhoneInfo.status,
-                      builder: (context, state) {
-                        final isLoading =
-                            state.completePhoneInfo.status ==
-                            OperationStatus.loading;
-                        return AppButton(
-                          isLoading: isLoading,
-                          onPressed: isLoading
-                              ? () {}
-                              : () {
-                                  final phone = _phoneController.text.trim();
-                                  if (phone.isEmpty) {
-                                    Fluttertoast.showToast(
-                                      msg: HrConstant.PLEASE_ENTER_PHONE_NUMBER,
-                                    );
-                                    return;
-                                  }
-                                  context.read<CoreHrCubit>().completePhone(
-                                    '${_selectedCountry.dialCode}$phone',
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 18.h),
+                  BlocBuilder<CoreHrCubit, CoreHrState>(
+                    buildWhen: (previous, current) =>
+                        previous.completePhoneInfo.status !=
+                        current.completePhoneInfo.status,
+                    builder: (context, state) {
+                      final isLoading =
+                          state.completePhoneInfo.status ==
+                          OperationStatus.loading;
+                      return AppButton(
+                        isLoading: isLoading,
+                        onPressed: isLoading
+                            ? () {}
+                            : () async {
+                                final phone = _phoneController.text.trim();
+                                if (phone.isEmpty) {
+                                  Fluttertoast.showToast(
+                                    msg: HrConstant.PLEASE_ENTER_PHONE_NUMBER,
                                   );
-                                },
-                          text: HrConstant.CONTINUE_TEXT,
-                          backgroundColor: AppColors.primaryGreen,
-                        );
-                      },
-                    ),
-                    SizedBox(height: 8.h),
-                    BlocBuilder<CoreHrCubit, CoreHrState>(
-                      buildWhen: (previous, current) =>
-                          previous.completePhoneInfo.status !=
-                          current.completePhoneInfo.status,
-                      builder: (context, state) {
-                        if (state.completePhoneInfo.status !=
-                            OperationStatus.loading) {
-                          return const SizedBox.shrink();
-                        }
-                        return SizedBox(
-                          height: 18.h,
-                          width: 18.h,
-                          child: const AppLoader(size: 24, strokeWidth: 2),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                                  return;
+                                }
+                                final cubit = context.read<CoreHrCubit>();
+                                final completed = await cubit.completePhone(
+                                  '${_selectedCountry.dialCode}$phone',
+                                );
+                                if (!mounted || !completed) {
+                                  return;
+                                }
+                                await _continueAfterPhone(cubit.state);
+                              },
+                        text: HrConstant.CONTINUE_TEXT,
+                        backgroundColor: AppColors.primaryGreen,
+                      );
+                    },
+                  ),
+                  SizedBox(height: 8.h),
+                  BlocBuilder<CoreHrCubit, CoreHrState>(
+                    buildWhen: (previous, current) =>
+                        previous.completePhoneInfo.status !=
+                        current.completePhoneInfo.status,
+                    builder: (context, state) {
+                      if (state.completePhoneInfo.status !=
+                          OperationStatus.loading) {
+                        return const SizedBox.shrink();
+                      }
+                      return SizedBox(
+                        height: 18.h,
+                        width: 18.h,
+                        child: const AppLoader(size: 24, strokeWidth: 2),
+                      );
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

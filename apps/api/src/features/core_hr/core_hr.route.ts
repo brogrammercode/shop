@@ -39,6 +39,9 @@ router.post(_CORE_HR_CONSTANTS._R_O_U_T_E_S._E_M_P_L_O_Y_E_E_S, requirePermissio
 router.patch(_CORE_HR_CONSTANTS._R_O_U_T_E_S.EMPLOYEE_BY_ID, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.EMPLOYEE_WRITE), coreHrController.updateEmployee);
 router.delete(_CORE_HR_CONSTANTS._R_O_U_T_E_S.EMPLOYEE_BY_ID, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.EMPLOYEE_WRITE), coreHrController.deleteEmployee);
 
+router.get(_CORE_HR_CONSTANTS._R_O_U_T_E_S.USERS, coreHrController.listUsers);
+router.delete(_CORE_HR_CONSTANTS._R_O_U_T_E_S.USER_BY_ID, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.EMPLOYEE_WRITE), coreHrController.deleteUser);
+
 router.get(_CORE_HR_CONSTANTS._R_O_U_T_E_S._D_E_P_A_R_T_M_E_N_T_S, coreHrController.listDepartments);
 router.post(_CORE_HR_CONSTANTS._R_O_U_T_E_S._D_E_P_A_R_T_M_E_N_T_S, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S._A_L_L), coreHrController.createDepartment);
 

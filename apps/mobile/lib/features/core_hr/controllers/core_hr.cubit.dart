@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:mobile/utils/error.dart';
+import 'package:mobile/features/core_hr/constants/hr.constant.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.repo.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.state.dart';
 import 'package:mobile/services/json_cache.dart';
@@ -73,14 +74,14 @@ class CoreHrCubit extends Cubit<CoreHrState> {
     }
   }
 
-  Future<void> signInWithGoogle() async {
+  Future<bool> signInWithGoogle() async {
     emit(
       state.copyWith(
         googleSignInInfo: const OperationInfo(status: OperationStatus.loading),
       ),
     );
     final result = await _repo.signInWithGoogle();
-    result.fold(
+    return result.fold(
       (failure) {
         Fluttertoast.showToast(msg: failure.message);
         emit(
@@ -91,6 +92,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
             ),
           ),
         );
+        return false;
       },
       (data) {
         final user = data['user'] as UserModel?;
@@ -114,21 +116,20 @@ class CoreHrCubit extends Cubit<CoreHrState> {
             ),
           ),
         );
+        return true;
       },
     );
   }
 
-  Future<void> completePhone(String phoneNumber) async {
+  Future<bool> completePhone(String phoneNumber) async {
     emit(
       state.copyWith(
-        completePhoneInfo: const OperationInfo(
-          status: OperationStatus.loading,
-        ),
+        completePhoneInfo: const OperationInfo(status: OperationStatus.loading),
       ),
     );
     final result = await _repo.completePhone(phoneNumber);
-    result.fold(
-      (failure) {
+    return await result.fold(
+      (failure) async {
         Fluttertoast.showToast(msg: failure.message);
         emit(
           state.copyWith(
@@ -138,6 +139,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
             ),
           ),
         );
+        return false;
       },
       (data) async {
         final user = data['user'] as UserModel?;
@@ -161,6 +163,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
             ),
           ),
         );
+        return true;
       },
     );
   }
@@ -194,7 +197,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
     );
   }
 
-  Future<void> login(
+  Future<bool> login(
     String phoneNumber,
     String otp, {
     bool rememberLogin = false,
@@ -209,7 +212,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
       otp,
       rememberLogin: rememberLogin,
     );
-    result.fold(
+    return result.fold(
       (failure) {
         Fluttertoast.showToast(msg: failure.message);
         emit(
@@ -220,6 +223,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
             ),
           ),
         );
+        return false;
       },
       (data) {
         final user = data['user'] as UserModel?;
@@ -241,18 +245,19 @@ class CoreHrCubit extends Cubit<CoreHrState> {
             loginInfo: const OperationInfo(status: OperationStatus.success),
           ),
         );
+        return true;
       },
     );
   }
 
-  Future<void> logout([String? sessionId]) async {
+  Future<bool> logout([String? sessionId]) async {
     emit(
       state.copyWith(
         logoutInfo: const OperationInfo(status: OperationStatus.loading),
       ),
     );
     final result = await _repo.logout(sessionId);
-    result.fold(
+    return result.fold(
       (failure) {
         Fluttertoast.showToast(msg: failure.message);
         emit(
@@ -263,6 +268,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
             ),
           ),
         );
+        return false;
       },
       (_) {
         _cache.clearSavedProfile();
@@ -273,6 +279,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
             logoutInfo: const OperationInfo(status: OperationStatus.success),
           ),
         );
+        return true;
       },
     );
   }
@@ -428,7 +435,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
     );
   }
 
-  Future<void> createBranch(
+  Future<bool> createBranch(
     String name,
     bool isHq,
     List<Map<String, dynamic>>? addresses,
@@ -440,7 +447,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
       ),
     );
     final result = await _repo.createBranch(name, isHq, addresses, bankDetails);
-    await result.fold(
+    return await result.fold(
       (failure) async {
         Fluttertoast.showToast(msg: failure.message);
         emit(
@@ -451,6 +458,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
             ),
           ),
         );
+        return false;
       },
       (data) async {
         final employee = data['employee'];
@@ -472,6 +480,7 @@ class CoreHrCubit extends Cubit<CoreHrState> {
             branchInfo: const OperationInfo(status: OperationStatus.success),
           ),
         );
+        return true;
       },
     );
   }
@@ -786,6 +795,69 @@ class CoreHrCubit extends Cubit<CoreHrState> {
       (_) {
         Fluttertoast.showToast(msg: 'Employee deleted');
         listEmployees();
+      },
+    );
+  }
+
+  Future<void> listUsers() async {
+    emit(
+      state.copyWith(
+        userInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.listUsers();
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            userInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (users) {
+        emit(
+          state.copyWith(
+            users: users,
+            userInfo: const OperationInfo(status: OperationStatus.success),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> deleteUser(String id) async {
+    emit(
+      state.copyWith(
+        deleteUserInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.deleteUser(id);
+    result.fold(
+      (failure) {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            deleteUserInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (_) {
+        Fluttertoast.showToast(msg: HrConstant.USER_DELETED);
+        emit(
+          state.copyWith(
+            users: state.users.where((user) => user.id != id).toList(),
+            deleteUserInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
+          ),
+        );
       },
     );
   }

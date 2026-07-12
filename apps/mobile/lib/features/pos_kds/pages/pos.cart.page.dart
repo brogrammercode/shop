@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/core/routes.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/features/pos_kds/constants/pos.constant.dart';
@@ -15,7 +16,6 @@ import 'package:mobile/features/crm/crm.state.dart';
 import '../controllers/pos_kds.cubit.dart';
 import '../controllers/pos_kds.state.dart';
 import 'dart:async';
-import 'package:mobile/features/pos_kds/pages/order.detail.page.dart';
 import 'package:mobile/features/pos_kds/models/order.model.dart';
 
 class PosCartPage extends StatefulWidget {
@@ -41,6 +41,7 @@ class _PosCartPageState extends State<PosCartPage> {
   @override
   void initState() {
     super.initState();
+    context.read<PosKdsCubit>().resetOrderSaveInfo();
     context.read<PosKdsCubit>().listTables();
     context.read<PosKdsCubit>().listOrders();
     context.read<CrmCubit>().listCoupons();
@@ -130,7 +131,6 @@ class _PosCartPageState extends State<PosCartPage> {
   Widget build(BuildContext context) {
     return BlocListener<PosKdsCubit, PosKdsState>(
       listenWhen: (previous, current) =>
-          previous.saveOrdersInfo.status != current.saveOrdersInfo.status ||
           previous.selectedCustomer?.id != current.selectedCustomer?.id,
       listener: (context, state) {
         final selectedCustomer = state.selectedCustomer;
@@ -146,12 +146,6 @@ class _PosCartPageState extends State<PosCartPage> {
                 ? null
                 : selectedCustomer.addresses.first.id;
           });
-        }
-        if (state.saveOrdersInfo.status == OperationStatus.success) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const OrderDetailPage()),
-          );
         }
       },
       child: Scaffold(
@@ -975,7 +969,7 @@ class _PosCartPageState extends State<PosCartPage> {
                                     isLoading:
                                         posState.saveOrdersInfo.status ==
                                         OperationStatus.loading,
-                                    onPressed: () {
+                                    onPressed: () async {
                                       if (_selectedOrderType == 'DINE_IN' &&
                                           _selectedTableId == null &&
                                           _selectedTableSideIds.isEmpty) {
@@ -1044,7 +1038,7 @@ class _PosCartPageState extends State<PosCartPage> {
                                         return;
                                       }
 
-                                      context
+                                      final order = await context
                                           .read<PosKdsCubit>()
                                           .placeOrderFromCart(
                                             cartTotal,
@@ -1074,6 +1068,13 @@ class _PosCartPageState extends State<PosCartPage> {
                                                 : _orderNotesController.text
                                                       .trim(),
                                           );
+                                      if (!context.mounted || order == null) {
+                                        return;
+                                      }
+                                      Navigator.pushReplacementNamed(
+                                        context,
+                                        AppRoutes.orderDetail,
+                                      );
                                     },
                                   ),
                                 ),

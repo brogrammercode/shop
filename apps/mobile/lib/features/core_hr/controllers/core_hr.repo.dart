@@ -19,6 +19,7 @@ class CoreHrEndpoints {
   static const String sendOtp = '/hr/auth/send-otp';
   static const String completePhone = '/hr/auth/complete-phone';
   static const String me = '/hr/auth/me';
+  static const String refresh = '/hr/auth/refresh';
   static const String branch = '/hr/branch';
   static const String searchBranch = '/hr/branch/search';
   static const String joinRequest = '/hr/branch/join-request';
@@ -30,6 +31,8 @@ class CoreHrEndpoints {
       '/hr/branch/join-requests/$id/reject';
   static const String employees = '/hr/employees';
   static String employee(String id) => '/hr/employees/$id';
+  static const String users = '/hr/users';
+  static String user(String id) => '/hr/users/$id';
   static const String departments = '/hr/departments';
   static const String roles = '/hr/roles';
   static const String posts = '/hr/posts';
@@ -136,7 +139,10 @@ class CoreHrRepo {
 
   TaskResult<void> logout([String? sessionId]) async {
     return tryCatchAsync(() async {
-      await _apiClient.post('/hr/auth/logout', data: sessionId != null ? {'sessionId': sessionId} : {});
+      await _apiClient.post(
+        '/hr/auth/logout',
+        data: sessionId != null ? {'sessionId': sessionId} : {},
+      );
       await _localStorage.clearSession();
     });
   }
@@ -144,7 +150,7 @@ class CoreHrRepo {
   TaskResult<String> refreshAccessToken(String refreshToken) async {
     return tryCatchAsync(() async {
       final response = await _apiClient.post(
-        '/hr/auth/refresh',
+        CoreHrEndpoints.refresh,
         data: {'refreshToken': refreshToken},
       );
       final accessToken = response.data['data']['accessToken'];
@@ -280,6 +286,21 @@ class CoreHrRepo {
       final response = await _apiClient.get(CoreHrEndpoints.employees);
       final data = response.data['data'] as List;
       return data.map((e) => EmployeeModel.fromJson(e)).toList();
+    });
+  }
+
+  TaskResult<List<UserModel>> listUsers() async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.get(CoreHrEndpoints.users);
+      final data = response.data['data'] as List;
+      return data.map((e) => UserModel.fromJson(e)).toList();
+    });
+  }
+
+  TaskResult<dynamic> deleteUser(String id) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.delete(CoreHrEndpoints.user(id));
+      return response.data['data'];
     });
   }
 

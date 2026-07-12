@@ -31,7 +31,11 @@ class ApiClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await _localStorage.getToken();
+          var token = await _localStorage.getToken();
+          if (token == null &&
+              !options.path.contains(ApiConstants.REFRESH_TOKEN_PATH)) {
+            token = await _refreshAccessToken();
+          }
           if (token != null) {
             options.headers[ApiConstants.HEADER_AUTHORIZATION] =
                 '${ApiConstants.BEARER_PREFIX} $token';
@@ -40,29 +44,24 @@ class ApiClient {
         },
         onError: (DioException error, ErrorInterceptorHandler handler) async {
           if (error.response?.statusCode == 401) {
-            if (error.requestOptions.path.contains('/auth/refresh')) {
+            if (error.requestOptions.path.contains(
+              ApiConstants.REFRESH_TOKEN_PATH,
+            )) {
               await _forceLogout();
               return handler.next(error);
             }
-            
-            final refreshToken = await _localStorage.getRefreshToken();
-            if (refreshToken != null) {
+            final newToken = await _refreshAccessToken();
+            if (newToken != null) {
               try {
-                final refreshDio = Dio(BaseOptions(baseUrl: ApiConstants.BASE_URL));
-                final response = await refreshDio.post('/auth/refresh', data: {
-                  'refreshToken': refreshToken,
-                });
-                
-                final newToken = response.data['data']['accessToken'];
-                await _localStorage.saveToken(newToken);
-                
                 final opts = error.requestOptions;
-                opts.headers[ApiConstants.HEADER_AUTHORIZATION] = '${ApiConstants.BEARER_PREFIX} $newToken';
-                final cloneReq = await _dio.request(opts.path,
-                    options: Options(method: opts.method, headers: opts.headers),
-                    data: opts.data,
-                    queryParameters: opts.queryParameters);
-                
+                opts.headers[ApiConstants.HEADER_AUTHORIZATION] =
+                    '${ApiConstants.BEARER_PREFIX} $newToken';
+                final cloneReq = await _dio.request(
+                  opts.path,
+                  options: Options(method: opts.method, headers: opts.headers),
+                  data: opts.data,
+                  queryParameters: opts.queryParameters,
+                );
                 return handler.resolve(cloneReq);
               } catch (e) {
                 await _forceLogout();
@@ -79,12 +78,38 @@ class ApiClient {
     );
   }
 
+  Future<String?> _refreshAccessToken() async {
+    final refreshToken = await _localStorage.getRefreshToken();
+    if (refreshToken == null) {
+      return null;
+    }
+    try {
+      final refreshDio = Dio(BaseOptions(baseUrl: ApiConstants.BASE_URL));
+      final response = await refreshDio.post(
+        ApiConstants.REFRESH_TOKEN_PATH,
+        data: {'refreshToken': refreshToken},
+      );
+      final accessToken = response.data['data']['accessToken']?.toString();
+      if (accessToken == null || accessToken.isEmpty) {
+        return null;
+      }
+      await _localStorage.saveToken(accessToken);
+      return accessToken;
+    } catch (_) {
+      await _forceLogout();
+      return null;
+    }
+  }
+
   Future<void> _forceLogout() async {
     await _localStorage.clearSession();
     final jsonCache = JsonCache();
     await jsonCache.clearAll();
     if (navigatorKey.currentState != null) {
-      navigatorKey.currentState!.pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
+      navigatorKey.currentState!.pushNamedAndRemoveUntil(
+        AppRoutes.login,
+        (route) => false,
+      );
     }
   }
 

@@ -72,6 +72,17 @@ export const getMe = asyncHandler(async (req: Request, res: Response) => {
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.GET_ME_SUCCESS, HttpStatus.OK);
 });
 
+export const listUsers = asyncHandler(async (req: Request, res: Response) => {
+  const result = await coreHrService.listUsers();
+  return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.USERS_LISTED, HttpStatus.OK);
+});
+
+export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as Record<string, string>;
+  const result = await coreHrService.deleteUser(req.user!.uid, id);
+  return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.USER_DELETED, HttpStatus.OK);
+});
+
 export const createBranch = asyncHandler(async (req: Request, res: Response) => {
   const { name, is_hq, addresses, bank_details } = req.body;
   const result = await coreHrService.createBranch(req.user!.uid, name, is_hq, addresses, bank_details);

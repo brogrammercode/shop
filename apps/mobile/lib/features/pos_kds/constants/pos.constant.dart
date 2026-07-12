@@ -49,6 +49,9 @@ class PosConstant {
   static const String ORDER_LIST_TITLE = 'All Orders';
   static const String ORDER_DETAIL_TITLE = 'Order Receipt';
   static const String PRINT_BILL = 'Print Bill';
+  static const String PRINT_BILL_DOUBLE = '2x';
+  static const int PRINT_BILL_SINGLE_COPIES = 1;
+  static const int PRINT_BILL_DOUBLE_COPIES = 2;
   static const String PRINT_TEST_BILL = 'Test Print';
   static const String PRINT_LOG_TITLE = 'Print Log';
   static const String PRINT_LOG_EMPTY =

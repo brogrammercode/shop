@@ -1,116 +1,122 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/core/routes.dart';
 import 'package:mobile/features/core_hr/constants/branch.constant.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.cubit.dart';
 import 'package:mobile/features/core_hr/controllers/core_hr.state.dart';
 import 'package:mobile/utils/error.dart';
-import 'package:mobile/components/ui/dialog.dart';import 'package:mobile/components/ui/loader.dart';
-
+import 'package:mobile/components/ui/dialog.dart';
+import 'package:mobile/components/ui/loader.dart';
 
 class CrossRoadPage extends StatelessWidget {
   const CrossRoadPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<CoreHrCubit, CoreHrState>(
-      listenWhen: (previous, current) => previous.logoutInfo.status != current.logoutInfo.status,
-      listener: (context, state) {
-        if (state.logoutInfo.status == OperationStatus.success) {
-          Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-        }
-      },
+    return BlocBuilder<CoreHrCubit, CoreHrState>(
       builder: (context, state) {
         final isLoggingOut = state.logoutInfo.status == OperationStatus.loading;
         return Scaffold(
           backgroundColor: AppColors.pureWhite,
           body: SafeArea(
             child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 40.h),
-              Text(
-                BranchConstant.WELCOME_ABOARD,
-                style: TextStyle(
-                  fontSize: 22.sp,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                BranchConstant.WELCOME_SUBTITLE,
-                style: TextStyle(
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                ),
-              ),
-              SizedBox(height: 48.h),
-              _buildOptionCard(
-                context: context,
-                icon: Icons.storefront_outlined,
-                title: BranchConstant.JOIN_BRANCH_TITLE,
-                subtitle: BranchConstant.JOIN_BRANCH_SUBTITLE,
-                onTap: () {
-                  Navigator.pushNamed(context, '/join-branch-form');
-                },
-              ),
-              SizedBox(height: 16.h),
-              _buildOptionCard(
-                context: context,
-                icon: Icons.add_business_outlined,
-                title: BranchConstant.CREATE_BRANCH_TITLE,
-                subtitle: BranchConstant.CREATE_BRANCH_SUBTITLE,
-                onTap: () {
-                  Navigator.pushNamed(context, '/create-branch');
-                },
-              ),
-              const Spacer(),
-              Center(
-                child: isLoggingOut
-                    ? SizedBox(
-                        height: 20.w,
-                        width: 20.w,
-                        child: const AppLoader(size: 24, strokeWidth: 2),
-                      )
-                    : TextButton(
-                        onPressed: () async {
-                          final confirm = await AppDialog.showConfirmation(
-                            context: context,
-                            title: 'Sign Out',
-                            message: 'Are you sure you want to sign out?',
-                            confirmText: 'Sign out',
-                            isDestructive: true,
-                          );
-                          if (confirm == true) {
-                            if (context.mounted) {
-                              context.read<CoreHrCubit>().logout();
-                            }
-                          }
-                        },
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-                        ),
-                        child: Text(
-                          'Sign out',
-                          style: TextStyle(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textSecondary,
+              padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 40.h),
+                  Text(
+                    BranchConstant.WELCOME_ABOARD,
+                    style: TextStyle(
+                      fontSize: 22.sp,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  Text(
+                    BranchConstant.WELCOME_SUBTITLE,
+                    style: TextStyle(
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.textSecondary,
+                      height: 1.5,
+                    ),
+                  ),
+                  SizedBox(height: 48.h),
+                  _buildOptionCard(
+                    context: context,
+                    icon: Icons.storefront_outlined,
+                    title: BranchConstant.JOIN_BRANCH_TITLE,
+                    subtitle: BranchConstant.JOIN_BRANCH_SUBTITLE,
+                    onTap: () {
+                      Navigator.pushNamed(context, '/join-branch-form');
+                    },
+                  ),
+                  SizedBox(height: 16.h),
+                  _buildOptionCard(
+                    context: context,
+                    icon: Icons.add_business_outlined,
+                    title: BranchConstant.CREATE_BRANCH_TITLE,
+                    subtitle: BranchConstant.CREATE_BRANCH_SUBTITLE,
+                    onTap: () {
+                      Navigator.pushNamed(context, '/create-branch');
+                    },
+                  ),
+                  const Spacer(),
+                  Center(
+                    child: isLoggingOut
+                        ? SizedBox(
+                            height: 20.w,
+                            width: 20.w,
+                            child: const AppLoader(size: 24, strokeWidth: 2),
+                          )
+                        : TextButton(
+                            onPressed: () async {
+                              final confirm = await AppDialog.showConfirmation(
+                                context: context,
+                                title: 'Sign Out',
+                                message: 'Are you sure you want to sign out?',
+                                confirmText: 'Sign out',
+                                isDestructive: true,
+                              );
+                              if (confirm == true && context.mounted) {
+                                final loggedOut = await context
+                                    .read<CoreHrCubit>()
+                                    .logout();
+                                if (!context.mounted || !loggedOut) {
+                                  return;
+                                }
+                                Navigator.pushNamedAndRemoveUntil(
+                                  context,
+                                  AppRoutes.login,
+                                  (route) => false,
+                                );
+                              }
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 24.w,
+                                vertical: 12.h,
+                              ),
+                            ),
+                            child: Text(
+                              'Sign out',
+                              style: TextStyle(
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
         );
       },
     );
@@ -141,11 +147,7 @@ class CrossRoadPage extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              color: AppColors.textPrimary,
-              size: 22.w,
-            ),
+            Icon(icon, color: AppColors.textPrimary, size: 22.w),
             SizedBox(width: 16.w),
             Expanded(
               child: Column(

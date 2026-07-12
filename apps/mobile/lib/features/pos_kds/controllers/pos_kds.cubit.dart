@@ -82,7 +82,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     return double.parse(value.toStringAsFixed(3));
   }
 
-  Future<void> placeOrderFromCart(
+  Future<OrderModel?> placeOrderFromCart(
     double totalAmount,
     List<Map<String, dynamic>> items,
     String orderType,
@@ -94,7 +94,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     List<String>? tableSideIds,
     String? notes,
   }) async {
-    if (items.isEmpty) return;
+    if (items.isEmpty) return null;
 
     final payload = <String, dynamic>{
       'order_type': orderType,
@@ -112,10 +112,11 @@ class PosKdsCubit extends Cubit<PosKdsState> {
       payload['final_paying_price'] = finalPayingPrice;
     }
 
-    await createOrder(payload);
-    if (state.saveOrdersInfo.status == OperationStatus.success) {
+    final order = await createOrder(payload);
+    if (order != null) {
       clearCart();
     }
+    return order;
   }
 
   Future<void> searchCustomersByPhone(String phone) async {
@@ -239,14 +240,14 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     );
   }
 
-  Future<void> createOrder(Map<String, dynamic> data) async {
+  Future<OrderModel?> createOrder(Map<String, dynamic> data) async {
     emit(
       state.copyWith(
         saveOrdersInfo: const OperationInfo(status: OperationStatus.loading),
       ),
     );
     final result = await _repo.createOrder(data);
-    result.fold(
+    return result.fold(
       (failure) {
         Fluttertoast.showToast(msg: failure.message);
         emit(
@@ -257,6 +258,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
             ),
           ),
         );
+        return null;
       },
       (order) {
         Fluttertoast.showToast(msg: 'Order created');
@@ -270,7 +272,17 @@ class PosKdsCubit extends Cubit<PosKdsState> {
           ),
         );
         listOrders();
+        return order;
       },
+    );
+  }
+
+  void resetOrderSaveInfo() {
+    emit(
+      state.copyWith(
+        saveOrdersInfo: const OperationInfo(status: OperationStatus.initial),
+        clearLastPlacedOrder: true,
+      ),
     );
   }
 
@@ -751,7 +763,10 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     );
   }
 
-  Future<void> printOrderReceipt(OrderModel order) async {
+  Future<void> printOrderReceipt(
+    OrderModel order, {
+    int copies = PosConstant.PRINT_BILL_SINGLE_COPIES,
+  }) async {
     emit(
       state.copyWith(
         printReceiptInfo: const OperationInfo(status: OperationStatus.loading),
@@ -762,6 +777,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
       await _receiptPrinterService.printOrderReceipt(
         order,
         onLog: _appendPrintLog,
+        copies: copies,
       );
       _appendPrintLog(PosConstant.PRINT_LOG_PRINT_SUCCESS);
       Fluttertoast.showToast(msg: PosConstant.RECEIPT_PRINT_SUCCESS_MESSAGE);

@@ -261,6 +261,21 @@ export class CoreHrService {
     return { user, employee, addresses, bankDetails, requires_phone: isSyntheticPhone(user.phone) };
   }
 
+  async listUsers() {
+    return coreHrRepo.findUsersWithDetails();
+  }
+
+  async deleteUser(actorUid: string, uid: string) {
+    if (actorUid === uid) {
+      throw new BadRequestError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.CANNOT_DELETE_SELF);
+    }
+    const user = await coreHrRepo.findUserById(uid);
+    if (!user) {
+      throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.USER_NOT_FOUND);
+    }
+    return coreHrRepo.deleteUserCascade(actorUid, uid);
+  }
+
   async createBranch(uid: string, name: string, isHq: boolean, addresses?: any[], bank_details?: any[]) {
     const branch = await coreHrRepo.createBranch(uid, { name, is_hq: isHq, addresses, bank_details });
     const role = await coreHrRepo.createRole(uid, branch.id, _CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.OWNER_ROLE, [_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S._A_L_L]);

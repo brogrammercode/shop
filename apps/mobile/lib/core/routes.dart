@@ -72,6 +72,7 @@ import 'package:mobile/features/core_hr/pages/time_log.list.page.dart';
 import 'package:mobile/features/core_hr/pages/cash_register.list.page.dart';
 import 'package:mobile/features/core_hr/pages/cash_register.detail.page.dart';
 import 'package:mobile/features/core_hr/pages/user_log.list.page.dart';
+import 'package:mobile/features/core_hr/pages/user.list.page.dart';
 
 import 'package:mobile/features/core_hr/pages/setting.page.dart';
 import 'package:mobile/features/core_hr/pages/department.form.page.dart';
@@ -196,6 +197,7 @@ class AppRoutes {
   static const String cashRegisterList = '/cash-register-list';
   static const String cashRegisterDetail = '/cash-register-detail';
   static const String userLogList = '/user-log-list';
+  static const String userList = '/user-list';
 
   static Map<String, WidgetBuilder> get routes => {
     splash: (context) => const SplashPage(),
@@ -301,5 +303,6 @@ class AppRoutes {
     cashRegisterList: (context) => const CashRegisterListPage(),
     cashRegisterDetail: (context) => const CashRegisterDetailPage(),
     userLogList: (context) => const UserLogListPage(),
+    userList: (context) => const UserListPage(),
   };
 }

@@ -1,5 +1,3 @@
-
-
 import 'package:mobile/core/config.dart';
 
 class ApiConstants {
@@ -12,7 +10,7 @@ class ApiConstants {
   static const String CONTENT_TYPE_JSON = 'application/json';
   static const String HEADER_AUTHORIZATION = 'Authorization';
   static const String BEARER_PREFIX = 'Bearer';
+  static const String REFRESH_TOKEN_PATH = '/hr/auth/refresh';
   static const String MESSAGE_FIELD = 'message';
   static const String ERROR_FIELD = 'error';
 }
-

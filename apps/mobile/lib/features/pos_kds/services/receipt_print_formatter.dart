@@ -149,6 +149,17 @@ class ReceiptPrintFormatter {
     return bytes;
   }
 
+  Future<List<int>> formatOrderReceiptCopies(
+    OrderModel order, {
+    required int copies,
+  }) async {
+    final bytes = <int>[];
+    for (var index = 0; index < copies; index += 1) {
+      bytes.addAll(await formatOrderReceipt(order));
+    }
+    return bytes;
+  }
+
   Future<void> _logo(List<int> bytes) async {
     final image = await _loadAssetImage(
       PosConstant.RECEIPT_LOGO_ASSET,

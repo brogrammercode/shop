@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:mobile/core/color.dart';
+import 'package:mobile/core/routes.dart';
 import 'package:mobile/components/ui/button.dart';
 import 'package:mobile/components/ui/input.dart';
 import 'package:mobile/components/ui/toggle.dart';
@@ -12,8 +13,8 @@ import 'package:mobile/features/core_hr/controllers/core_hr.state.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/services/location_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:mobile/components/ui/dialog.dart';import 'package:mobile/components/ui/loader.dart';
-
+import 'package:mobile/components/ui/dialog.dart';
+import 'package:mobile/components/ui/loader.dart';
 
 class CreateBranchPage extends StatefulWidget {
   const CreateBranchPage({super.key});
@@ -25,7 +26,7 @@ class CreateBranchPage extends StatefulWidget {
 class _CreateBranchPageState extends State<CreateBranchPage> {
   final _nameController = TextEditingController();
   bool _isHq = false;
-  
+
   int? _fetchingLocationIndex;
   final LocationService _locationService = LocationService();
 
@@ -119,14 +120,17 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
             'state': addr['state']!.text.trim(),
             'country': addr['country']!.text.trim(),
             'pin_code': addr['pinCode']!.text.trim(),
-            if (addr['lat']!.text.isNotEmpty) 'lat': double.tryParse(addr['lat']!.text.trim()),
-            if (addr['long']!.text.isNotEmpty) 'long': double.tryParse(addr['long']!.text.trim()),
+            if (addr['lat']!.text.isNotEmpty)
+              'lat': double.tryParse(addr['lat']!.text.trim()),
+            if (addr['long']!.text.isNotEmpty)
+              'long': double.tryParse(addr['long']!.text.trim()),
           });
         }
       }
       List<Map<String, dynamic>> banks = [];
       for (var bank in _bankControllers) {
-        if (bank['accountNumber']!.text.isNotEmpty || bank['ifscCode']!.text.isNotEmpty) {
+        if (bank['accountNumber']!.text.isNotEmpty ||
+            bank['ifscCode']!.text.isNotEmpty) {
           banks.add({
             'bank_name': bank['bankName']!.text.trim(),
             'account_name': bank['accountName']!.text.trim(),
@@ -145,7 +149,16 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
         confirmText: 'Create',
       );
       if (confirm == true && mounted) {
-        context.read<CoreHrCubit>().createBranch(name, _isHq, addresses.isNotEmpty ? addresses : null, banks.isNotEmpty ? banks : null);
+        final created = await context.read<CoreHrCubit>().createBranch(
+          name,
+          _isHq,
+          addresses.isNotEmpty ? addresses : null,
+          banks.isNotEmpty ? banks : null,
+        );
+        if (!mounted || !created) {
+          return;
+        }
+        Navigator.pushReplacementNamed(context, AppRoutes.home);
       }
     }
   }
@@ -154,32 +167,30 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
     setState(() => _fetchingLocationIndex = index);
     final result = await _locationService.getCurrentLocation();
     setState(() => _fetchingLocationIndex = null);
-    result.fold(
-      (failure) => Fluttertoast.showToast(msg: failure.message),
-      (location) {
-        final address = _addressControllers[index];
-        if (location.street != null) address['area']!.text = location.street!;
-        if (location.locality != null) address['locality']!.text = location.locality!;
-        if (location.city != null) address['city']!.text = location.city!;
-        if (location.state != null) address['state']!.text = location.state!;
-        if (location.country != null) address['country']!.text = location.country!;
-        if (location.pinCode != null) address['pinCode']!.text = location.pinCode!;
-        address['lat']!.text = location.latitude.toString();
-        address['long']!.text = location.longitude.toString();
-      },
-    );
+    result.fold((failure) => Fluttertoast.showToast(msg: failure.message), (
+      location,
+    ) {
+      final address = _addressControllers[index];
+      if (location.street != null) address['area']!.text = location.street!;
+      if (location.locality != null) {
+        address['locality']!.text = location.locality!;
+      }
+      if (location.city != null) address['city']!.text = location.city!;
+      if (location.state != null) address['state']!.text = location.state!;
+      if (location.country != null) {
+        address['country']!.text = location.country!;
+      }
+      if (location.pinCode != null) {
+        address['pinCode']!.text = location.pinCode!;
+      }
+      address['lat']!.text = location.latitude.toString();
+      address['long']!.text = location.longitude.toString();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<CoreHrCubit, CoreHrState>(
-      listenWhen: (previous, current) =>
-          previous.branchInfo.status != current.branchInfo.status,
-      listener: (context, state) {
-        if (state.branchInfo.status == OperationStatus.success) {
-          Navigator.pushReplacementNamed(context, '/home');
-        }
-      },
+    return BlocBuilder<CoreHrCubit, CoreHrState>(
       builder: (context, state) {
         final isLoading = state.branchInfo.status == OperationStatus.loading;
         return Scaffold(
@@ -230,7 +241,9 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildSectionHeaderWithLocation(
-                                idx == 0 ? BranchConstant.ADDRESS_SECTION : 'Address ${idx + 1}',
+                                idx == 0
+                                    ? BranchConstant.ADDRESS_SECTION
+                                    : 'Address ${idx + 1}',
                                 idx,
                               ),
                               SizedBox(height: 12.h),
@@ -304,7 +317,11 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                           alignment: Alignment.centerRight,
                           child: TextButton.icon(
                             onPressed: _addAddressBlock,
-                            icon: Icon(Icons.add, color: AppColors.primaryGreen, size: 16.w),
+                            icon: Icon(
+                              Icons.add,
+                              color: AppColors.primaryGreen,
+                              size: 16.w,
+                            ),
                             label: Text(
                               'Add Address',
                               style: TextStyle(
@@ -323,7 +340,11 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionHeader(idx == 0 ? BranchConstant.BANK_SECTION : 'Bank Detail ${idx + 1}'),
+                              _buildSectionHeader(
+                                idx == 0
+                                    ? BranchConstant.BANK_SECTION
+                                    : 'Bank Detail ${idx + 1}',
+                              ),
                               SizedBox(height: 12.h),
                               AppInput(
                                 hintText: BranchConstant.BANK_NAME_LABEL,
@@ -387,7 +408,11 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                           alignment: Alignment.centerRight,
                           child: TextButton.icon(
                             onPressed: _addBankBlock,
-                            icon: Icon(Icons.add, color: AppColors.primaryGreen, size: 16.w),
+                            icon: Icon(
+                              Icons.add,
+                              color: AppColors.primaryGreen,
+                              size: 16.w,
+                            ),
                             label: Text(
                               'Add Bank Detail',
                               style: TextStyle(
@@ -471,7 +496,9 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
           ),
         ),
         GestureDetector(
-          onTap: _fetchingLocationIndex != null ? null : () => _fetchLocation(index),
+          onTap: _fetchingLocationIndex != null
+              ? null
+              : () => _fetchLocation(index),
           child: Row(
             children: [
               if (_fetchingLocationIndex == index)
@@ -481,7 +508,11 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
                   child: const AppLoader(size: 24, strokeWidth: 2),
                 )
               else
-                Icon(Icons.my_location, size: 14.w, color: AppColors.primaryGreen),
+                Icon(
+                  Icons.my_location,
+                  size: 14.w,
+                  color: AppColors.primaryGreen,
+                ),
               SizedBox(width: 4.w),
               Text(
                 'Use Current Location',
@@ -493,7 +524,7 @@ class _CreateBranchPageState extends State<CreateBranchPage> {
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }

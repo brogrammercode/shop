@@ -74,6 +74,119 @@ export class CoreHrRepo {
     return prisma.user.findUnique({ where: { id } });
   }
 
+  async findUsersWithDetails() {
+    const users = await prisma.user.findMany({
+      where: { is_deleted: false },
+      include: {
+        employee: {
+          include: {
+            branch: true,
+            role_rel: true,
+            department_rel: true,
+            post_rel: true,
+            shift_rel: true,
+          },
+        },
+        _count: {
+          select: {
+            orders: true,
+            sessions: true,
+            complaints: true,
+            loyalty_trans: true,
+            device_tokens: true,
+            user_logs: true,
+          },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+    const userIds = users.map((user) => user.id);
+    const addresses = await prisma.address.findMany({
+      where: { entity_type: AddressType.USER, entity_id: { in: userIds } },
+      orderBy: { created_at: 'desc' },
+    });
+    const bankDetails = await prisma.bankDetail.findMany({
+      where: { entity_type: BankDetailType.USER, entity_id: { in: userIds } },
+      orderBy: { created_at: 'desc' },
+    });
+    return users.map((user) => {
+      const { _count, ...userData } = user;
+      return {
+        ...userData,
+        addresses: addresses.filter((address) => address.entity_id === user.id),
+        bank_details: bankDetails.filter((bankDetail) => bankDetail.entity_id === user.id),
+        order_count: _count.orders,
+        session_count: _count.sessions,
+        complaint_count: _count.complaints,
+        loyalty_transaction_count: _count.loyalty_trans,
+        device_token_count: _count.device_tokens,
+        user_log_count: _count.user_logs,
+      };
+    });
+  }
+
+  async deleteUserCascade(actorUid: string, uid: string) {
+    return prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: { id: uid },
+        include: { employee: true },
+      });
+      if (!user) {
+        return null;
+      }
+      const orders = await tx.order.findMany({
+        where: { uid },
+        select: { id: true },
+      });
+      const orderIds = orders.map((order) => order.id);
+      const employeeId = user.employee?.id;
+      if (employeeId) {
+        await tx.order.updateMany({
+          where: { employee_id: employeeId },
+          data: { employee_id: null },
+        });
+        await tx.timeLog.deleteMany({ where: { employee_id: employeeId } });
+        await tx.employee.delete({ where: { id: employeeId } });
+      }
+      await tx.complaint.deleteMany({
+        where: { OR: [{ uid }, { order_id: { in: orderIds } }] },
+      });
+      await tx.loyaltyTrans.deleteMany({
+        where: { OR: [{ uid }, { order_id: { in: orderIds } }] },
+      });
+      await tx.advancePayment.deleteMany({
+        where: { order_id: { in: orderIds } },
+      });
+      await tx.kitchenOrderTicket.deleteMany({
+        where: { order_id: { in: orderIds } },
+      });
+      await tx.orderItem.deleteMany({
+        where: { order_id: { in: orderIds } },
+      });
+      await tx.order.deleteMany({ where: { id: { in: orderIds } } });
+      await tx.tableSession.deleteMany({ where: { uid } });
+      await tx.userSession.deleteMany({ where: { uid } });
+      await tx.userDeviceToken.deleteMany({ where: { uid } });
+      await tx.joinRequest.deleteMany({ where: { uid } });
+      await tx.joinRequest.updateMany({
+        where: { reviewed_by: uid },
+        data: { reviewed_by: null },
+      });
+      await tx.address.deleteMany({
+        where: { entity_type: AddressType.USER, entity_id: uid },
+      });
+      await tx.bankDetail.deleteMany({
+        where: { entity_type: BankDetailType.USER, entity_id: uid },
+      });
+      await tx.userLog.deleteMany({ where: { uid } });
+      await this._logAction(tx, actorUid, 'DELETE_USER', 'User Deleted', `Deleted user ${uid}`, { deleted_uid: uid }, `/user/${uid}`);
+      return tx.user.delete({ where: { id: uid } });
+    }, {
+      maxWait: 15000,
+      timeout: 20000,
+    });
+  }
+
   async createPhoneCustomer(actorUid: string, phone: string, name: string) {
     try {
       return await prisma.$transaction(async (tx) => {

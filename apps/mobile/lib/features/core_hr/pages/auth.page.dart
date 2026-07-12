@@ -19,83 +19,75 @@ class AuthPage extends StatefulWidget {
 }
 
 class _AuthPageState extends State<AuthPage> {
+  Future<void> _continueAfterGoogleSignIn(CoreHrState state) async {
+    if (state.requiresPhone) {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, AppRoutes.completePhone);
+      }
+      return;
+    }
+
+    final employee = state.currentEmployee;
+    final hasEmployee = employee != null;
+    final hasBranch = hasEmployee && employee.branch_id.isNotEmpty;
+    if (hasBranch) {
+      await JsonCache().saveBusinessContext({
+        'branch_id': employee.branch_id,
+        'employee_id': employee.id,
+      });
+    }
+    if (!mounted) return;
+    Navigator.pushReplacementNamed(
+      context,
+      !hasEmployee || !hasBranch ? AppRoutes.crossRoad : AppRoutes.home,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pureWhite,
-      body: BlocListener<CoreHrCubit, CoreHrState>(
-        listenWhen: (previous, current) =>
-            previous.googleSignInInfo.status !=
-            current.googleSignInInfo.status,
-        listener: (context, state) async {
-          if (state.googleSignInInfo.status != OperationStatus.success) {
-            return;
-          }
-
-          if (state.requiresPhone) {
-            if (context.mounted) {
-              Navigator.pushReplacementNamed(context, AppRoutes.completePhone);
-            }
-            return;
-          }
-
-          final employee = state.currentEmployee;
-          final hasEmployee = employee != null;
-          final hasBranch = hasEmployee && employee.branch_id.isNotEmpty;
-          if (hasBranch) {
-            await JsonCache().saveBusinessContext({
-              'branch_id': employee.branch_id,
-              'employee_id': employee.id,
-            });
-          }
-          if (!context.mounted) return;
-          Navigator.pushReplacementNamed(
-            context,
-            !hasEmployee || !hasBranch ? AppRoutes.crossRoad : AppRoutes.home,
-          );
-        },
-        child: CustomScrollView(
-          slivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Column(
-                children: [
-                  _buildTopPanel(),
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 20.w,
-                        vertical: 16.h,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const SizedBox.shrink(),
-                          Column(
-                            children: [
-                              Text(
-                                HrConstant.LOG_IN_OR_SIGN_UP,
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textTertiary,
-                                ),
+      body: CustomScrollView(
+        slivers: [
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Column(
+              children: [
+                _buildTopPanel(),
+                Expanded(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 16.h,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const SizedBox.shrink(),
+                        Column(
+                          children: [
+                            Text(
+                              HrConstant.LOG_IN_OR_SIGN_UP,
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textTertiary,
                               ),
-                              SizedBox(height: 14.h),
-                              _buildGoogleButton(),
-                              SizedBox(height: 22.h),
-                              _buildFooterLinks(),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                            SizedBox(height: 14.h),
+                            _buildGoogleButton(),
+                            SizedBox(height: 22.h),
+                            _buildFooterLinks(),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -169,7 +161,14 @@ class _AuthPageState extends State<AuthPage> {
         return GestureDetector(
           onTap: isLoading
               ? null
-              : () => context.read<CoreHrCubit>().signInWithGoogle(),
+              : () async {
+                  final cubit = context.read<CoreHrCubit>();
+                  final signedIn = await cubit.signInWithGoogle();
+                  if (!mounted || !signedIn) {
+                    return;
+                  }
+                  await _continueAfterGoogleSignIn(cubit.state);
+                },
           child: Container(
             height: 48.h,
             width: double.infinity,
