@@ -150,12 +150,12 @@ export class PosKdsService {
     });
 
     const createdOrder = await this.getOrderById(order.id, branchId);
-    await this.notifyOrder(createdOrder, {
+    void this.notifyOrder(createdOrder, {
       type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_CREATED,
       title: _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_CREATED_TITLE,
       message: this.orderMessage(createdOrder, "has been created"),
       actor_id: data.employee_id,
-    });
+    }).catch(() => undefined);
     return createdOrder;
   }
 
@@ -224,12 +224,12 @@ export class PosKdsService {
       status: KOTStatus.PREPARING,
     });
     const updatedOrder = await this.getOrderById(appendOrder.id, branchId);
-    await this.notifyOrder(updatedOrder, {
+    void this.notifyOrder(updatedOrder, {
       type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_STATUS_UPDATED,
       title: _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_STATUS_UPDATED_TITLE,
       message: this.orderMessage(updatedOrder, "has new items added"),
       actor_id: employeeId,
-    });
+    }).catch(() => undefined);
     return updatedOrder;
   }
 
@@ -445,11 +445,11 @@ export class PosKdsService {
         await posKdsRepo.updateTable(order.table_id, { status: "AVAILABLE" });
       }
     }
-    await this.notifyOrder(order, {
+    void this.notifyOrder(order, {
       type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_DELETED,
       title: _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_DELETED_TITLE,
       message: this.orderMessage(order, "has been deleted"),
-    });
+    }).catch(() => undefined);
     return posKdsRepo.deleteOrder(id);
   }
 
@@ -496,14 +496,14 @@ export class PosKdsService {
       }
     }
 
-    await this.notifyOrder(
+    void this.notifyOrder(
       { ...order, status: "PAID" },
       {
         type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_PAID,
         title: _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_PAID_TITLE,
         message: this.orderMessage(order, "has been paid"),
       },
-    );
+    ).catch(() => undefined);
 
     return payment;
   }
@@ -528,11 +528,11 @@ export class PosKdsService {
         await posKdsRepo.updateTable(order.table_id, { status: "AVAILABLE" });
       }
     }
-    await this.notifyOrder(updatedOrder, {
+    void this.notifyOrder(updatedOrder, {
       type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_REFUNDED,
       title: _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_REFUNDED_TITLE,
       message: this.orderMessage(updatedOrder, "has been refunded"),
-    });
+    }).catch(() => undefined);
     return updatedOrder;
   }
 
@@ -561,11 +561,11 @@ export class PosKdsService {
         await posKdsRepo.updateTable(order.table_id, { status: "AVAILABLE" });
       }
     }
-    await this.notifyOrder(updatedOrder, {
+    void this.notifyOrder(updatedOrder, {
       type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_CANCELLED,
       title: _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_CANCELLED_TITLE,
       message: this.orderMessage(updatedOrder, "has been cancelled"),
-    });
+    }).catch(() => undefined);
     return updatedOrder;
   }
 
@@ -667,11 +667,11 @@ export class PosKdsService {
   async updateKOTStatus(id: string, branchId: string, status: KOTStatus) {
     const kot = await this.getKOTById(id, branchId);
     const updatedKot = await posKdsRepo.updateKOTStatus(id, status);
-    await this.notifyOrder(kot.order, {
+    void this.notifyOrder(kot.order, {
       type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.KOT_STATUS_UPDATED,
       title: _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.KOT_STATUS_UPDATED_TITLE,
       message: this.orderMessage(kot.order, `kitchen status is ${status}`),
-    });
+    }).catch(() => undefined);
     return updatedKot;
   }
 
@@ -685,12 +685,12 @@ export class PosKdsService {
     if (status === OrderStatus.REFUNDED) {
       await ladyluckService.reverseOrderPoints(id);
     }
-    await this.notifyOrder(updatedOrder, {
+    void this.notifyOrder(updatedOrder, {
       type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_STATUS_UPDATED,
       title:
         _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_STATUS_UPDATED_TITLE,
       message: this.orderMessage(updatedOrder, `status is ${status}`),
-    });
+    }).catch(() => undefined);
     return updatedOrder;
   }
 

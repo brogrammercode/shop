@@ -205,7 +205,7 @@ export default function CartPage() {
     }
 
     if (!user) {
-      setError("Loading your profile. Please try again.");
+      setError(CUSTOMER_ORDERING_TEXT.PROFILE_LOADING);
       AuthRepo.loadCurrentUser().catch(() => undefined);
       return;
     }
@@ -255,13 +255,17 @@ export default function CartPage() {
           unit_price: cartItem.saleMode.price_per_unit,
         })),
       });
+    } catch {
+      setError(CUSTOMER_ORDERING_TEXT.ORDER_FAILED);
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
       setCart({});
       sessionStorage.removeItem(CUSTOMER_ORDERING_STORAGE_KEYS.CART);
       sessionStorage.removeItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID);
-      // Route back to menu (or a success page ideally)
-      router.push("/menu");
-    } catch {
-      setError(CUSTOMER_ORDERING_TEXT.ORDER_FAILED);
+      router.push(CUSTOMER_ORDERING_ROUTES.MENU);
     } finally {
       setIsSubmitting(false);
     }

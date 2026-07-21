@@ -51,6 +51,7 @@ export const CUSTOMER_ORDERING_TEXT = {
   LOGIN_TO_ORDER: "Login to place order",
   ORDER_PLACED: "Order placed successfully",
   ORDER_FAILED: "Unable to place order",
+  PROFILE_LOADING: "Loading your profile. Please try again.",
   MENU_FAILED: "Unable to load menu",
   TABLE_CONTEXT: "Table order",
   DELIVERY_CONTEXT: "Delivery order",
