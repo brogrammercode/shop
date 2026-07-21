@@ -77,6 +77,87 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     emit(state.copyWith(cart: {}));
   }
 
+  Future<void> loadCustomerLadyluck(String uid) async {
+    if (uid.trim().isEmpty) {
+      emit(state.copyWith(clearLadyluck: true));
+      return;
+    }
+    emit(
+      state.copyWith(
+        loadLadyluckInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.getCustomerLadyluckSummary(uid);
+    result.fold(
+      (failure) {
+        emit(
+          state.copyWith(
+            loadLadyluckInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+            clearLadyluck: true,
+          ),
+        );
+      },
+      (summary) {
+        final selectedId = summary.active_discounts.isEmpty
+            ? ''
+            : summary.active_discounts.first.id;
+        emit(
+          state.copyWith(
+            ladyluckSummary: summary,
+            selectedLadyluckDiscountId: selectedId,
+            loadLadyluckInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> scratchCustomerLadyluckCard() async {
+    final customer = state.selectedCustomer;
+    if (customer == null || state.ladyluckSummary.available_scratch_cards.isEmpty) {
+      return;
+    }
+    final scratchCard = state.ladyluckSummary.available_scratch_cards.first;
+    emit(
+      state.copyWith(
+        scratchLadyluckInfo: const OperationInfo(status: OperationStatus.loading),
+      ),
+    );
+    final result = await _repo.scratchCustomerLadyluckCard(
+      customer.id,
+      scratchCard.id,
+    );
+    await result.fold<Future<void>>(
+      (failure) async {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(
+          state.copyWith(
+            scratchLadyluckInfo: OperationInfo(
+              status: OperationStatus.error,
+              error: failure,
+            ),
+          ),
+        );
+      },
+      (discount) async {
+        emit(
+          state.copyWith(
+            selectedLadyluckDiscountId: discount.id,
+            scratchLadyluckInfo: const OperationInfo(
+              status: OperationStatus.success,
+            ),
+          ),
+        );
+        await loadCustomerLadyluck(customer.id);
+      },
+    );
+  }
+
   double _normalizeQuantity(double quantity, PosCartLineModel line) {
     final value = line.allow_decimal ? quantity : quantity.roundToDouble();
     return double.parse(value.toStringAsFixed(3));
@@ -91,6 +172,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     String? tableSessionId,
     String? deliveryAddressId,
     double? finalPayingPrice,
+    String? ladyluckDiscountId,
     List<String>? tableSideIds,
     String? notes,
   }) async {
@@ -106,6 +188,8 @@ class PosKdsCubit extends Cubit<PosKdsState> {
       'status': 'PLACED',
       'total_amount': totalAmount,
       'items': items,
+      if (ladyluckDiscountId != null && ladyluckDiscountId.isNotEmpty)
+        'ladyluck_discount_id': ladyluckDiscountId,
       if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
     };
     if (finalPayingPrice != null) {
@@ -129,6 +213,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
             status: OperationStatus.initial,
           ),
           clearSelectedCustomer: true,
+          clearLadyluck: true,
         ),
       );
       return;
@@ -140,6 +225,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
           status: OperationStatus.loading,
         ),
         clearSelectedCustomer: true,
+        clearLadyluck: true,
       ),
     );
 
@@ -155,6 +241,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
               error: failure,
             ),
             clearSelectedCustomer: true,
+            clearLadyluck: true,
           ),
         );
       },
@@ -162,8 +249,8 @@ class PosKdsCubit extends Cubit<PosKdsState> {
         final digits = query.replaceAll(RegExp(r'\D'), '');
         if (customers.isEmpty && digits.length >= 10) {
           final resolveResult = await _repo.resolveCustomerByPhone(query);
-          resolveResult.fold(
-            (failure) {
+          await resolveResult.fold<Future<void>>(
+            (failure) async {
               Fluttertoast.showToast(msg: failure.message);
               emit(
                 state.copyWith(
@@ -173,10 +260,11 @@ class PosKdsCubit extends Cubit<PosKdsState> {
                     error: failure,
                   ),
                   clearSelectedCustomer: true,
+                  clearLadyluck: true,
                 ),
               );
             },
-            (customer) {
+            (customer) async {
               emit(
                 state.copyWith(
                   selectedCustomer: customer,
@@ -186,6 +274,7 @@ class PosKdsCubit extends Cubit<PosKdsState> {
                   ),
                 ),
               );
+              await loadCustomerLadyluck(customer.id);
             },
           );
           return;
@@ -202,10 +291,11 @@ class PosKdsCubit extends Cubit<PosKdsState> {
     );
   }
 
-  void selectCustomer(UserModel customer) {
+  Future<void> selectCustomer(UserModel customer) async {
     emit(
       state.copyWith(selectedCustomer: customer, matchingCustomers: const []),
     );
+    await loadCustomerLadyluck(customer.id);
   }
 
   Future<void> listOrders() async {

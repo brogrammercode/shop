@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { BadgePercent, ChevronLeft, Gift } from "lucide-react";
 import { useUserStore } from "@/core/store/user.store";
 import { AuthRepo } from "@/features/auth/repo/auth.repo";
 import { CustomerContextPanel } from "@/features/customer_ordering/components/CustomerContextPanel";
@@ -20,6 +20,8 @@ import {
   CustomerMenuCategory,
   CustomerOrderingContext,
   CustomerTable,
+  LadyluckDiscount,
+  LadyluckSummary,
 } from "@/features/customer_ordering/types/customer_ordering.types";
 import {
   buildCartItems,
@@ -51,11 +53,18 @@ export default function CartPage() {
     orderingContext?.tableSideId ? [orderingContext.tableSideId] : [],
   );
   const [selectedAddressId, setSelectedAddressId] = useState("");
+  const [ladyluckSummary, setLadyluckSummary] = useState<LadyluckSummary | null>(null);
+  const [selectedLadyluckDiscountId, setSelectedLadyluckDiscountId] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return sessionStorage.getItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID) || "";
+  });
 
   const [isLoading, setIsLoading] = useState(
     Boolean(orderingContext?.branchId),
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLadyluckLoading, setIsLadyluckLoading] = useState(false);
+  const [isScratching, setIsScratching] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -99,6 +108,35 @@ export default function CartPage() {
     );
   }, [cart]);
 
+  useEffect(() => {
+    if (!hasHydrated || !token || !orderingContext?.branchId) return;
+
+    const loadLadyluck = async () => {
+      setIsLadyluckLoading(true);
+      try {
+        const summary = await CustomerOrderingApi.getLadyluckSummary(orderingContext.branchId);
+        const storedDiscountId = sessionStorage.getItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID) || "";
+        const nextDiscount = summary.active_discounts.find((discount) => discount.id === storedDiscountId) || summary.active_discounts[0];
+        setLadyluckSummary(summary);
+        if (nextDiscount) {
+          setSelectedLadyluckDiscountId(nextDiscount.id);
+          sessionStorage.setItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID, nextDiscount.id);
+        } else {
+          setSelectedLadyluckDiscountId("");
+          sessionStorage.removeItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID);
+        }
+      } catch {
+        setLadyluckSummary(null);
+        setSelectedLadyluckDiscountId("");
+        sessionStorage.removeItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID);
+      } finally {
+        setIsLadyluckLoading(false);
+      }
+    };
+
+    loadLadyluck();
+  }, [hasHydrated, token, orderingContext]);
+
   const allItems = useMemo(
     () =>
       flattenItems(categories, CUSTOMER_ORDERING_DEFAULTS.ACTIVE_CATEGORY_ID),
@@ -109,7 +147,14 @@ export default function CartPage() {
     [allItems, cart],
   );
   const subtotal = useMemo(() => calculateSubtotal(cartItems), [cartItems]);
-  const payable = subtotal;
+  const activeLadyluckDiscount = useMemo(() => {
+    if (!ladyluckSummary?.active_discounts.length) return null;
+    return ladyluckSummary.active_discounts.find((discount) => discount.id === selectedLadyluckDiscountId) || ladyluckSummary.active_discounts[0];
+  }, [ladyluckSummary, selectedLadyluckDiscountId]);
+  const ladyluckDiscountAmount = useMemo(() => (
+    activeLadyluckDiscount ? calculateLadyluckDiscount(activeLadyluckDiscount, subtotal) : 0
+  ), [activeLadyluckDiscount, subtotal]);
+  const payable = Math.max(0, subtotal - ladyluckDiscountAmount);
   const activeAddressId = selectedAddressId || addresses[0]?.id || "";
   const phoneRequiresCompletion =
     requiresPhone ||
@@ -198,6 +243,7 @@ export default function CartPage() {
         uid: user?.id,
         delivery_address_id: activeAddressId || undefined,
         order_type: orderingContext.orderType,
+        ladyluck_discount_id: ladyluckDiscountAmount > 0 ? activeLadyluckDiscount?.id : undefined,
         final_paying_price: payable,
         items: cartItems.map((cartItem) => ({
           menu_item_id: cartItem.item.id,
@@ -211,12 +257,32 @@ export default function CartPage() {
       });
       setCart({});
       sessionStorage.removeItem(CUSTOMER_ORDERING_STORAGE_KEYS.CART);
+      sessionStorage.removeItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID);
       // Route back to menu (or a success page ideally)
       router.push("/menu");
     } catch {
       setError(CUSTOMER_ORDERING_TEXT.ORDER_FAILED);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const scratchLadyluckCard = async () => {
+    const scratchCard = ladyluckSummary?.available_scratch_cards[0];
+    if (!orderingContext?.branchId || !scratchCard) return;
+
+    setIsScratching(true);
+    setError("");
+    try {
+      const discount = await CustomerOrderingApi.scratchLadyluckCard(orderingContext.branchId, scratchCard.id);
+      setSelectedLadyluckDiscountId(discount.id);
+      sessionStorage.setItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID, discount.id);
+      const summary = await CustomerOrderingApi.getLadyluckSummary(orderingContext.branchId);
+      setLadyluckSummary(summary);
+    } catch {
+      setError(CUSTOMER_ORDERING_TEXT.LADYLUCK_SCRATCH_FAILED);
+    } finally {
+      setIsScratching(false);
     }
   };
 
@@ -331,10 +397,25 @@ export default function CartPage() {
           ))}
 
           <div className="mt-2 pt-4 border-t border-border-grey flex flex-col gap-2">
+            <LadyluckPanel
+              summary={ladyluckSummary}
+              activeDiscount={activeLadyluckDiscount}
+              discountAmount={ladyluckDiscountAmount}
+              subtotal={subtotal}
+              isLoading={isLadyluckLoading}
+              isScratching={isScratching}
+              onScratch={scratchLadyluckCard}
+            />
             <BillRow
               label={CUSTOMER_ORDERING_TEXT.SUBTOTAL}
               value={formatAmount(subtotal)}
             />
+            {ladyluckDiscountAmount > 0 ? (
+              <BillRow
+                label={CUSTOMER_ORDERING_TEXT.LADYLUCK_DISCOUNT}
+                value={`-${formatAmount(ladyluckDiscountAmount)}`}
+              />
+            ) : null}
             <div className="h-px bg-border-grey my-1" />
             <BillRow
               label={CUSTOMER_ORDERING_TEXT.PAYABLE}
@@ -406,6 +487,116 @@ const BillRow = ({
     </span>
   </div>
 );
+
+const LadyluckPanel = ({
+  summary,
+  activeDiscount,
+  discountAmount,
+  subtotal,
+  isLoading,
+  isScratching,
+  onScratch,
+}: {
+  summary: LadyluckSummary | null;
+  activeDiscount: LadyluckDiscount | null;
+  discountAmount: number;
+  subtotal: number;
+  isLoading: boolean;
+  isScratching: boolean;
+  onScratch: () => void;
+}) => {
+  if (isLoading) {
+    return (
+      <div className="mb-3 rounded-[12px] border border-border-grey bg-[#FAFAFA] px-3 py-3 text-[12px] font-semibold text-text-secondary">
+        {CUSTOMER_ORDERING_TEXT.LADYLUCK_LOADING}
+      </div>
+    );
+  }
+
+  if (!summary) {
+    return null;
+  }
+
+  const scratchCard = summary.available_scratch_cards[0];
+  const points = summary.account.points_balance || 0;
+  const needsMinimum = activeDiscount && subtotal < activeDiscount.min_order_amount;
+
+  return (
+    <div className="mb-3 rounded-[12px] border border-[#FEF3C7] bg-[#FFFBEB] px-3 py-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex gap-2">
+          <div className="w-8 h-8 rounded-full bg-[#FDE68A] flex items-center justify-center shrink-0">
+            <Gift size={16} className="text-[#92400E]" />
+          </div>
+          <div>
+            <p className="text-[13px] font-bold text-text-primary">
+              {activeDiscount ? CUSTOMER_ORDERING_TEXT.LADYLUCK_APPLIED : CUSTOMER_ORDERING_TEXT.LADYLUCK_TITLE}
+            </p>
+            <p className="mt-1 text-[11px] font-medium text-text-secondary">
+              {points} {CUSTOMER_ORDERING_TEXT.LADYLUCK_POINTS}
+            </p>
+          </div>
+        </div>
+        {scratchCard ? (
+          <button
+            type="button"
+            onClick={onScratch}
+            disabled={isScratching}
+            className="h-8 px-3 rounded-full bg-primary-green text-pure-white text-[11px] font-bold disabled:opacity-60"
+          >
+            {isScratching ? CUSTOMER_ORDERING_TEXT.LADYLUCK_LOADING : CUSTOMER_ORDERING_TEXT.LADYLUCK_SCRATCH_ACTION}
+          </button>
+        ) : null}
+      </div>
+
+      {scratchCard ? (
+        <p className="mt-2 text-[11px] font-semibold text-[#92400E]">
+          {CUSTOMER_ORDERING_TEXT.LADYLUCK_SCRATCH_READY}. {CUSTOMER_ORDERING_TEXT.LADYLUCK_SCRATCH_BODY}
+        </p>
+      ) : null}
+
+      {activeDiscount ? (
+        <div className="mt-3 rounded-[10px] bg-pure-white border border-[#FEF3C7] px-3 py-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <BadgePercent size={16} className="text-[#2563EB] shrink-0" />
+            <div className="min-w-0">
+              <p className="text-[12px] font-bold text-text-primary truncate">
+                {formatLadyluckDiscount(activeDiscount)}
+              </p>
+              <p className="text-[10px] font-semibold text-text-secondary mt-0.5">
+                {CUSTOMER_ORDERING_TEXT.LADYLUCK_MINIMUM} {formatAmount(activeDiscount.min_order_amount)}
+              </p>
+            </div>
+          </div>
+          <span className="text-[12px] font-bold text-primary-green whitespace-nowrap">
+            {needsMinimum ? formatAmount(Math.max(0, activeDiscount.min_order_amount - subtotal)) : `-${formatAmount(discountAmount)}`}
+          </span>
+        </div>
+      ) : !scratchCard ? (
+        <p className="mt-2 text-[11px] font-semibold text-text-secondary">
+          {CUSTOMER_ORDERING_TEXT.LADYLUCK_NO_CARD}
+        </p>
+      ) : null}
+    </div>
+  );
+};
+
+const calculateLadyluckDiscount = (discount: LadyluckDiscount, subtotal: number) => {
+  if (subtotal < discount.min_order_amount) return 0;
+  const rawAmount = discount.discount_type === "PERCENTAGE"
+    ? subtotal * discount.discount_value / 100
+    : discount.discount_value;
+  const cappedAmount = discount.max_discount_amount ? Math.min(rawAmount, discount.max_discount_amount) : rawAmount;
+  return Math.max(0, Math.min(subtotal, Number(cappedAmount.toFixed(2))));
+};
+
+const formatLadyluckDiscount = (discount: LadyluckDiscount) => {
+  if (discount.discount_type === "PERCENTAGE") {
+    const cap = discount.max_discount_amount ? ` up to ${formatAmount(discount.max_discount_amount)}` : "";
+    return `${discount.discount_value}% off${cap}`;
+  }
+  return `${formatAmount(discount.discount_value)} off`;
+};
 
 const normalizeStoredCart = (value: unknown): Record<string, CustomerCartLine> => {
   if (!value || typeof value !== "object") {

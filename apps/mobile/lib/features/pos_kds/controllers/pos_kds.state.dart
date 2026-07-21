@@ -6,6 +6,7 @@ import 'package:mobile/features/pos_kds/models/kitchen_order_ticket.model.dart';
 import 'package:mobile/features/pos_kds/models/advance_payment.model.dart';
 import 'package:mobile/features/pos_kds/models/table_zone.model.dart';
 import 'package:mobile/features/pos_kds/models/pos_cart_line.model.dart';
+import 'package:mobile/features/pos_kds/models/ladyluck.model.dart';
 
 class PosKdsState {
   final List<OrderModel> orders;
@@ -17,6 +18,8 @@ class PosKdsState {
   final List<UserModel> matchingCustomers;
   final UserModel? selectedCustomer;
   final List<String> printLogs;
+  final LadyluckSummaryModel ladyluckSummary;
+  final String selectedLadyluckDiscountId;
 
   final Map<String, PosCartLineModel> cart;
 
@@ -30,6 +33,8 @@ class PosKdsState {
   final OperationInfo saveKotsInfo;
   final OperationInfo loadPaymentsInfo;
   final OperationInfo searchCustomersInfo;
+  final OperationInfo loadLadyluckInfo;
+  final OperationInfo scratchLadyluckInfo;
   final OperationInfo printReceiptInfo;
   final OrderModel? lastPlacedOrder;
 
@@ -43,6 +48,12 @@ class PosKdsState {
     this.matchingCustomers = const [],
     this.selectedCustomer,
     this.printLogs = const [],
+    this.ladyluckSummary = const LadyluckSummaryModel(
+      account: LadyluckAccountModel(points_balance: 0, lifetime_points: 0),
+      available_scratch_cards: [],
+      active_discounts: [],
+    ),
+    this.selectedLadyluckDiscountId = '',
     this.cart = const {},
     this.loadOrdersInfo = const OperationInfo(status: OperationStatus.initial),
     this.saveOrdersInfo = const OperationInfo(status: OperationStatus.initial),
@@ -62,6 +73,12 @@ class PosKdsState {
     this.searchCustomersInfo = const OperationInfo(
       status: OperationStatus.initial,
     ),
+    this.loadLadyluckInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
+    this.scratchLadyluckInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
     this.printReceiptInfo = const OperationInfo(
       status: OperationStatus.initial,
     ),
@@ -78,7 +95,10 @@ class PosKdsState {
     List<UserModel>? matchingCustomers,
     UserModel? selectedCustomer,
     List<String>? printLogs,
+    LadyluckSummaryModel? ladyluckSummary,
+    String? selectedLadyluckDiscountId,
     bool clearSelectedCustomer = false,
+    bool clearLadyluck = false,
     Map<String, PosCartLineModel>? cart,
     OperationInfo? loadOrdersInfo,
     OperationInfo? saveOrdersInfo,
@@ -90,6 +110,8 @@ class PosKdsState {
     OperationInfo? saveKotsInfo,
     OperationInfo? loadPaymentsInfo,
     OperationInfo? searchCustomersInfo,
+    OperationInfo? loadLadyluckInfo,
+    OperationInfo? scratchLadyluckInfo,
     OperationInfo? printReceiptInfo,
     OrderModel? lastPlacedOrder,
     bool clearLastPlacedOrder = false,
@@ -106,6 +128,12 @@ class PosKdsState {
           ? null
           : selectedCustomer ?? this.selectedCustomer,
       printLogs: printLogs ?? this.printLogs,
+      ladyluckSummary: clearLadyluck
+          ? LadyluckSummaryModel.empty()
+          : ladyluckSummary ?? this.ladyluckSummary,
+      selectedLadyluckDiscountId: clearLadyluck
+          ? ''
+          : selectedLadyluckDiscountId ?? this.selectedLadyluckDiscountId,
       cart: cart ?? this.cart,
       loadOrdersInfo: loadOrdersInfo ?? this.loadOrdersInfo,
       saveOrdersInfo: saveOrdersInfo ?? this.saveOrdersInfo,
@@ -117,10 +145,44 @@ class PosKdsState {
       saveKotsInfo: saveKotsInfo ?? this.saveKotsInfo,
       loadPaymentsInfo: loadPaymentsInfo ?? this.loadPaymentsInfo,
       searchCustomersInfo: searchCustomersInfo ?? this.searchCustomersInfo,
+      loadLadyluckInfo: loadLadyluckInfo ?? this.loadLadyluckInfo,
+      scratchLadyluckInfo: scratchLadyluckInfo ?? this.scratchLadyluckInfo,
       printReceiptInfo: printReceiptInfo ?? this.printReceiptInfo,
       lastPlacedOrder: clearLastPlacedOrder
           ? null
           : lastPlacedOrder ?? this.lastPlacedOrder,
     );
+  }
+
+  double get cartSubtotal {
+    return cart.values.fold(0.0, (total, line) => total + line.total);
+  }
+
+  LadyluckDiscountModel? get activeLadyluckDiscount {
+    if (ladyluckSummary.active_discounts.isEmpty) {
+      return null;
+    }
+    return ladyluckSummary.active_discounts.firstWhere(
+      (discount) => discount.id == selectedLadyluckDiscountId,
+      orElse: () => ladyluckSummary.active_discounts.first,
+    );
+  }
+
+  double get ladyluckDiscountAmount {
+    final discount = activeLadyluckDiscount;
+    if (discount == null || cartSubtotal < discount.min_order_amount) {
+      return 0.0;
+    }
+    final rawAmount = discount.discount_type == 'PERCENTAGE'
+        ? cartSubtotal * discount.discount_value / 100
+        : discount.discount_value;
+    final cappedAmount = discount.max_discount_amount > 0
+        ? rawAmount.clamp(0.0, discount.max_discount_amount).toDouble()
+        : rawAmount;
+    return cappedAmount.clamp(0.0, cartSubtotal).toDouble();
+  }
+
+  double get cartPayable {
+    return (cartSubtotal - ladyluckDiscountAmount).clamp(0.0, cartSubtotal).toDouble();
   }
 }

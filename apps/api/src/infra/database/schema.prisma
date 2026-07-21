@@ -52,6 +52,9 @@ model Branch {
   table_sessions TableSession[]
   orders         Order[]
   accounts       Account[]
+  ladyluck_accounts      LadyluckAccount[]
+  ladyluck_scratch_cards LadyluckScratchCard[]
+  ladyluck_discounts     LadyluckDiscount[]
 
   @@map("branches")
 }
@@ -97,6 +100,9 @@ model User {
   orders         Order[]
   table_sessions TableSession[]
   loyalty_trans  LoyaltyTrans[]
+  ladyluck_accounts      LadyluckAccount[]
+  ladyluck_scratch_cards LadyluckScratchCard[]
+  ladyluck_discounts     LadyluckDiscount[]
   sessions       UserSession[]
   complaints     Complaint[]
 
@@ -1015,6 +1021,10 @@ model Order {
   price_reduction_amount Float       @default(0)
   total_amount           Float       @default(0)
   final_paying_price     Float       @default(0)
+  ladyluck_points_earned Int         @default(0)
+  ladyluck_points_awarded_at DateTime?
+  ladyluck_discount_id   String?     @unique
+  ladyluck_discount_amount Float     @default(0)
   fulfillment_date       DateTime?
   notes                  String?
   payment_proofs         String[]    @default([])
@@ -1028,11 +1038,13 @@ model Order {
   user          User?            @relation(fields: [uid], references: [id])
   employee      Employee?        @relation(fields: [employee_id], references: [id])
   partner       DeliveryPartner? @relation(fields: [partner_id], references: [id])
+  ladyluck_discount LadyluckDiscount? @relation("OrderAppliedLadyluckDiscount", fields: [ladyluck_discount_id], references: [id])
 
   items            OrderItem[]
   kots             KitchenOrderTicket[]
   advance_payments AdvancePayment[]
   loyalty_trans    LoyaltyTrans[]
+  ladyluck_scratch_cards LadyluckScratchCard[] @relation("OrderCreatedLadyluckScratchCards")
   complaints       Complaint[]
 
   @@map("orders")
@@ -1178,15 +1190,18 @@ model LoyaltyTrans {
   branch_id  String
   uid        String
   order_id   String?
+  scratch_card_id String?
   points     Int
   trans_type LoyaltyTransType
+  balance_after Int?
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
   created_by String?
 
-  user  User   @relation(fields: [uid], references: [id])
-  order Order? @relation(fields: [order_id], references: [id])
+  user         User                 @relation(fields: [uid], references: [id])
+  order        Order?               @relation(fields: [order_id], references: [id])
+  scratch_card LadyluckScratchCard? @relation(fields: [scratch_card_id], references: [id])
 
   @@map("loyalty_trans")
 }
@@ -1194,8 +1209,97 @@ model LoyaltyTrans {
 enum LoyaltyTransType {
   EARNED
   REDEEMED
+  SCRATCH_CARD_CREATED
   REFUNDED
   BONUS
+  EXPIRED
+  REVERSED
+}
+
+model LadyluckAccount {
+  id              String @id @default(cuid())
+  branch_id       String
+  uid             String
+  points_balance  Int    @default(0)
+  lifetime_points Int    @default(0)
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  branch Branch @relation(fields: [branch_id], references: [id])
+  user   User   @relation(fields: [uid], references: [id])
+
+  @@unique([branch_id, uid])
+  @@map("ladyluck_accounts")
+}
+
+model LadyluckScratchCard {
+  id                    String                    @id @default(cuid())
+  branch_id             String
+  uid                   String
+  points_spent          Int                       @default(500)
+  status                LadyluckScratchCardStatus @default(AVAILABLE)
+  created_from_order_id String?
+  expires_at            DateTime?
+  scratched_at          DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  branch             Branch             @relation(fields: [branch_id], references: [id])
+  user               User               @relation(fields: [uid], references: [id])
+  created_from_order Order?             @relation("OrderCreatedLadyluckScratchCards", fields: [created_from_order_id], references: [id])
+  discount           LadyluckDiscount?
+  loyalty_trans      LoyaltyTrans[]
+
+  @@index([branch_id, uid, status])
+  @@map("ladyluck_scratch_cards")
+}
+
+enum LadyluckScratchCardStatus {
+  AVAILABLE
+  SCRATCHED
+  EXPIRED
+  CANCELLED
+}
+
+model LadyluckDiscount {
+  id                  String                 @id @default(cuid())
+  branch_id           String
+  uid                 String
+  scratch_card_id     String                 @unique
+  discount_type       LadyluckDiscountType
+  discount_value      Float
+  min_order_amount    Float                  @default(0)
+  max_discount_amount Float?
+  status              LadyluckDiscountStatus @default(ACTIVE)
+  applied_amount      Float?
+  valid_from          DateTime               @default(now())
+  valid_until         DateTime?
+  used_at             DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  branch       Branch              @relation(fields: [branch_id], references: [id])
+  user         User                @relation(fields: [uid], references: [id])
+  scratch_card LadyluckScratchCard @relation(fields: [scratch_card_id], references: [id])
+  used_order   Order?              @relation("OrderAppliedLadyluckDiscount")
+
+  @@index([branch_id, uid, status])
+  @@map("ladyluck_discounts")
+}
+
+enum LadyluckDiscountType {
+  FLAT
+  PERCENTAGE
+}
+
+enum LadyluckDiscountStatus {
+  ACTIVE
+  USED
+  EXPIRED
+  CANCELLED
 }
 
 model Coupon {

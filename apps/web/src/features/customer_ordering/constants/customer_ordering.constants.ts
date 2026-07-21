@@ -17,6 +17,7 @@ export const CUSTOMER_ORDERING_STORAGE_KEYS = {
   TABLE_SIDE_ID: "qr_table_side_id",
   ORDER_TYPE: "qr_order_type",
   CART: "customer_ordering_cart",
+  LADYLUCK_DISCOUNT_ID: "customer_ordering_ladyluck_discount_id",
 } as const;
 
 export const CUSTOMER_ORDERING_QUERY_KEYS = {
@@ -36,6 +37,8 @@ export const CUSTOMER_ORDERING_ENDPOINTS = {
   MENU: "/catalog/menu",
   PUBLIC_TABLES: "/pos-kds/public/tables",
   ORDERS: "/pos-kds/orders",
+  LADYLUCK_SUMMARY: "/ladyluck/summary",
+  LADYLUCK_SCRATCH_CARD: "/ladyluck/scratch-cards",
 } as const;
 
 export const CUSTOMER_ORDERING_TEXT = {
@@ -72,6 +75,18 @@ export const CUSTOMER_ORDERING_TEXT = {
   PAYABLE: "Payable",
   CONTINUE: "Continue",
   BILLING: "Billing",
+  LADYLUCK_TITLE: "Ladyluck Rewards",
+  LADYLUCK_POINTS: "Ladyluck points",
+  LADYLUCK_SCRATCH_READY: "Scratch card ready",
+  LADYLUCK_SCRATCH_BODY: "Scratch to unlock a discount for this order.",
+  LADYLUCK_SCRATCH_ACTION: "Scratch now",
+  LADYLUCK_APPLIED: "Ladyluck applied",
+  LADYLUCK_UNLOCKED: "Unlocked reward",
+  LADYLUCK_NO_CARD: "Earn 500 points to unlock a scratch card.",
+  LADYLUCK_LOADING: "Loading rewards",
+  LADYLUCK_DISCOUNT: "Ladyluck discount",
+  LADYLUCK_MINIMUM: "Minimum order",
+  LADYLUCK_SCRATCH_FAILED: "Unable to scratch card",
   ORDERS: "Orders",
   MORE: "More",
   DELIVERY_FALLBACK: "Delivery",

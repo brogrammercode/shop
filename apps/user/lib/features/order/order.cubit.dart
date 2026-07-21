@@ -72,6 +72,46 @@ class OrderCubit extends Cubit<OrderState> {
     emit(state.copyWith(cartItems: []));
   }
 
+  Future<void> loadLadyluck() async {
+    emit(state.copyWith(ladyluckLoadInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _repo.getLadyluckSummary(OrderConstants.LADYLUCK_BRANCH_ID);
+    result.fold(
+      (failure) {
+        emit(state.copyWith(ladyluckLoadInfo: OperationInfo(status: OperationStatus.error, error: failure)));
+      },
+      (summary) {
+        final selectedId = summary.active_discounts.isNotEmpty ? summary.active_discounts.first.id : '';
+        emit(state.copyWith(
+          ladyluckSummary: summary,
+          selectedLadyluckDiscountId: selectedId,
+          ladyluckLoadInfo: const OperationInfo(status: OperationStatus.success),
+        ));
+      },
+    );
+  }
+
+  Future<void> scratchLadyluckCard() async {
+    if (state.ladyluckSummary.available_scratch_cards.isEmpty) {
+      return;
+    }
+    final scratchCard = state.ladyluckSummary.available_scratch_cards.first;
+    emit(state.copyWith(ladyluckScratchInfo: const OperationInfo(status: OperationStatus.loading)));
+    final result = await _repo.scratchLadyluckCard(OrderConstants.LADYLUCK_BRANCH_ID, scratchCard.id);
+    await result.fold<Future<void>>(
+      (failure) async {
+        Fluttertoast.showToast(msg: failure.message);
+        emit(state.copyWith(ladyluckScratchInfo: OperationInfo(status: OperationStatus.error, error: failure)));
+      },
+      (discount) async {
+        emit(state.copyWith(
+          selectedLadyluckDiscountId: discount.id,
+          ladyluckScratchInfo: const OperationInfo(status: OperationStatus.success),
+        ));
+        await loadLadyluck();
+      },
+    );
+  }
+
   void toggleJioSaavn() {
     emit(state.copyWith(jioSaavnAdded: !state.jioSaavnAdded));
   }
@@ -98,6 +138,9 @@ class OrderCubit extends Cubit<OrderState> {
 
     final request = CreateOrderRequest(
       orderType: OrderConstants.ORDER_TYPE_DELIVERY,
+      branchId: OrderConstants.LADYLUCK_BRANCH_ID,
+      finalPayingPrice: state.grandTotal,
+      ladyluckDiscountId: state.ladyluckDiscountAmount > 0 ? state.activeLadyluckDiscount?.id : null,
       items: state.cartItems.map((item) {
         return CreateOrderItemRequest(
           menuItemId: item.id,

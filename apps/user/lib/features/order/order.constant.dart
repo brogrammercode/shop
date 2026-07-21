@@ -2,11 +2,25 @@ import 'order.model.dart';
 
 class OrderConstants {
   static const String ORDER_TYPE_DELIVERY = 'DELIVERY';
+  static const String LADYLUCK_BRANCH_ID = '1783064192233';
+  static const String LADYLUCK_SUMMARY_ENDPOINT = '/api/v1/ladyluck/summary';
+  static const String LADYLUCK_SCRATCH_CARD_ENDPOINT = '/api/v1/ladyluck/scratch-cards';
+  static const String POS_ORDERS_ENDPOINT = '/api/v1/pos-kds/orders';
 }
 
 class OrderMessages {
   static const String CART_EMPTY = 'Cart is empty';
   static const String ORDER_SUCCESS = 'Order placed successfully!';
+  static const String LADYLUCK_SCRATCH_FAILED = 'Unable to scratch card';
+  static const String LADYLUCK_POINTS = 'Ladyluck points';
+  static const String LADYLUCK_REWARDS = 'Ladyluck Rewards';
+  static const String LADYLUCK_SCRATCH_READY = 'Scratch card ready';
+  static const String LADYLUCK_SCRATCH_BODY = 'Scratch to unlock your order discount.';
+  static const String LADYLUCK_SCRATCH_NOW = 'SCRATCH';
+  static const String LADYLUCK_APPLIED = 'Ladyluck applied';
+  static const String LADYLUCK_NO_CARD = 'Earn 500 points to unlock a scratch card.';
+  static const String LADYLUCK_DISCOUNT = 'Ladyluck discount';
+  static const String MINIMUM_ORDER = 'Min order';
 }
 
 final List<PaymentMethod> dummyPaymentMethods = [
@@ -49,4 +63,3 @@ final List<PairingDish> dummyPairingDishes = [
     isVeg: true,
   ),
 ];
-

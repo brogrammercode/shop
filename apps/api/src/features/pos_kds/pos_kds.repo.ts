@@ -2,7 +2,7 @@ import { AddressType, OrderStatus, KOTStatus, OrderType, PayMethod, TableSession
 import prisma from '../../infra/database/client';
 
 export class PosKdsRepo {
-  async createOrder(data: { branch_id: string; order_no: number; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; table_session_id?: string; table_side_ids?: string[]; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; final_paying_price?: number; employee_id?: string; partner_id?: string; code: string; notes?: string; payment_proofs?: string[] }) {
+  async createOrder(data: { branch_id: string; order_no: number; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; table_session_id?: string; table_side_ids?: string[]; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; ladyluck_discount_id?: string; ladyluck_discount_amount?: number; final_paying_price?: number; employee_id?: string; partner_id?: string; code: string; notes?: string; payment_proofs?: string[] }) {
     return prisma.order.create({ data: data as any });
   }
 
@@ -28,7 +28,7 @@ export class PosKdsRepo {
   }
 
   async findOrdersByBranch(branchId: string) {
-    const orders = await prisma.order.findMany({ where: { branch_id: branchId }, include: { user: true, table: true, table_session: true, items: { include: { menu_item: true } } }, orderBy: { created_at: 'desc' } });
+    const orders = await prisma.order.findMany({ where: { branch_id: branchId }, include: { user: true, table: true, table_session: true, ladyluck_discount: true, items: { include: { menu_item: true } } }, orderBy: { created_at: 'desc' } });
     return this.withUserAddresses(orders);
   }
 
@@ -40,13 +40,14 @@ export class PosKdsRepo {
         items: {
           include: { menu_item: { select: { id: true, display_name: true } } },
         },
+        ladyluck_discount: true,
       },
       orderBy: { created_at: 'desc' },
     });
   }
 
   async findOrderById(id: string) {
-    const order = await prisma.order.findUnique({ where: { id }, include: { user: true, table: true, table_session: true, items: { include: { menu_item: true } }, kots: true, advance_payments: true } });
+    const order = await prisma.order.findUnique({ where: { id }, include: { user: true, table: true, table_session: true, ladyluck_discount: true, items: { include: { menu_item: true } }, kots: true, advance_payments: true } });
     if (!order) {
       return order;
     }

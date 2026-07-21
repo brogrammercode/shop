@@ -6,6 +6,7 @@ import 'package:mobile/features/pos_kds/models/table.model.dart';
 import 'package:mobile/features/pos_kds/models/table_zone.model.dart';
 import 'package:mobile/features/pos_kds/models/kitchen_order_ticket.model.dart';
 import 'package:mobile/features/pos_kds/models/advance_payment.model.dart';
+import 'package:mobile/features/pos_kds/models/ladyluck.model.dart';
 
 class PosKdsEndpoints {
   static const String orders = '/pos-kds/orders';
@@ -16,6 +17,10 @@ class PosKdsEndpoints {
   static String customersByPhone(String phone) =>
       '/pos-kds/customers/${Uri.encodeComponent(phone)}';
   static const String resolveCustomerPhone = '/pos-kds/customers/resolve-phone';
+  static String customerLadyluckSummary(String uid) =>
+      '/ladyluck/customers/${Uri.encodeComponent(uid)}/summary';
+  static String scratchCustomerLadyluckCard(String uid, String scratchCardId) =>
+      '/ladyluck/customers/${Uri.encodeComponent(uid)}/scratch-cards/${Uri.encodeComponent(scratchCardId)}/scratch';
 
   static const String tables = '/pos-kds/tables';
   static String table(String id) => '/pos-kds/tables/$id';
@@ -72,6 +77,27 @@ class PosKdsRepo {
         data: {'phone': phone},
       );
       return UserModel.fromJson(response.data['data']);
+    });
+  }
+
+  TaskResult<LadyluckSummaryModel> getCustomerLadyluckSummary(String uid) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.get(
+        PosKdsEndpoints.customerLadyluckSummary(uid),
+      );
+      return LadyluckSummaryModel.fromJson(response.data['data']);
+    });
+  }
+
+  TaskResult<LadyluckDiscountModel> scratchCustomerLadyluckCard(
+    String uid,
+    String scratchCardId,
+  ) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.post(
+        PosKdsEndpoints.scratchCustomerLadyluckCard(uid, scratchCardId),
+      );
+      return LadyluckDiscountModel.fromJson(response.data['data']);
     });
   }
 

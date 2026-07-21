@@ -5,6 +5,7 @@ import { HttpStatus } from "../../constants/status";
 import { OrderType, PayMethod, KOTStatus, OrderStatus } from "@prisma/client";
 import { notificationService } from "../notification/notification.service";
 import { _NOTIFICATION_CONSTANTS } from "../notification/notification.constant";
+import { ladyluckService } from "../ladyluck/ladyluck.service";
 
 export class PosKdsService {
   async createOrder(
@@ -19,6 +20,7 @@ export class PosKdsService {
       final_paying_price?: number;
       employee_id?: string;
       partner_id?: string;
+      ladyluck_discount_id?: string;
       notes?: string;
       payment_proofs?: string[];
       items: {
@@ -43,9 +45,6 @@ export class PosKdsService {
     }));
 
     const tax_amount = 0;
-    const discount_amount = 0;
-    const total_amount = subtotal + tax_amount - discount_amount;
-    const final_paying_price = Number(data.final_paying_price ?? total_amount);
     const order_no = await posKdsRepo.findNextOrderNo(branchId);
     const isDineIn = data.order_type === OrderType.DINE_IN;
     const isDelivery = data.order_type === OrderType.DELIVERY;
@@ -87,8 +86,13 @@ export class PosKdsService {
     }
 
     if (appendOrder) {
-      return this.appendItemsToOrder(branchId, appendOrder, orderItems, subtotal, data.employee_id);
+      return this.appendItemsToOrder(branchId, appendOrder, orderItems, subtotal, data.employee_id, data.ladyluck_discount_id);
     }
+
+    const ladyluckDiscount = await ladyluckService.calculateDiscount(data.uid, branchId, data.ladyluck_discount_id, subtotal);
+    const discount_amount = ladyluckDiscount.discount_amount;
+    const total_amount = subtotal + tax_amount - discount_amount;
+    const final_paying_price = Number(total_amount);
 
     const order = await posKdsRepo.createOrder({
       branch_id: branchId,
@@ -103,6 +107,8 @@ export class PosKdsService {
       subtotal,
       tax_amount,
       discount_amount,
+      ladyluck_discount_id: ladyluckDiscount.discount_id,
+      ladyluck_discount_amount: ladyluckDiscount.discount_amount,
       final_paying_price,
       employee_id: data.employee_id,
       partner_id: isDelivery ? data.partner_id : undefined,
@@ -110,6 +116,8 @@ export class PosKdsService {
       notes: data.notes,
       payment_proofs: data.payment_proofs || [],
     });
+
+    await ladyluckService.markDiscountUsed(ladyluckDiscount.discount_id, ladyluckDiscount.discount_amount);
 
     await posKdsRepo.createOrderItems(
       orderItems.map((item) => ({
@@ -157,6 +165,7 @@ export class PosKdsService {
     orderItems: Awaited<ReturnType<PosKdsService["resolveOrderItem"]>>[],
     subtotal: number,
     employeeId?: string,
+    ladyluckDiscountId?: string,
   ) {
     await posKdsRepo.createOrderItems(
       orderItems.map((item) => ({
@@ -177,10 +186,18 @@ export class PosKdsService {
       })),
     );
     const nextSubtotal = Number(appendOrder.subtotal || 0) + subtotal;
+    const existingLadyluckDiscountId = appendOrder.ladyluck_discount_id || undefined;
+    const ladyluckDiscount = existingLadyluckDiscountId
+      ? {
+          discount_id: existingLadyluckDiscountId,
+          discount_amount: Number(appendOrder.ladyluck_discount_amount || appendOrder.discount_amount || 0),
+        }
+      : await ladyluckService.calculateDiscount(appendOrder.uid, branchId, ladyluckDiscountId, nextSubtotal);
+    const discountAmount = ladyluckDiscount.discount_amount;
     const nextTotal =
       nextSubtotal +
       Number(appendOrder.tax_amount || 0) -
-      Number(appendOrder.discount_amount || 0);
+      discountAmount;
     const shouldReopen = [
       OrderStatus.BILLED,
       OrderStatus.READY,
@@ -190,10 +207,16 @@ export class PosKdsService {
     ].includes(appendOrder.status);
     await posKdsRepo.updateOrder(appendOrder.id, {
       subtotal: nextSubtotal,
+      discount_amount: discountAmount,
+      ladyluck_discount_id: ladyluckDiscount.discount_id,
+      ladyluck_discount_amount: discountAmount,
       total_amount: nextTotal,
       final_paying_price: nextTotal,
       status: shouldReopen ? OrderStatus.OPEN : appendOrder.status,
     });
+    if (!existingLadyluckDiscountId) {
+      await ladyluckService.markDiscountUsed(ladyluckDiscount.discount_id, discountAmount);
+    }
     await posKdsRepo.createKOT({
       branch_id: branchId,
       order_id: appendOrder.id,
@@ -457,6 +480,7 @@ export class PosKdsService {
       final_paying_price: Number(amount),
       payment_proofs: [...((order as any).payment_proofs || []), ...proofUrls],
     });
+    await ladyluckService.awardOrderPoints(id);
 
     if ((order as any).table_session_id) {
       await posKdsRepo.updateTableSession((order as any).table_session_id, {
@@ -491,6 +515,7 @@ export class PosKdsService {
     }
 
     const updatedOrder = await posKdsRepo.updateOrderStatus(id, "REFUNDED");
+    await ladyluckService.reverseOrderPoints(id);
     if ((order as any).table_session_id) {
       await posKdsRepo.updateTableSession((order as any).table_session_id, {
         status: "CLOSED" as any,
@@ -654,6 +679,12 @@ export class PosKdsService {
     const order = await this.getOrderById(id, branchId);
     if (!order) throw new NotFoundError("Order not found");
     const updatedOrder = await posKdsRepo.updateOrderStatus(id, status);
+    if (status === OrderStatus.PAID || status === OrderStatus.DELIVERED) {
+      await ladyluckService.awardOrderPoints(id);
+    }
+    if (status === OrderStatus.REFUNDED) {
+      await ladyluckService.reverseOrderPoints(id);
+    }
     await this.notifyOrder(updatedOrder, {
       type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_STATUS_UPDATED,
       title:

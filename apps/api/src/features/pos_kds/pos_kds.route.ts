@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { _POS_KDS_CONSTANTS } from "./pos_kds.constant";
 import * as posKdsController from "./pos_kds.controller";
-import { authenticate, requirePosKdsAccess } from './pos_kds.middleware';
+import { authenticate, attachBranchEmployee, requirePosKdsAccess } from './pos_kds.middleware';
 
 const router = Router();
 
@@ -13,6 +13,12 @@ router.get(
 
 // Customer-facing authenticated routes (no POS access required)
 router.get('/orders/my', authenticate, posKdsController.listMyOrders);
+router.post(
+  _POS_KDS_CONSTANTS._R_O_U_T_E_S._O_R_D_E_R_S,
+  authenticate,
+  attachBranchEmployee,
+  posKdsController.createOrder,
+);
 
 // Protected POS routes
 router.use(authenticate, requirePosKdsAccess);

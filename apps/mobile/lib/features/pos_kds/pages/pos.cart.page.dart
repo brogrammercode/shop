@@ -17,6 +17,7 @@ import '../controllers/pos_kds.cubit.dart';
 import '../controllers/pos_kds.state.dart';
 import 'dart:async';
 import 'package:mobile/features/pos_kds/models/order.model.dart';
+import 'package:mobile/features/pos_kds/models/ladyluck.model.dart';
 
 class PosCartPage extends StatefulWidget {
   const PosCartPage({super.key});
@@ -136,6 +137,7 @@ class _PosCartPageState extends State<PosCartPage> {
         final selectedCustomer = state.selectedCustomer;
         if (selectedCustomer != null &&
             selectedCustomer.id != _selectedCustomerId) {
+          context.read<CrmCubit>().getLoyaltyByCustomer(selectedCustomer.id);
           setState(() {
             _selectedCustomerId = selectedCustomer.id;
             _customerName = selectedCustomer.name.isEmpty
@@ -354,6 +356,9 @@ class _PosCartPageState extends State<PosCartPage> {
                 final activeDineInBill = activeDineInBills.length == 1
                     ? activeDineInBills.first
                     : null;
+                final ladyluckDiscountAmount =
+                    posState.ladyluckDiscountAmount;
+                final payableAmount = posState.cartPayable;
 
                 return Column(
                   children: [
@@ -851,6 +856,8 @@ class _PosCartPageState extends State<PosCartPage> {
                                 ],
                               ),
                             ),
+                            if (selectedCustomer != null)
+                              _buildLadyluckCard(posState),
                             _buildCustomerContext(posState, crmState),
                           ],
                         ),
@@ -935,6 +942,31 @@ class _PosCartPageState extends State<PosCartPage> {
                                 ),
                               ],
                             ),
+                            if (ladyluckDiscountAmount > 0) ...[
+                              SizedBox(height: 8.h),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    PosConstant.LADYLUCK_DISCOUNT_LABEL,
+                                    style: TextStyle(
+                                      fontSize: 13.sp,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.primaryGreen,
+                                    ),
+                                  ),
+                                  Text(
+                                    '-₹ ${ladyluckDiscountAmount.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      fontSize: 13.sp,
+                                      fontWeight: FontWeight.w900,
+                                      color: AppColors.primaryGreen,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                             SizedBox(height: 16.h),
                             Row(
                               children: [
@@ -959,6 +991,15 @@ class _PosCartPageState extends State<PosCartPage> {
                                           color: AppColors.textSecondary,
                                         ),
                                       ),
+                                      if (ladyluckDiscountAmount > 0)
+                                        Text(
+                                          'Payable ₹ ${payableAmount.toStringAsFixed(0)}',
+                                          style: TextStyle(
+                                            fontSize: 10.sp,
+                                            fontWeight: FontWeight.w900,
+                                            color: AppColors.primaryGreen,
+                                          ),
+                                        ),
                                     ],
                                   ),
                                 ),
@@ -1055,6 +1096,13 @@ class _PosCartPageState extends State<PosCartPage> {
                                             deliveryAddressId:
                                                 _selectedOrderType == 'DELIVERY'
                                                 ? _selectedAddressId
+                                                : null,
+                                            finalPayingPrice: payableAmount,
+                                            ladyluckDiscountId:
+                                                ladyluckDiscountAmount > 0
+                                                ? posState
+                                                      .activeLadyluckDiscount
+                                                      ?.id
                                                 : null,
                                             tableSideIds:
                                                 _selectedOrderType == 'DINE_IN'
@@ -1240,6 +1288,204 @@ class _PosCartPageState extends State<PosCartPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildLadyluckCard(PosKdsState posState) {
+    final discount = posState.activeLadyluckDiscount;
+    final hasScratchCard =
+        posState.ladyluckSummary.available_scratch_cards.isNotEmpty;
+    final isLoading =
+        posState.loadLadyluckInfo.status == OperationStatus.loading;
+    final isScratching =
+        posState.scratchLadyluckInfo.status == OperationStatus.loading;
+
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(horizontal: 16.w, vertical: 0.h),
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB),
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(color: const Color(0xFFFEF3C7)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: isLoading
+          ? Center(
+              child: SizedBox(
+                width: 18.w,
+                height: 18.w,
+                child: const CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primaryGreen,
+                ),
+              ),
+            )
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 34.w,
+                      height: 34.w,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFDE68A),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.card_giftcard,
+                        color: const Color(0xFF92400E),
+                        size: 18.w,
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            discount == null
+                                ? PosConstant.LADYLUCK_REWARDS
+                                : PosConstant.LADYLUCK_APPLIED,
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
+                            '${posState.ladyluckSummary.account.points_balance} ${PosConstant.LADYLUCK_POINTS}',
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (hasScratchCard)
+                      GestureDetector(
+                        onTap: isScratching
+                            ? null
+                            : () => context
+                                  .read<PosKdsCubit>()
+                                  .scratchCustomerLadyluckCard(),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 7.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryGreen.withOpacity(
+                              isScratching ? 0.6 : 1,
+                            ),
+                            borderRadius: BorderRadius.circular(20.r),
+                          ),
+                          child: isScratching
+                              ? SizedBox(
+                                  width: 12.w,
+                                  height: 12.w,
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.pureWhite,
+                                  ),
+                                )
+                              : Text(
+                                  PosConstant.LADYLUCK_SCRATCH_NOW,
+                                  style: TextStyle(
+                                    fontSize: 10.sp,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.pureWhite,
+                                  ),
+                                ),
+                        ),
+                      ),
+                  ],
+                ),
+                SizedBox(height: 12.h),
+                if (discount != null)
+                  Container(
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.pureWhite,
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(color: const Color(0xFFFEF3C7)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.percent,
+                          color: const Color(0xFF2563EB),
+                          size: 18.w,
+                        ),
+                        SizedBox(width: 10.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _formatLadyluckDiscount(discount),
+                                style: TextStyle(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              SizedBox(height: 2.h),
+                              Text(
+                                '${PosConstant.LADYLUCK_MIN_ORDER} Rs. ${discount.min_order_amount.toStringAsFixed(0)}',
+                                style: TextStyle(
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Text(
+                          '-Rs. ${posState.ladyluckDiscountAmount.toStringAsFixed(0)}',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.primaryGreen,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Text(
+                    hasScratchCard
+                        ? '${PosConstant.LADYLUCK_SCRATCH_READY}. ${PosConstant.LADYLUCK_SCRATCH_BODY}'
+                        : PosConstant.LADYLUCK_NO_CARD,
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF92400E),
+                    ),
+                  ),
+              ],
+            ),
+    );
+  }
+
+  String _formatLadyluckDiscount(LadyluckDiscountModel discount) {
+    if (discount.discount_type == 'PERCENTAGE') {
+      final cap = discount.max_discount_amount > 0
+          ? ' up to Rs. ${discount.max_discount_amount.toStringAsFixed(0)}'
+          : '';
+      return '${discount.discount_value.toStringAsFixed(0)}% off$cap';
+    }
+    return 'Rs. ${discount.discount_value.toStringAsFixed(0)} off';
   }
 
   Widget _buildCustomerContext(PosKdsState posState, CrmState crmState) {

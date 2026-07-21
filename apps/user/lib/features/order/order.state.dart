@@ -7,6 +7,10 @@ class OrderState {
   final PaymentMethod? selectedPaymentMethod;
   final bool jioSaavnAdded;
   final bool goldApplied;
+  final LadyluckSummaryModel ladyluckSummary;
+  final String selectedLadyluckDiscountId;
+  final OperationInfo ladyluckLoadInfo;
+  final OperationInfo ladyluckScratchInfo;
   final OperationInfo placeOrderInfo;
 
   const OrderState({
@@ -15,6 +19,14 @@ class OrderState {
     this.selectedPaymentMethod,
     this.jioSaavnAdded = false,
     this.goldApplied = false,
+    this.ladyluckSummary = const LadyluckSummaryModel(
+      account: LadyluckAccountModel(points_balance: 0, lifetime_points: 0),
+      available_scratch_cards: [],
+      active_discounts: [],
+    ),
+    this.selectedLadyluckDiscountId = '',
+    this.ladyluckLoadInfo = const OperationInfo(status: OperationStatus.initial),
+    this.ladyluckScratchInfo = const OperationInfo(status: OperationStatus.initial),
     this.placeOrderInfo = const OperationInfo(status: OperationStatus.initial),
   });
 
@@ -24,6 +36,10 @@ class OrderState {
     PaymentMethod? selectedPaymentMethod,
     bool? jioSaavnAdded,
     bool? goldApplied,
+    LadyluckSummaryModel? ladyluckSummary,
+    String? selectedLadyluckDiscountId,
+    OperationInfo? ladyluckLoadInfo,
+    OperationInfo? ladyluckScratchInfo,
     OperationInfo? placeOrderInfo,
   }) {
     return OrderState(
@@ -32,6 +48,10 @@ class OrderState {
       selectedPaymentMethod: selectedPaymentMethod ?? this.selectedPaymentMethod,
       jioSaavnAdded: jioSaavnAdded ?? this.jioSaavnAdded,
       goldApplied: goldApplied ?? this.goldApplied,
+      ladyluckSummary: ladyluckSummary ?? this.ladyluckSummary,
+      selectedLadyluckDiscountId: selectedLadyluckDiscountId ?? this.selectedLadyluckDiscountId,
+      ladyluckLoadInfo: ladyluckLoadInfo ?? this.ladyluckLoadInfo,
+      ladyluckScratchInfo: ladyluckScratchInfo ?? this.ladyluckScratchInfo,
       placeOrderInfo: placeOrderInfo ?? this.placeOrderInfo,
     );
   }
@@ -70,7 +90,31 @@ class OrderState {
   }
 
   double get grandTotal {
-    return calculateItemTotal + deliveryCharge + taxesAndCharges;
+    return calculateItemTotal + deliveryCharge + taxesAndCharges - ladyluckDiscountAmount;
+  }
+
+  LadyluckDiscountModel? get activeLadyluckDiscount {
+    if (ladyluckSummary.active_discounts.isEmpty) {
+      return null;
+    }
+    return ladyluckSummary.active_discounts.firstWhere(
+      (discount) => discount.id == selectedLadyluckDiscountId,
+      orElse: () => ladyluckSummary.active_discounts.first,
+    );
+  }
+
+  double get ladyluckDiscountAmount {
+    final discount = activeLadyluckDiscount;
+    if (discount == null || calculateItemTotal < discount.min_order_amount) {
+      return 0.0;
+    }
+    final rawAmount = discount.discount_type == 'PERCENTAGE'
+        ? calculateItemTotal * discount.discount_value / 100
+        : discount.discount_value;
+    final cappedAmount = discount.max_discount_amount > 0
+        ? rawAmount.clamp(0.0, discount.max_discount_amount).toDouble()
+        : rawAmount;
+    return cappedAmount.clamp(0.0, calculateItemTotal).toDouble();
   }
 }
 

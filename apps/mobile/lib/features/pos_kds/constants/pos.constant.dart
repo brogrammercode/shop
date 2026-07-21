@@ -45,6 +45,17 @@ class PosConstant {
   static const String CART_EMPTY = 'Cart is empty';
   static const String ORDER_SUMMARY = 'Order Summary';
   static const String PLACE_ORDER = 'Place Order';
+  static const String LADYLUCK_REWARDS = 'Ladyluck Rewards';
+  static const String LADYLUCK_POINTS = 'Ladyluck points';
+  static const String LADYLUCK_SCRATCH_READY = 'Scratch card ready';
+  static const String LADYLUCK_SCRATCH_BODY = 'Scratch to unlock discount';
+  static const String LADYLUCK_SCRATCH_NOW = 'Scratch';
+  static const String LADYLUCK_APPLIED = 'Ladyluck applied';
+  static const String LADYLUCK_NO_CARD = 'No scratch card available';
+  static const String LADYLUCK_DISCOUNT_LABEL = 'Ladyluck discount';
+  static const String LADYLUCK_MIN_ORDER = 'Min order';
+  static const String LADYLUCK_SELECT_CUSTOMER = 'Select a customer to view Ladyluck rewards';
+  static const String LADYLUCK_SCRATCH_FAILED = 'Unable to scratch card';
 
   static const String ORDER_LIST_TITLE = 'All Orders';
   static const String ORDER_DETAIL_TITLE = 'Order Receipt';

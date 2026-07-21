@@ -85,6 +85,7 @@ export interface CustomerOrderPayload {
   uid?: string;
   delivery_address_id?: string;
   order_type: string;
+  ladyluck_discount_id?: string;
   final_paying_price: number;
   items: CustomerOrderPayloadItem[];
 }
@@ -96,4 +97,41 @@ export interface CustomerOrderResponse {
   table_session_id?: string;
   final_paying_price?: number;
   payment_proofs?: string[];
+}
+
+export interface LadyluckAccount {
+  points_balance: number;
+  lifetime_points: number;
+}
+
+export interface LadyluckScratchCard {
+  id: string;
+  status: string;
+  points_spent: number;
+  expires_at?: string;
+}
+
+export interface LadyluckDiscount {
+  id: string;
+  discount_type: "FLAT" | "PERCENTAGE";
+  discount_value: number;
+  min_order_amount: number;
+  max_discount_amount?: number | null;
+  status: string;
+  valid_until?: string;
+}
+
+export interface LadyluckTransaction {
+  id: string;
+  points: number;
+  trans_type: string;
+  balance_after?: number;
+  created_at: string;
+}
+
+export interface LadyluckSummary {
+  account: LadyluckAccount;
+  available_scratch_cards: LadyluckScratchCard[];
+  active_discounts: LadyluckDiscount[];
+  transactions: LadyluckTransaction[];
 }

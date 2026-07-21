@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, LogOut, Settings, CreditCard, UserCircle2, ShoppingBag } from 'lucide-react';
+import { Gift, LogOut, Settings, UserCircle2, ShoppingBag } from 'lucide-react';
 import { useUserStore } from '@/core/store/user.store';
-import { CUSTOMER_ORDERING_ROUTES } from '../constants/customer_ordering.constants';
+import { CUSTOMER_ORDERING_ROUTES, CUSTOMER_ORDERING_TEXT } from '../constants/customer_ordering.constants';
+import { CustomerOrderingApi } from '../services/customer_ordering.api';
 import { CustomerOrderingContext } from '../types/customer_ordering.types';
 
 interface CustomerOrderHeaderProps {
@@ -13,6 +14,7 @@ export const CustomerOrderHeader = ({ context }: CustomerOrderHeaderProps) => {
   const router = useRouter();
   const { user, token, clearContext } = useUserStore();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [ladyluckPoints, setLadyluckPoints] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,6 +26,23 @@ export const CustomerOrderHeader = ({ context }: CustomerOrderHeaderProps) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!token || !context?.branchId) {
+      return;
+    }
+
+    const loadLadyluck = async () => {
+      try {
+        const summary = await CustomerOrderingApi.getLadyluckSummary(context.branchId);
+        setLadyluckPoints(summary.account.points_balance || 0);
+      } catch {
+        setLadyluckPoints(null);
+      }
+    };
+
+    loadLadyluck();
+  }, [context?.branchId, token]);
 
   const handleLogout = () => {
     clearContext();
@@ -49,7 +68,13 @@ export const CustomerOrderHeader = ({ context }: CustomerOrderHeaderProps) => {
             Login
           </button>
         ) : (
-          <div>
+          <div className="flex items-center gap-2">
+            <div className="h-10 px-3 rounded-full bg-[#FFFBEB] border border-[#FEF3C7] flex items-center gap-2">
+              <Gift size={15} className="text-[#92400E]" />
+              <span className="text-[12px] font-bold text-[#92400E] whitespace-nowrap">
+                {ladyluckPoints ?? 0} {CUSTOMER_ORDERING_TEXT.LADYLUCK_POINTS}
+              </span>
+            </div>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="w-10 h-10 rounded-full bg-soft-grey border border-border-grey flex items-center justify-center hover:bg-border-grey transition-colors shadow-sm"
