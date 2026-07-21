@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BadgePercent, ChevronLeft, Gift } from "lucide-react";
+import { BadgePercent, ChevronLeft, X } from "lucide-react";
 import { useUserStore } from "@/core/store/user.store";
 import { AuthRepo } from "@/features/auth/repo/auth.repo";
 import { CustomerContextPanel } from "@/features/customer_ordering/components/CustomerContextPanel";
@@ -31,8 +31,11 @@ import {
   flattenItems,
   formatQuantity,
   formatAmount,
+  imageForItem,
   readOrderingContext,
 } from "@/features/customer_ordering/utils/customer_ordering.utils";
+
+type LadyluckPopupMode = "scratch" | "discount";
 
 export default function CartPage() {
   const router = useRouter();
@@ -60,6 +63,7 @@ export default function CartPage() {
     if (typeof window === "undefined") return "";
     return sessionStorage.getItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID) || "";
   });
+  const [ladyluckPopup, setLadyluckPopup] = useState<LadyluckPopupMode | null>(null);
 
   const [isLoading, setIsLoading] = useState(
     Boolean(orderingContext?.branchId),
@@ -119,17 +123,21 @@ export default function CartPage() {
         const summary = await CustomerOrderingApi.getLadyluckSummary(orderingContext.branchId);
         const storedDiscountId = sessionStorage.getItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID) || "";
         const nextDiscount = summary.active_discounts.find((discount) => discount.id === storedDiscountId) || summary.active_discounts[0];
+        const hasScratchCard = summary.account.points_balance >= CUSTOMER_ORDERING_DEFAULTS.LADYLUCK_POINTS_PER_CARD && summary.available_scratch_cards.length > 0;
         setLadyluckSummary(summary);
         if (nextDiscount) {
           setSelectedLadyluckDiscountId(nextDiscount.id);
           sessionStorage.setItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID, nextDiscount.id);
+          setLadyluckPopup("discount");
         } else {
           setSelectedLadyluckDiscountId("");
           sessionStorage.removeItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID);
+          setLadyluckPopup(hasScratchCard ? "scratch" : null);
         }
       } catch {
         setLadyluckSummary(null);
         setSelectedLadyluckDiscountId("");
+        setLadyluckPopup(null);
         sessionStorage.removeItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID);
       } finally {
         setIsLadyluckLoading(false);
@@ -301,6 +309,7 @@ export default function CartPage() {
       sessionStorage.setItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID, discount.id);
       const summary = await CustomerOrderingApi.getLadyluckSummary(orderingContext.branchId);
       setLadyluckSummary(summary);
+      setLadyluckPopup("discount");
     } catch {
       setError(CUSTOMER_ORDERING_TEXT.LADYLUCK_SCRATCH_FAILED);
     } finally {
@@ -382,43 +391,64 @@ export default function CartPage() {
         </button>
       </div>
 
-      <div className="px-4 mb-6">
-        <h2 className="text-[18px] font-semibold text-text-primary mb-4">
-          {CUSTOMER_ORDERING_TEXT.BILLING}
+      <div className="mx-auto max-w-lg px-4 mb-6">
+        <h2 className="text-[20px] font-semibold text-text-primary mb-4">
+          {CUSTOMER_ORDERING_TEXT.CART_TITLE}
         </h2>
 
-        <div className="flex flex-col gap-3 bg-pure-white p-4 rounded-[14px] border border-border-grey shadow-sm">
-          {cartItems.map((cartItem) => (
-            <div
-              key={cartItem.cartKey}
-              className="border-b border-border-grey pb-3 last:border-0 last:pb-0"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[14px] font-medium text-text-primary leading-tight">
-                    {cartItem.item.display_name}
-                  </p>
-                  <p className="text-[12px] font-normal text-text-secondary mt-1">
-                    {cartItem.saleMode.label} • {formatAmount(cartItem.saleMode.price_per_unit)} / {cartItem.saleMode.uom_code || CUSTOMER_ORDERING_TEXT.DEFAULT_SALE_MODE}
-                  </p>
-                </div>
-                <p className="text-[13px] font-semibold text-text-primary">
-                  {formatAmount(
-                    cartItem.saleMode.price_per_unit * cartItem.quantity,
-                  )}
-                </p>
-              </div>
-              <div className="mt-3 flex">
-                <GreenStepper
-                  count={`${formatQuantity(cartItem.quantity)} ${cartItem.saleMode.uom_code || ""}`.trim()}
-                  onIncrement={() => updateCart(cartItem.cartKey, 1)}
-                  onDecrement={() => updateCart(cartItem.cartKey, -1)}
-                />
-              </div>
+        <div className="flex flex-col gap-3">
+          <div className="rounded-[20px] border border-border-grey bg-pure-white p-4 shadow-sm">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-[12px] font-semibold uppercase text-text-tertiary">
+                {CUSTOMER_ORDERING_TEXT.CART_ITEMS_TITLE}
+              </p>
+              <p className="text-[12px] font-medium text-text-secondary">
+                {cartItems.length} {CUSTOMER_ORDERING_TEXT.ITEM_COUNT}
+              </p>
             </div>
-          ))}
+            {cartItems.map((cartItem) => (
+              <div
+                key={cartItem.cartKey}
+                className="flex gap-3 border-b border-border-grey py-3 first:pt-0 last:border-0 last:pb-0"
+              >
+                <div className="h-[74px] w-[74px] shrink-0 overflow-hidden rounded-[16px] bg-soft-grey">
+                  {imageForItem(cartItem.item) ? (
+                    <img
+                      src={imageForItem(cartItem.item)}
+                      alt={cartItem.item.display_name}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : null}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[15px] font-medium leading-tight text-text-primary">
+                        {cartItem.item.display_name}
+                      </p>
+                      <p className="mt-1 text-[12px] font-normal text-text-secondary">
+                        {cartItem.saleMode.label} - {formatAmount(cartItem.saleMode.price_per_unit)} / {cartItem.saleMode.uom_code || CUSTOMER_ORDERING_TEXT.DEFAULT_SALE_MODE}
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-[14px] font-semibold text-text-primary">
+                      {formatAmount(
+                        cartItem.saleMode.price_per_unit * cartItem.quantity,
+                      )}
+                    </p>
+                  </div>
+                  <div className="mt-3 flex">
+                    <GreenStepper
+                      count={`${formatQuantity(cartItem.quantity)} ${cartItem.saleMode.uom_code || ""}`.trim()}
+                      onIncrement={() => updateCart(cartItem.cartKey, 1)}
+                      onDecrement={() => updateCart(cartItem.cartKey, -1)}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
 
-          <div className="mt-2 pt-4 border-t border-border-grey flex flex-col gap-2">
+          <div className="rounded-[20px] border border-border-grey bg-pure-white p-4 shadow-sm">
             <LadyluckPanel
               summary={ladyluckSummary}
               activeDiscount={activeLadyluckDiscount}
@@ -426,23 +456,14 @@ export default function CartPage() {
               subtotal={subtotal}
               isLoading={isLadyluckLoading}
               isScratching={isScratching}
-              onScratch={scratchLadyluckCard}
+              onShowDetails={() => setLadyluckPopup(activeLadyluckDiscount ? "discount" : "scratch")}
             />
-            <BillRow
-              label={CUSTOMER_ORDERING_TEXT.SUBTOTAL}
-              value={formatAmount(subtotal)}
-            />
-            {ladyluckDiscountAmount > 0 ? (
-              <BillRow
-                label={CUSTOMER_ORDERING_TEXT.LADYLUCK_DISCOUNT}
-                value={`-${formatAmount(ladyluckDiscountAmount)}`}
-              />
-            ) : null}
-            <div className="h-px bg-border-grey my-1" />
-            <BillRow
-              label={CUSTOMER_ORDERING_TEXT.PAYABLE}
-              value={formatAmount(payable)}
-              strong
+            <OrderReceipt
+              cartItems={cartItems}
+              subtotal={subtotal}
+              ladyluckDiscountAmount={ladyluckDiscountAmount}
+              payable={payable}
+              activeDiscount={activeLadyluckDiscount}
             />
           </div>
         </div>
@@ -483,11 +504,94 @@ export default function CartPage() {
           </button>
         </div>
       </div>
+      {ladyluckPopup ? (
+        <LadyluckRewardPopup
+          mode={ladyluckPopup}
+          summary={ladyluckSummary}
+          activeDiscount={activeLadyluckDiscount}
+          discountAmount={ladyluckDiscountAmount}
+          subtotal={subtotal}
+          isScratching={isScratching}
+          onScratch={scratchLadyluckCard}
+          onClose={() => setLadyluckPopup(null)}
+        />
+      ) : null}
     </div>
   );
 }
 
-const BillRow = ({
+const OrderReceipt = ({
+  cartItems,
+  subtotal,
+  ladyluckDiscountAmount,
+  payable,
+  activeDiscount,
+}: {
+  cartItems: CustomerCartItem[];
+  subtotal: number;
+  ladyluckDiscountAmount: number;
+  payable: number;
+  activeDiscount: LadyluckDiscount | null;
+}) => (
+  <div className="mt-4 rounded-[16px] border border-border-grey bg-[#FAFAFA] p-4">
+    <div className="text-center">
+      <p className="text-[11px] font-semibold uppercase text-text-tertiary">
+        {CUSTOMER_ORDERING_TEXT.ORDER_RECEIPT}
+      </p>
+      <p className="mt-2 text-[17px] font-semibold text-text-primary">
+        {CUSTOMER_ORDERING_TEXT.RECEIPT_STORE_NAME}
+      </p>
+      <p className="mt-1 text-[11px] font-medium text-text-secondary">
+        {CUSTOMER_ORDERING_TEXT.RECEIPT_ORDER_MODE}
+      </p>
+    </div>
+    <div className="my-4 border-t border-dashed border-border-grey" />
+    <div className="flex flex-col gap-2">
+      {cartItems.map((cartItem) => (
+        <div key={cartItem.cartKey} className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="truncate text-[12px] font-medium text-text-primary">
+              {cartItem.item.display_name}
+            </p>
+            <p className="mt-0.5 text-[11px] font-normal text-text-secondary">
+              {formatQuantity(cartItem.quantity)} {cartItem.saleMode.uom_code || CUSTOMER_ORDERING_TEXT.DEFAULT_SALE_MODE} x {formatAmount(cartItem.saleMode.price_per_unit)}
+            </p>
+          </div>
+          <span className="shrink-0 text-[12px] font-semibold text-text-primary">
+            {formatAmount(cartItem.saleMode.price_per_unit * cartItem.quantity)}
+          </span>
+        </div>
+      ))}
+    </div>
+    <div className="my-4 border-t border-dashed border-border-grey" />
+    <div className="flex flex-col gap-2">
+      <ReceiptAmountRow
+        label={CUSTOMER_ORDERING_TEXT.RECEIPT_SUBTOTAL}
+        value={formatAmount(subtotal)}
+      />
+      {ladyluckDiscountAmount > 0 ? (
+        <ReceiptAmountRow
+          label={CUSTOMER_ORDERING_TEXT.LADYLUCK_DISCOUNT}
+          value={`-${formatAmount(ladyluckDiscountAmount)}`}
+        />
+      ) : null}
+      {activeDiscount && ladyluckDiscountAmount === 0 ? (
+        <ReceiptAmountRow
+          label={formatLadyluckDiscount(activeDiscount)}
+          value={CUSTOMER_ORDERING_TEXT.RECEIPT_ESTIMATE}
+        />
+      ) : null}
+      <ReceiptAmountRow
+        label={CUSTOMER_ORDERING_TEXT.RECEIPT_FINAL_PAYING}
+        value={formatAmount(payable)}
+        strong
+      />
+    </div>
+    <SavingsCallout amount={ladyluckDiscountAmount} />
+  </div>
+);
+
+const ReceiptAmountRow = ({
   label,
   value,
   strong = false,
@@ -496,19 +600,59 @@ const BillRow = ({
   value: string;
   strong?: boolean;
 }) => (
-  <div className="flex items-center justify-between">
-    <span
-      className={`text-[13px] ${strong ? "font-semibold text-text-primary" : "font-medium text-text-secondary"}`}
-    >
+  <div className="flex items-center justify-between gap-3">
+    <span className={`text-[12px] ${strong ? "font-semibold text-text-primary" : "font-medium text-text-secondary"}`}>
       {label}
     </span>
-    <span
-      className={`text-[13px] ${strong ? "font-semibold text-text-primary" : "font-medium text-text-primary"}`}
-    >
+    <span className={`shrink-0 text-[12px] ${strong ? "font-semibold text-text-primary" : "font-medium text-text-primary"}`}>
       {value}
     </span>
   </div>
 );
+
+const SavingsCallout = ({ amount }: { amount: number }) => {
+  if (amount <= 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-4 rounded-[14px] border border-primary-green bg-[#F0FDF4] px-4 py-4 text-center">
+      <p className="text-[13px] font-semibold text-[#166534]">
+        {CUSTOMER_ORDERING_TEXT.LADYLUCK_YOU_SAVED}
+      </p>
+      <p className="mt-1 text-[34px] font-semibold leading-none text-primary-green">
+        {formatAmount(amount)}
+      </p>
+      <p className="mt-2 text-[12px] font-medium text-[#166534]">
+        {CUSTOMER_ORDERING_TEXT.LADYLUCK_SAVED_WITH}
+      </p>
+    </div>
+  );
+};
+
+const LadyluckLogoMark = ({ size = "large" }: { size?: "small" | "large" }) => {
+  const wrapperClass = size === "small" ? "h-8 w-8" : "h-14 w-14";
+  const backgroundSize = size === "small" ? "122px 122px" : "214px 214px";
+  const backgroundPosition = size === "small" ? "-24px -48px" : "-42px -84px";
+
+  return (
+    <span
+      role="img"
+      aria-label={CUSTOMER_ORDERING_TEXT.LADYLUCK_MASCOT}
+      className={`block ${wrapperClass} shrink-0 rounded-full bg-[#1C1C1C]`}
+      style={{
+        backgroundImage: "url('/logo_transparent.png')",
+        backgroundSize,
+        backgroundPosition,
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <span className="sr-only">
+        {CUSTOMER_ORDERING_TEXT.LADYLUCK_MASCOT}
+      </span>
+    </span>
+  );
+};
 
 const LadyluckPanel = ({
   summary,
@@ -517,7 +661,7 @@ const LadyluckPanel = ({
   subtotal,
   isLoading,
   isScratching,
-  onScratch,
+  onShowDetails,
 }: {
   summary: LadyluckSummary | null;
   activeDiscount: LadyluckDiscount | null;
@@ -525,7 +669,7 @@ const LadyluckPanel = ({
   subtotal: number;
   isLoading: boolean;
   isScratching: boolean;
-  onScratch: () => void;
+  onShowDetails: () => void;
 }) => {
   if (isLoading) {
     return (
@@ -543,14 +687,14 @@ const LadyluckPanel = ({
   const canScratch = points >= CUSTOMER_ORDERING_DEFAULTS.LADYLUCK_POINTS_PER_CARD;
   const scratchCard = canScratch ? summary.available_scratch_cards[0] : null;
   const needsMinimum = activeDiscount && subtotal < activeDiscount.min_order_amount;
+  const pointsToGo = Math.max(0, CUSTOMER_ORDERING_DEFAULTS.LADYLUCK_POINTS_PER_CARD - points);
+  const progress = Math.min(100, points / CUSTOMER_ORDERING_DEFAULTS.LADYLUCK_POINTS_PER_CARD * 100);
 
   return (
     <div className="mb-3 rounded-[12px] border border-[#FEF3C7] bg-[#FFFBEB] px-3 py-3">
       <div className="flex items-start justify-between gap-3">
         <div className="flex gap-2">
-          <div className="w-8 h-8 rounded-full bg-[#FDE68A] flex items-center justify-center shrink-0">
-            <Gift size={16} className="text-[#92400E]" />
-          </div>
+          <LadyluckLogoMark size="small" />
           <div>
             <p className="text-[13px] font-bold text-text-primary">
               {activeDiscount ? CUSTOMER_ORDERING_TEXT.LADYLUCK_APPLIED : CUSTOMER_ORDERING_TEXT.LADYLUCK_TITLE}
@@ -563,13 +707,29 @@ const LadyluckPanel = ({
         {scratchCard ? (
           <button
             type="button"
-            onClick={onScratch}
+            onClick={onShowDetails}
             disabled={isScratching}
             className="h-8 px-3 rounded-full bg-primary-green text-pure-white text-[11px] font-bold disabled:opacity-60"
           >
             {isScratching ? CUSTOMER_ORDERING_TEXT.LADYLUCK_LOADING : CUSTOMER_ORDERING_TEXT.LADYLUCK_SCRATCH_ACTION}
           </button>
         ) : null}
+      </div>
+      <div className="mt-3">
+        <div className="h-2 overflow-hidden rounded-full bg-[#FEF3C7]">
+          <div
+            className="h-full rounded-full bg-primary-green transition-all"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <span className="text-[11px] font-medium text-text-secondary">
+            {points}/{CUSTOMER_ORDERING_DEFAULTS.LADYLUCK_POINTS_PER_CARD} {CUSTOMER_ORDERING_TEXT.LADYLUCK_POINTS_SHORT}
+          </span>
+          <span className="text-right text-[11px] font-semibold text-[#92400E]">
+            {canScratch ? CUSTOMER_ORDERING_TEXT.LADYLUCK_MILESTONE_UNLOCKED : `${pointsToGo} ${CUSTOMER_ORDERING_TEXT.LADYLUCK_POINTS_TO_GO}`}
+          </span>
+        </div>
       </div>
 
       {scratchCard ? (
@@ -579,7 +739,11 @@ const LadyluckPanel = ({
       ) : null}
 
       {activeDiscount ? (
-        <div className="mt-3 rounded-[10px] bg-pure-white border border-[#FEF3C7] px-3 py-2 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          onClick={onShowDetails}
+          className="mt-3 w-full rounded-[10px] bg-pure-white border border-[#FEF3C7] px-3 py-2 flex items-center justify-between gap-3 text-left"
+        >
           <div className="flex items-center gap-2 min-w-0">
             <BadgePercent size={16} className="text-[#2563EB] shrink-0" />
             <div className="min-w-0">
@@ -594,12 +758,107 @@ const LadyluckPanel = ({
           <span className="text-[12px] font-bold text-primary-green whitespace-nowrap">
             {needsMinimum ? formatAmount(Math.max(0, activeDiscount.min_order_amount - subtotal)) : `-${formatAmount(discountAmount)}`}
           </span>
-        </div>
+        </button>
       ) : !scratchCard ? (
         <p className="mt-2 text-[11px] font-semibold text-text-secondary">
           {CUSTOMER_ORDERING_TEXT.LADYLUCK_NO_CARD}
         </p>
       ) : null}
+    </div>
+  );
+};
+
+const LadyluckRewardPopup = ({
+  mode,
+  summary,
+  activeDiscount,
+  discountAmount,
+  subtotal,
+  isScratching,
+  onScratch,
+  onClose,
+}: {
+  mode: LadyluckPopupMode;
+  summary: LadyluckSummary | null;
+  activeDiscount: LadyluckDiscount | null;
+  discountAmount: number;
+  subtotal: number;
+  isScratching: boolean;
+  onScratch: () => void;
+  onClose: () => void;
+}) => {
+  const points = summary?.account.points_balance || 0;
+  const scratchCard = points >= CUSTOMER_ORDERING_DEFAULTS.LADYLUCK_POINTS_PER_CARD ? summary?.available_scratch_cards[0] : null;
+  const discount = activeDiscount;
+
+  if (mode === "scratch" && !scratchCard) {
+    return null;
+  }
+
+  if (mode === "discount" && !discount) {
+    return null;
+  }
+
+  const title = mode === "scratch"
+    ? CUSTOMER_ORDERING_TEXT.LADYLUCK_POPUP_READY_TITLE
+    : CUSTOMER_ORDERING_TEXT.LADYLUCK_POPUP_UNLOCKED_TITLE;
+  const code = `${CUSTOMER_ORDERING_TEXT.LADYLUCK_CODE_PREFIX}${(scratchCard?.id || discount?.id || CUSTOMER_ORDERING_TEXT.LADYLUCK_POPUP_READY_CODE).slice(-8).toUpperCase()}`;
+  const body = mode === "scratch"
+    ? CUSTOMER_ORDERING_TEXT.LADYLUCK_POPUP_READY_BODY
+    : `${formatLadyluckDiscount(discount as LadyluckDiscount)}. ${CUSTOMER_ORDERING_TEXT.LADYLUCK_MINIMUM} ${formatAmount((discount as LadyluckDiscount).min_order_amount)}.`;
+  const appliedSaving = mode === "discount" && discountAmount > 0;
+
+  return (
+    <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/45 px-4 pb-6" onClick={onClose}>
+      <div
+        className="relative w-full max-w-[360px] overflow-visible rounded-[26px] bg-gradient-to-br from-[#FDE047] via-[#F59E0B] to-[#F97316] px-5 pb-5 pt-9 text-center shadow-elevated"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute -right-2 -top-2 flex h-9 w-9 items-center justify-center rounded-full bg-[#FEF3C7] text-[#F97316] shadow-sm"
+        >
+          <X size={18} strokeWidth={2.5} />
+        </button>
+        <div className="absolute left-10 top-7 h-0 w-0 rotate-[-22deg] border-b-[14px] border-l-[18px] border-t-[5px] border-b-pure-white/60 border-l-transparent border-t-transparent" />
+        <div className="absolute right-12 top-8 h-0 w-0 rotate-[24deg] border-b-[16px] border-l-[20px] border-t-[6px] border-b-pure-white/55 border-l-transparent border-t-transparent" />
+        <div className="mb-4 flex justify-center">
+          <LadyluckLogoMark />
+        </div>
+        <h3 className="text-[24px] font-black leading-tight text-pure-white">
+          {title}
+        </h3>
+        <p className="mt-3 text-[23px] font-black text-pure-white">
+          {code}
+        </p>
+        {appliedSaving ? (
+          <div className="mt-4 rounded-[16px] bg-pure-white/20 px-4 py-3">
+            <p className="text-[12px] font-black text-pure-white">
+              {CUSTOMER_ORDERING_TEXT.LADYLUCK_YOU_SAVED}
+            </p>
+            <p className="mt-1 text-[34px] font-black leading-none text-pure-white">
+              {formatAmount(discountAmount)}
+            </p>
+          </div>
+        ) : null}
+        <p className="mx-auto mt-4 max-w-[280px] text-[13px] font-bold leading-relaxed text-pure-white">
+          {body}
+        </p>
+        {mode === "discount" && discount && subtotal < discount.min_order_amount ? (
+          <p className="mt-2 text-[12px] font-bold text-pure-white/90">
+            {CUSTOMER_ORDERING_TEXT.LADYLUCK_ADD_MORE}: {formatAmount(discount.min_order_amount - subtotal)}
+          </p>
+        ) : null}
+        <button
+          type="button"
+          onClick={mode === "scratch" ? onScratch : onClose}
+          disabled={isScratching}
+          className="mt-6 h-12 w-full rounded-[8px] border border-pure-white bg-transparent text-[13px] font-black text-pure-white disabled:opacity-70"
+        >
+          {isScratching ? CUSTOMER_ORDERING_TEXT.LADYLUCK_LOADING : mode === "scratch" ? CUSTOMER_ORDERING_TEXT.LADYLUCK_SCRATCH_ACTION : CUSTOMER_ORDERING_TEXT.LADYLUCK_POPUP_ACTION}
+        </button>
+      </div>
     </div>
   );
 };

@@ -34,6 +34,12 @@ interface MyOrder {
   order_no: number;
   order_type: OrderType;
   status: OrderStatus;
+  subtotal?: number;
+  total_amount?: number;
+  tax_amount?: number;
+  discount_amount?: number;
+  ladyluck_discount_id?: string | null;
+  ladyluck_discount_amount?: number;
   final_paying_price: number;
   payment_proofs?: string[];
   created_at: string;
@@ -62,6 +68,20 @@ function formatDate(iso: string) {
     date: d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }),
     time: d.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }).toUpperCase(),
   };
+}
+
+function orderSubtotal(order: MyOrder) {
+  return Number(order.subtotal ?? order.items.reduce((total, item) => total + item.total_price, 0));
+}
+
+function orderSavedAmount(order: MyOrder) {
+  return Number(order.ladyluck_discount_amount || order.discount_amount || 0);
+}
+
+function orderDiscountLabel(order: MyOrder) {
+  return order.ladyluck_discount_id || Number(order.ladyluck_discount_amount || 0) > 0
+    ? "Ladyluck discount"
+    : "Discount";
 }
 
 export default function OrdersPage() {
@@ -227,11 +247,16 @@ export default function OrdersPage() {
                     />
                   </button>
 
-                  {/* Expanded breakdown */}
                   {isOpen && (
                     <div style={{ borderTop: "1px solid #F2F2F7" }}>
                       <div className="px-4 py-3 bg-[#FAFAFA]">
-                        <p className="text-[10px] font-extrabold text-[#C7C7CC] uppercase tracking-widest mb-2">Items</p>
+                        <p className="text-[10px] font-semibold text-[#8A8A8E] uppercase mb-2">Receipt</p>
+                        <div className="bg-white rounded-2xl border border-[#EBEBEB] px-4 py-4">
+                          <div className="text-center">
+                            <p className="text-[16px] font-semibold text-[#1C1C1E]">LadyLuck</p>
+                            <p className="text-[11px] font-medium text-[#8A8A8E] mt-1">Order #{order.order_no}</p>
+                          </div>
+                          <div className="my-4 border-t border-dashed border-[#D8D8D8]" />
                         <div className="flex flex-col divide-y divide-[#F2F2F7]">
                           {order.items.map((item) => (
                             <div key={item.id} className="flex items-center justify-between py-2">
@@ -249,13 +274,26 @@ export default function OrdersPage() {
                             </div>
                           ))}
                         </div>
-
-                        {/* Total row */}
-                        <div className="flex items-center justify-between mt-2 pt-2" style={{ borderTop: "1px solid #EBEBEB" }}>
-                          <span className="text-[12px] font-bold text-[#1C1C1E]">Total Paid</span>
-                          <span className="text-[14px] font-extrabold text-[#1C1C1E]">
-                            {formatInr(order.final_paying_price)}
-                          </span>
+                          <div className="my-4 border-t border-dashed border-[#D8D8D8]" />
+                          <div className="flex flex-col gap-2">
+                            <OrderReceiptRow label="Subtotal" value={formatInr(orderSubtotal(order))} />
+                            {orderSavedAmount(order) > 0 ? (
+                              <OrderReceiptRow label={orderDiscountLabel(order)} value={`-${formatInr(orderSavedAmount(order))}`} />
+                            ) : null}
+                            {Number(order.tax_amount || 0) > 0 ? (
+                              <OrderReceiptRow label="Tax" value={formatInr(Number(order.tax_amount || 0))} />
+                            ) : null}
+                            <OrderReceiptRow label="Final paying" value={formatInr(order.final_paying_price || order.total_amount || orderSubtotal(order) - orderSavedAmount(order))} strong />
+                          </div>
+                          {orderSavedAmount(order) > 0 ? (
+                            <div className="mt-4 rounded-xl border border-[#1CB15A] bg-[#F0FDF4] px-4 py-4 text-center">
+                              <p className="text-[13px] font-semibold text-[#166534]">YOU SAVED</p>
+                              <p className="mt-1 text-[32px] font-semibold leading-none text-[#1CB15A]">
+                                {formatInr(orderSavedAmount(order))}
+                              </p>
+                              <p className="mt-2 text-[12px] font-medium text-[#166534]">Saved with Ladyluck</p>
+                            </div>
+                          ) : null}
                         </div>
                       </div>
                     </div>
@@ -269,3 +307,22 @@ export default function OrdersPage() {
     </div>
   );
 }
+
+const OrderReceiptRow = ({
+  label,
+  value,
+  strong = false,
+}: {
+  label: string;
+  value: string;
+  strong?: boolean;
+}) => (
+  <div className="flex items-center justify-between gap-3">
+    <span className={`text-[12px] ${strong ? "font-semibold text-[#1C1C1E]" : "font-medium text-[#8A8A8E]"}`}>
+      {label}
+    </span>
+    <span className={`shrink-0 text-[12px] ${strong ? "font-semibold text-[#1C1C1E]" : "font-medium text-[#1C1C1E]"}`}>
+      {value}
+    </span>
+  </div>
+);

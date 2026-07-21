@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Gift, LogOut, Settings, UserCircle2, ShoppingBag } from 'lucide-react';
+import { LogOut, Settings, UserCircle2, ShoppingBag } from 'lucide-react';
 import { useUserStore } from '@/core/store/user.store';
-import { CUSTOMER_ORDERING_ROUTES, CUSTOMER_ORDERING_TEXT } from '../constants/customer_ordering.constants';
+import { CUSTOMER_ORDERING_DEFAULTS, CUSTOMER_ORDERING_ROUTES, CUSTOMER_ORDERING_TEXT } from '../constants/customer_ordering.constants';
 import { CustomerOrderingApi } from '../services/customer_ordering.api';
 import { CustomerOrderingContext } from '../types/customer_ordering.types';
 
@@ -48,14 +48,16 @@ export const CustomerOrderHeader = ({ context }: CustomerOrderHeaderProps) => {
     clearContext();
     setIsDropdownOpen(false);
   };
+  const points = ladyluckPoints ?? 0;
+  const progress = Math.min(100, points / CUSTOMER_ORDERING_DEFAULTS.LADYLUCK_POINTS_PER_CARD * 100);
 
   return (
-    <div className="pt-6 px-4 pb-4 bg-pure-white flex items-center justify-between shadow-sm sticky top-0 z-50">
-      <div className="flex items-center">
+    <div className="px-4 py-2 bg-pure-white flex items-center justify-between shadow-sm sticky top-0 z-50">
+      <div className="h-10 w-40 overflow-visible flex items-center">
         <img 
           src="/logo_transparent.png" 
           alt="Logo" 
-          className="h-20 object-contain scale-125 origin-left" 
+          className="h-16 object-contain scale-125 origin-left" 
         />
       </div>
 
@@ -69,17 +71,22 @@ export const CustomerOrderHeader = ({ context }: CustomerOrderHeaderProps) => {
           </button>
         ) : (
           <div className="flex items-center gap-2">
-            <div className="h-10 px-3 rounded-full bg-[#FFFBEB] border border-[#FEF3C7] flex items-center gap-2">
-              <Gift size={15} className="text-[#92400E]" />
-              <span className="text-[12px] font-bold text-[#92400E] whitespace-nowrap">
-                {ladyluckPoints ?? 0} {CUSTOMER_ORDERING_TEXT.LADYLUCK_POINTS}
+            <div className="h-9 px-2.5 rounded-full bg-[#FFFBEB] border border-[#FEF3C7] flex items-center gap-2">
+              <LadyluckMascot />
+              <span className="flex min-w-[64px] flex-col gap-0.5">
+                <span className="text-[11px] font-semibold leading-none text-[#92400E] whitespace-nowrap">
+                  {points}/{CUSTOMER_ORDERING_DEFAULTS.LADYLUCK_POINTS_PER_CARD}
+                </span>
+                <span className="h-1 overflow-hidden rounded-full bg-[#FEF3C7]">
+                  <span className="block h-full rounded-full bg-primary-green" style={{ width: `${progress}%` }} />
+                </span>
               </span>
             </div>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-10 h-10 rounded-full bg-soft-grey border border-border-grey flex items-center justify-center hover:bg-border-grey transition-colors shadow-sm"
+              className="w-9 h-9 rounded-full bg-soft-grey border border-border-grey flex items-center justify-center hover:bg-border-grey transition-colors shadow-sm"
             >
-              <UserCircle2 size={24} className="text-text-secondary" />
+              <UserCircle2 size={22} className="text-text-secondary" />
             </button>
 
             {isDropdownOpen && (
@@ -125,3 +132,21 @@ export const CustomerOrderHeader = ({ context }: CustomerOrderHeaderProps) => {
     </div>
   );
 };
+
+const LadyluckMascot = () => (
+  <span
+    role="img"
+    aria-label={CUSTOMER_ORDERING_TEXT.LADYLUCK_MASCOT}
+    className="block h-6 w-6 shrink-0 rounded-full bg-[#1C1C1C] shadow-sm"
+    style={{
+      backgroundImage: "url('/logo_transparent.png')",
+      backgroundSize: "92px 92px",
+      backgroundPosition: "-18px -36px",
+      backgroundRepeat: "no-repeat",
+    }}
+  >
+    <span className="sr-only">
+      {CUSTOMER_ORDERING_TEXT.LADYLUCK_MASCOT}
+    </span>
+  </span>
+);

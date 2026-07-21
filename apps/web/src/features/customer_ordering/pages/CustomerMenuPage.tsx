@@ -12,7 +12,7 @@ import {
   CUSTOMER_ORDERING_TEXT,
 } from '../constants/customer_ordering.constants';
 import { CustomerOrderingApi } from '../services/customer_ordering.api';
-import { CustomerCartLine, CustomerMenuCategory, CustomerMenuItem, CustomerOrderingContext } from '../types/customer_ordering.types';
+import { CustomerCartItem, CustomerCartLine, CustomerMenuCategory, CustomerMenuItem, CustomerOrderingContext } from '../types/customer_ordering.types';
 import {
   activeSaleModes,
   buildCartItems,
@@ -21,6 +21,7 @@ import {
   defaultSaleMode,
   flattenItems,
   formatAmount,
+  formatQuantity,
   imageForCategory,
   imageForItem,
   readOrderingContext,
@@ -78,8 +79,18 @@ export const CustomerMenuPage = () => {
   }, [cart]);
 
   const allItems = useMemo(() => flattenItems(categories, CUSTOMER_ORDERING_DEFAULTS.ACTIVE_CATEGORY_ID), [categories]);
-  const visibleItems = useMemo(() => flattenItems(categories, activeCategoryId), [categories, activeCategoryId]);
+  const visibleCategorySections = useMemo(() => {
+    if (activeCategoryId === CUSTOMER_ORDERING_DEFAULTS.ACTIVE_CATEGORY_ID) {
+      return categories.filter((category) => category.items.length > 0);
+    }
+    const category = categories.find((item) => item.id === activeCategoryId);
+    return category ? [category] : [];
+  }, [categories, activeCategoryId]);
   const cartItems = useMemo(() => buildCartItems(allItems, cart), [allItems, cart]);
+  const cartItemsByMenuItem = useMemo(() => cartItems.reduce<Record<string, CustomerCartItem[]>>((next, cartItem) => {
+    next[cartItem.item.id] = [...(next[cartItem.item.id] || []), cartItem];
+    return next;
+  }, {}), [cartItems]);
   const subtotal = useMemo(() => calculateSubtotal(cartItems), [cartItems]);
   const payable = subtotal;
   const totalItems = cartItems.reduce((total, item) => total + item.quantity, 0);
@@ -122,7 +133,22 @@ export const CustomerMenuPage = () => {
     setSaleModeItem(item);
   };
 
+  const primaryCartItemFor = (item: CustomerMenuItem) => {
+    const lines = cartItemsByMenuItem[item.id] || [];
+    const fallbackSaleMode = defaultSaleMode(item);
+    return lines.find((line) => line.saleMode.id === fallbackSaleMode.id) || lines[0] || null;
+  };
 
+  const quantityLabelFor = (item: CustomerMenuItem) => {
+    const lines = cartItemsByMenuItem[item.id] || [];
+    if (lines.length === 0) {
+      return "";
+    }
+    if (lines.length === 1) {
+      return formatQuantity(lines[0].quantity);
+    }
+    return formatQuantity(lines.reduce((total, line) => total + line.quantity, 0));
+  };
 
   if (!isMounted || isLoading) {
     return (
@@ -160,26 +186,47 @@ export const CustomerMenuPage = () => {
             {error}
           </div>
         ) : null}
-        {visibleItems.length === 0 ? (
+        {visibleCategorySections.length === 0 ? (
           <div className="py-12 text-center text-[14px] font-medium text-text-secondary">
             {CUSTOMER_ORDERING_TEXT.EMPTY_MENU}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
-            {visibleItems.map((item) => (
-              <PosProductCard
-                key={item.id}
-                title={item.display_name}
-                price={defaultSaleMode(item).price_per_unit}
-                imageUrl={imageForItem(item)}
-                quantity={cartItems.filter((line) => line.item.id === item.id).length}
-                onAdd={() => handleAdd(item)}
-                onIncrement={() => handleAdd(item)}
-                onDecrement={() => {
-                  const line = cartItems.find((line) => line.item.id === item.id);
-                  if (line) updateCart(line.item, line.saleMode, -1);
-                }}
-              />
+          <div className="flex flex-col gap-6">
+            {visibleCategorySections.map((category) => (
+              <section key={category.id} className="flex flex-col gap-3">
+                <h2 className="text-[16px] font-black text-text-primary">
+                  {category.name}
+                </h2>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  {category.items.map((item) => {
+                    const cartItem = primaryCartItemFor(item);
+                    const saleMode = cartItem?.saleMode || defaultSaleMode(item);
+                    return (
+                      <PosProductCard
+                        key={item.id}
+                        title={item.display_name}
+                        description={`${saleMode.label} - ${formatAmount(saleMode.price_per_unit)} / ${saleMode.uom_code || CUSTOMER_ORDERING_TEXT.DEFAULT_SALE_MODE}`}
+                        priceLabel={formatAmount(saleMode.price_per_unit)}
+                        imageUrl={imageForItem(item)}
+                        quantityLabel={quantityLabelFor(item)}
+                        actionLabel={CUSTOMER_ORDERING_TEXT.ORDER_NOW}
+                        favoriteLabel={CUSTOMER_ORDERING_TEXT.FAVORITE_ITEM}
+                        onAdd={() => handleAdd(item)}
+                        onIncrement={() => {
+                          if (cartItem && activeSaleModes(item).length <= 1) {
+                            updateCart(item, cartItem.saleMode, 1);
+                          } else {
+                            handleAdd(item);
+                          }
+                        }}
+                        onDecrement={() => {
+                          if (cartItem) updateCart(item, cartItem.saleMode, -1);
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </section>
             ))}
           </div>
         )}
