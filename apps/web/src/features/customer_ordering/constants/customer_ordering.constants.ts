@@ -37,6 +37,7 @@ export const CUSTOMER_ORDERING_ENDPOINTS = {
   MENU: "/catalog/menu",
   PUBLIC_TABLES: "/pos-kds/public/tables",
   ORDERS: "/pos-kds/orders",
+  MY_ORDERS: "/pos-kds/orders/my",
   LADYLUCK_SUMMARY: "/ladyluck/summary",
   LADYLUCK_SCRATCH_CARD: "/ladyluck/scratch-cards",
 } as const;
@@ -110,4 +111,9 @@ export const CUSTOMER_ORDERING_DEFAULTS = {
   TAX_RATE: 0.1,
   TABLE_SIDE_COUNT: 4,
   EMPTY_IMAGE: "",
+  ORDER_CREATE_TIMEOUT_MS: 30000,
+  ORDER_CONFIRMATION_WINDOW_MS: 120000,
+  ORDER_CONFIRMATION_RETRY_COUNT: 3,
+  ORDER_CONFIRMATION_RETRY_DELAY_MS: 1200,
+  ORDER_AMOUNT_TOLERANCE: 1,
 } as const;

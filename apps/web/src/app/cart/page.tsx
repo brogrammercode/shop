@@ -16,8 +16,10 @@ import {
 } from "@/features/customer_ordering/constants/customer_ordering.constants";
 import { CustomerOrderingApi } from "@/features/customer_ordering/services/customer_ordering.api";
 import {
+  CustomerCartItem,
   CustomerCartLine,
   CustomerMenuCategory,
+  CustomerOrderResponse,
   CustomerOrderingContext,
   CustomerTable,
   LadyluckDiscount,
@@ -235,6 +237,7 @@ export default function CartPage() {
 
     setIsSubmitting(true);
     setError("");
+    const submittedAt = Date.now();
     try {
       await CustomerOrderingApi.createOrder({
         branch_id: orderingContext.branchId,
@@ -256,9 +259,19 @@ export default function CartPage() {
         })),
       });
     } catch {
-      setError(CUSTOMER_ORDERING_TEXT.ORDER_FAILED);
-      setIsSubmitting(false);
-      return;
+      const wasPlaced = await confirmOrderPlaced({
+        submittedAt,
+        orderingContext,
+        cartItems,
+        subtotal,
+        payable,
+        activeAddressId,
+      }).catch(() => false);
+      if (!wasPlaced) {
+        setError(CUSTOMER_ORDERING_TEXT.ORDER_FAILED);
+        setIsSubmitting(false);
+        return;
+      }
     }
 
     try {
@@ -601,6 +614,115 @@ const formatLadyluckDiscount = (discount: LadyluckDiscount) => {
   }
   return `${formatAmount(discount.discount_value)} off`;
 };
+
+const confirmOrderPlaced = async ({
+  submittedAt,
+  orderingContext,
+  cartItems,
+  subtotal,
+  payable,
+  activeAddressId,
+}: {
+  submittedAt: number;
+  orderingContext: CustomerOrderingContext;
+  cartItems: CustomerCartItem[];
+  subtotal: number;
+  payable: number;
+  activeAddressId: string;
+}) => {
+  for (let attempt = 0; attempt < CUSTOMER_ORDERING_DEFAULTS.ORDER_CONFIRMATION_RETRY_COUNT; attempt += 1) {
+    if (attempt > 0) {
+      await wait(CUSTOMER_ORDERING_DEFAULTS.ORDER_CONFIRMATION_RETRY_DELAY_MS);
+    }
+    const orders = await CustomerOrderingApi.getMyOrders();
+    const matchedOrder = orders.find((order) =>
+      isMatchingSubmittedOrder(order, {
+        submittedAt,
+        orderingContext,
+        cartItems,
+        subtotal,
+        payable,
+        activeAddressId,
+      }),
+    );
+    if (matchedOrder) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const isMatchingSubmittedOrder = (
+  order: CustomerOrderResponse,
+  input: {
+    submittedAt: number;
+    orderingContext: CustomerOrderingContext;
+    cartItems: CustomerCartItem[];
+    subtotal: number;
+    payable: number;
+    activeAddressId: string;
+  },
+) => {
+  const branchId = order.branch_id || order.branch?.id || "";
+  if (branchId !== input.orderingContext.branchId) {
+    return false;
+  }
+
+  if (order.order_type && order.order_type !== input.orderingContext.orderType) {
+    return false;
+  }
+
+  if (
+    input.orderingContext.orderType === CUSTOMER_ORDER_TYPES.DELIVERY &&
+    input.activeAddressId &&
+    order.delivery_address_id &&
+    order.delivery_address_id !== input.activeAddressId
+  ) {
+    return false;
+  }
+
+  const touchedAt = Date.parse(order.updated_at || order.created_at || "");
+  if (
+    Number.isFinite(touchedAt) &&
+    touchedAt < input.submittedAt - CUSTOMER_ORDERING_DEFAULTS.ORDER_CONFIRMATION_WINDOW_MS
+  ) {
+    return false;
+  }
+
+  const amount = Number(order.final_paying_price ?? order.total_amount ?? order.subtotal ?? 0);
+  const amountMatches =
+    isCloseAmount(amount, input.payable) ||
+    isCloseAmount(amount, input.subtotal);
+  return amountMatches || hasSubmittedCartItems(order, input.cartItems);
+};
+
+const hasSubmittedCartItems = (
+  order: CustomerOrderResponse,
+  cartItems: CustomerCartItem[],
+) => {
+  const orderItems = order.items || [];
+  if (orderItems.length === 0) {
+    return false;
+  }
+
+  return cartItems.every((cartItem) =>
+    orderItems.some((orderItem) => {
+      const menuItemId = orderItem.menu_item_id || orderItem.menu_item?.id || "";
+      const sameMenuItem = menuItemId === cartItem.item.id;
+      const sameSaleMode = !orderItem.sale_mode_id || orderItem.sale_mode_id === cartItem.saleMode.id;
+      const enoughQuantity = Number(orderItem.qty || 0) >= cartItem.quantity;
+      return sameMenuItem && sameSaleMode && enoughQuantity;
+    }),
+  );
+};
+
+const isCloseAmount = (left: number, right: number) => {
+  return Number.isFinite(left) &&
+    Number.isFinite(right) &&
+    Math.abs(left - right) <= CUSTOMER_ORDERING_DEFAULTS.ORDER_AMOUNT_TOLERANCE;
+};
+
+const wait = (duration: number) => new Promise((resolve) => window.setTimeout(resolve, duration));
 
 const normalizeStoredCart = (value: unknown): Record<string, CustomerCartLine> => {
   if (!value || typeof value !== "object") {

@@ -92,11 +92,29 @@ export interface CustomerOrderPayload {
 
 export interface CustomerOrderResponse {
   id: string;
+  branch_id?: string;
   order_no: number;
   code?: string;
+  order_type?: string;
+  delivery_address_id?: string | null;
+  subtotal?: number;
+  total_amount?: number;
   table_session_id?: string;
   final_paying_price?: number;
   payment_proofs?: string[];
+  created_at?: string;
+  updated_at?: string;
+  branch?: { id: string; name?: string };
+  items?: CustomerOrderResponseItem[];
+}
+
+export interface CustomerOrderResponseItem {
+  id: string;
+  menu_item_id?: string;
+  sale_mode_id?: string | null;
+  qty: number;
+  total_price?: number;
+  menu_item?: { id: string; display_name?: string };
 }
 
 export interface LadyluckAccount {

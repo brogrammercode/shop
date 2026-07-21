@@ -22,6 +22,7 @@ export const createOrder = asyncHandler(async (req: Request, res: Response) => {
   const branchId = req.employee?.branch_id || req.body.branch_id;
   const result = await posKdsService.createOrder(branchId, {
     ...req.body,
+    uid: req.body.uid || (req.employee ? undefined : req.user?.uid),
     employee_id: req.employee?.id,
   });
   return sendSuccess(res, result, _POS_KDS_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_CREATED, HttpStatus.CREATED);

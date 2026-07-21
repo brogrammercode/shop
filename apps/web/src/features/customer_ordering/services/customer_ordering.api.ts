@@ -1,5 +1,5 @@
 import { apiClient } from '@/core/api/client';
-import { CUSTOMER_ORDERING_ENDPOINTS } from '../constants/customer_ordering.constants';
+import { CUSTOMER_ORDERING_DEFAULTS, CUSTOMER_ORDERING_ENDPOINTS } from '../constants/customer_ordering.constants';
 import { CustomerMenuCategory, CustomerOrderPayload, CustomerOrderResponse, CustomerTable, LadyluckDiscount, LadyluckSummary } from '../types/customer_ordering.types';
 
 interface ApiEnvelope<T> {
@@ -22,7 +22,14 @@ export class CustomerOrderingApi {
   }
 
   static async createOrder(payload: CustomerOrderPayload): Promise<CustomerOrderResponse> {
-    const response = await apiClient.post<ApiEnvelope<CustomerOrderResponse>>(CUSTOMER_ORDERING_ENDPOINTS.ORDERS, payload);
+    const response = await apiClient.post<ApiEnvelope<CustomerOrderResponse>>(CUSTOMER_ORDERING_ENDPOINTS.ORDERS, payload, {
+      timeout: CUSTOMER_ORDERING_DEFAULTS.ORDER_CREATE_TIMEOUT_MS,
+    });
+    return response.data.data;
+  }
+
+  static async getMyOrders(): Promise<CustomerOrderResponse[]> {
+    const response = await apiClient.get<ApiEnvelope<CustomerOrderResponse[]>>(CUSTOMER_ORDERING_ENDPOINTS.MY_ORDERS);
     return response.data.data;
   }
 

@@ -3,9 +3,9 @@ import 'order.model.dart';
 class OrderConstants {
   static const String ORDER_TYPE_DELIVERY = 'DELIVERY';
   static const String LADYLUCK_BRANCH_ID = '1783064192233';
-  static const String LADYLUCK_SUMMARY_ENDPOINT = '/api/v1/ladyluck/summary';
-  static const String LADYLUCK_SCRATCH_CARD_ENDPOINT = '/api/v1/ladyluck/scratch-cards';
-  static const String POS_ORDERS_ENDPOINT = '/api/v1/pos-kds/orders';
+  static const String LADYLUCK_SUMMARY_ENDPOINT = '/ladyluck/summary';
+  static const String LADYLUCK_SCRATCH_CARD_ENDPOINT = '/ladyluck/scratch-cards';
+  static const String POS_ORDERS_ENDPOINT = '/pos-kds/orders';
 }
 
 class OrderMessages {
