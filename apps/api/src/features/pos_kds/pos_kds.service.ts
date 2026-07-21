@@ -2,7 +2,7 @@ import { posKdsRepo } from "./pos_kds.repo";
 import { _POS_KDS_CONSTANTS } from "./pos_kds.constant";
 import { AppError, NotFoundError, BadRequestError } from "../../utils/error";
 import { HttpStatus } from "../../constants/status";
-import { OrderType, PayMethod, KOTStatus, OrderStatus } from "@prisma/client";
+import { OrderType, PayMethod, KOTStatus, OrderStatus, KOTStation } from "@prisma/client";
 import { notificationService } from "../notification/notification.service";
 import { _NOTIFICATION_CONSTANTS } from "../notification/notification.constant";
 import { ladyluckService } from "../ladyluck/ladyluck.service";
@@ -94,35 +94,31 @@ export class PosKdsService {
     const total_amount = subtotal + tax_amount - discount_amount;
     const final_paying_price = Number(total_amount);
 
-    const order = await posKdsRepo.createOrder({
-      branch_id: branchId,
-      order_no,
-      uid: data.uid,
-      delivery_address_id: isDelivery ? data.delivery_address_id : undefined,
-      order_type: data.order_type,
-      table_id: isDineIn ? data.table_id : undefined,
-      table_session_id: tableSession?.id,
-      table_side_ids,
-      total_amount,
-      subtotal,
-      tax_amount,
-      discount_amount,
-      ladyluck_discount_id: ladyluckDiscount.discount_id,
-      ladyluck_discount_amount: ladyluckDiscount.discount_amount,
-      final_paying_price,
-      employee_id: data.employee_id,
-      partner_id: isDelivery ? data.partner_id : undefined,
-      code: `ORD-${Date.now()}-${order_no.toString().padStart(3, "0")}`,
-      notes: data.notes,
-      payment_proofs: data.payment_proofs || [],
-    });
-
-    await ladyluckService.markDiscountUsed(ladyluckDiscount.discount_id, ladyluckDiscount.discount_amount);
-
-    await posKdsRepo.createOrderItems(
+    const order = await posKdsRepo.createOrderBundle(
+      {
+        branch_id: branchId,
+        order_no,
+        uid: data.uid,
+        delivery_address_id: isDelivery ? data.delivery_address_id : undefined,
+        order_type: data.order_type,
+        table_id: isDineIn ? data.table_id : undefined,
+        table_session_id: tableSession?.id,
+        table_side_ids,
+        total_amount,
+        subtotal,
+        tax_amount,
+        discount_amount,
+        ladyluck_discount_id: ladyluckDiscount.discount_id,
+        ladyluck_discount_amount: ladyluckDiscount.discount_amount,
+        final_paying_price,
+        employee_id: data.employee_id,
+        partner_id: isDelivery ? data.partner_id : undefined,
+        code: `ORD-${Date.now()}-${order_no.toString().padStart(3, "0")}`,
+        notes: data.notes,
+        payment_proofs: data.payment_proofs || [],
+      },
       orderItems.map((item) => ({
         branch_id: branchId,
-        order_id: order.id,
         menu_item_id: item.menu_item_id,
         sale_mode_id: item.sale_mode_id,
         qty: item.quantity,
@@ -136,20 +132,17 @@ export class PosKdsService {
         base_uom_code: item.base_uom_code,
         notes: item.notes,
       })),
+      {
+        branch_id: branchId,
+        station: KOTStation.HOT_FOOD,
+        status: KOTStatus.PREPARING,
+      },
+      isDineIn && data.table_id ? data.table_id : undefined,
+      ladyluckDiscount.discount_id,
+      ladyluckDiscount.discount_amount,
     );
 
-    if (isDineIn && data.table_id) {
-      await posKdsRepo.updateTable(data.table_id, { status: "OCCUPIED" });
-    }
-
-    const kot = await posKdsRepo.createKOT({
-      branch_id: branchId,
-      order_id: order.id,
-      station: "HOT_FOOD",
-      status: "PREPARING",
-    });
-
-    const createdOrder = await this.getOrderById(order.id, branchId);
+    const createdOrder = await this.getOrderById(order.id, branchId).catch(() => order);
     void this.notifyOrder(createdOrder, {
       type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_CREATED,
       title: _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_CREATED_TITLE,
@@ -167,24 +160,6 @@ export class PosKdsService {
     employeeId?: string,
     ladyluckDiscountId?: string,
   ) {
-    await posKdsRepo.createOrderItems(
-      orderItems.map((item) => ({
-        branch_id: branchId,
-        order_id: appendOrder.id,
-        menu_item_id: item.menu_item_id,
-        sale_mode_id: item.sale_mode_id,
-        qty: item.quantity,
-        unit_price: item.unit_price,
-        total_price: item.quantity * item.unit_price,
-        sale_mode_label: item.sale_mode_label,
-        quantity_uom_id: item.quantity_uom_id,
-        quantity_uom_code: item.quantity_uom_code,
-        base_quantity: item.base_quantity,
-        base_uom_id: item.base_uom_id,
-        base_uom_code: item.base_uom_code,
-        notes: item.notes,
-      })),
-    );
     const nextSubtotal = Number(appendOrder.subtotal || 0) + subtotal;
     const existingLadyluckDiscountId = appendOrder.ladyluck_discount_id || undefined;
     const ladyluckDiscount = existingLadyluckDiscountId
@@ -205,25 +180,42 @@ export class PosKdsService {
       OrderStatus.DELIVERED,
       OrderStatus.FAILED_DELIVERY,
     ].includes(appendOrder.status);
-    await posKdsRepo.updateOrder(appendOrder.id, {
-      subtotal: nextSubtotal,
-      discount_amount: discountAmount,
-      ladyluck_discount_id: ladyluckDiscount.discount_id,
-      ladyluck_discount_amount: discountAmount,
-      total_amount: nextTotal,
-      final_paying_price: nextTotal,
-      status: shouldReopen ? OrderStatus.OPEN : appendOrder.status,
-    });
-    if (!existingLadyluckDiscountId) {
-      await ladyluckService.markDiscountUsed(ladyluckDiscount.discount_id, discountAmount);
-    }
-    await posKdsRepo.createKOT({
-      branch_id: branchId,
-      order_id: appendOrder.id,
-      station: "HOT_FOOD",
-      status: KOTStatus.PREPARING,
-    });
-    const updatedOrder = await this.getOrderById(appendOrder.id, branchId);
+    const order = await posKdsRepo.appendOrderBundle(
+      appendOrder.id,
+      orderItems.map((item) => ({
+        branch_id: branchId,
+        order_id: appendOrder.id,
+        menu_item_id: item.menu_item_id,
+        sale_mode_id: item.sale_mode_id,
+        qty: item.quantity,
+        unit_price: item.unit_price,
+        total_price: item.quantity * item.unit_price,
+        sale_mode_label: item.sale_mode_label,
+        quantity_uom_id: item.quantity_uom_id,
+        quantity_uom_code: item.quantity_uom_code,
+        base_quantity: item.base_quantity,
+        base_uom_id: item.base_uom_id,
+        base_uom_code: item.base_uom_code,
+        notes: item.notes,
+      })),
+      {
+        subtotal: nextSubtotal,
+        discount_amount: discountAmount,
+        ladyluck_discount_id: ladyluckDiscount.discount_id,
+        ladyluck_discount_amount: discountAmount,
+        total_amount: nextTotal,
+        final_paying_price: nextTotal,
+        status: shouldReopen ? OrderStatus.OPEN : appendOrder.status,
+      },
+      {
+        branch_id: branchId,
+        station: KOTStation.HOT_FOOD,
+        status: KOTStatus.PREPARING,
+      },
+      !existingLadyluckDiscountId ? ladyluckDiscount.discount_id : undefined,
+      discountAmount,
+    );
+    const updatedOrder = await this.getOrderById(appendOrder.id, branchId).catch(() => order);
     void this.notifyOrder(updatedOrder, {
       type: _NOTIFICATION_CONSTANTS._T_Y_P_E_S.ORDER_STATUS_UPDATED,
       title: _NOTIFICATION_CONSTANTS._M_E_S_S_A_G_E_S.ORDER_STATUS_UPDATED_TITLE,

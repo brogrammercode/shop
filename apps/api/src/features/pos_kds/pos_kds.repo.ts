@@ -1,9 +1,43 @@
-import { AddressType, OrderStatus, KOTStatus, OrderType, PayMethod, TableSessionStatus } from '@prisma/client';
+import { AddressType, LadyluckDiscountStatus, OrderStatus, KOTStatus, OrderType, PayMethod, TableSessionStatus, TableStatus } from '@prisma/client';
 import prisma from '../../infra/database/client';
 
 export class PosKdsRepo {
   async createOrder(data: { branch_id: string; order_no: number; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; table_session_id?: string; table_side_ids?: string[]; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; ladyluck_discount_id?: string; ladyluck_discount_amount?: number; final_paying_price?: number; employee_id?: string; partner_id?: string; code: string; notes?: string; payment_proofs?: string[] }) {
     return prisma.order.create({ data: data as any });
+  }
+
+  async createOrderBundle(data: { branch_id: string; order_no: number; uid?: string; delivery_address_id?: string; order_type: OrderType; table_id?: string; table_session_id?: string; table_side_ids?: string[]; total_amount: number; subtotal: number; tax_amount: number; discount_amount: number; ladyluck_discount_id?: string; ladyluck_discount_amount?: number; final_paying_price?: number; employee_id?: string; partner_id?: string; code: string; notes?: string; payment_proofs?: string[] }, items: { branch_id: string; menu_item_id: string; sale_mode_id?: string; qty: number; unit_price: number; total_price: number; sale_mode_label?: string; quantity_uom_id?: string; quantity_uom_code?: string; base_quantity?: number; base_uom_id?: string; base_uom_code?: string; notes?: string }[], kot: { branch_id: string; station: any; status: KOTStatus }, tableId?: string, ladyluckDiscountId?: string, ladyluckDiscountAmount?: number) {
+    return prisma.$transaction(async (tx) => {
+      const order = await tx.order.create({ data: data as any });
+      if (ladyluckDiscountId) {
+        await tx.ladyluckDiscount.update({
+          where: { id: ladyluckDiscountId },
+          data: {
+            status: LadyluckDiscountStatus.USED,
+            used_at: new Date(),
+            applied_amount: ladyluckDiscountAmount || 0,
+          },
+        });
+      }
+      if (items.length > 0) {
+        await tx.orderItem.createMany({
+          data: items.map((item) => ({ ...item, order_id: order.id })),
+        });
+      }
+      if (tableId) {
+        await tx.table.update({
+          where: { id: tableId },
+          data: { status: TableStatus.OCCUPIED },
+        });
+      }
+      await tx.kitchenOrderTicket.create({
+        data: {
+          ...kot,
+          order_id: order.id,
+        },
+      });
+      return order;
+    });
   }
 
   async findNextOrderNo(branchId: string) {
@@ -94,6 +128,35 @@ export class PosKdsRepo {
 
   async updateOrder(id: string, data: any) {
     return prisma.order.update({ where: { id }, data });
+  }
+
+  async appendOrderBundle(orderId: string, items: { branch_id: string; order_id: string; menu_item_id: string; sale_mode_id?: string; qty: number; unit_price: number; total_price: number; sale_mode_label?: string; quantity_uom_id?: string; quantity_uom_code?: string; base_quantity?: number; base_uom_id?: string; base_uom_code?: string; notes?: string }[], orderData: any, kot: { branch_id: string; station: any; status: KOTStatus }, ladyluckDiscountId?: string, ladyluckDiscountAmount?: number) {
+    return prisma.$transaction(async (tx) => {
+      if (items.length > 0) {
+        await tx.orderItem.createMany({ data: items });
+      }
+      const order = await tx.order.update({
+        where: { id: orderId },
+        data: orderData,
+      });
+      if (ladyluckDiscountId) {
+        await tx.ladyluckDiscount.update({
+          where: { id: ladyluckDiscountId },
+          data: {
+            status: LadyluckDiscountStatus.USED,
+            used_at: new Date(),
+            applied_amount: ladyluckDiscountAmount || 0,
+          },
+        });
+      }
+      await tx.kitchenOrderTicket.create({
+        data: {
+          ...kot,
+          order_id: orderId,
+        },
+      });
+      return order;
+    });
   }
 
   async findActiveTableSessions(branchId: string, tableId: string) {
