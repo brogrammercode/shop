@@ -6,6 +6,7 @@ class OrderConstants {
   static const String LADYLUCK_SUMMARY_ENDPOINT = '/ladyluck/summary';
   static const String LADYLUCK_SCRATCH_CARD_ENDPOINT = '/ladyluck/scratch-cards';
   static const String POS_ORDERS_ENDPOINT = '/pos-kds/orders';
+  static const int LADYLUCK_POINTS_PER_CARD = 500;
 }
 
 class OrderMessages {

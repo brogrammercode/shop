@@ -1293,7 +1293,9 @@ class _PosCartPageState extends State<PosCartPage> {
   Widget _buildLadyluckCard(PosKdsState posState) {
     final discount = posState.activeLadyluckDiscount;
     final hasScratchCard =
-        posState.ladyluckSummary.available_scratch_cards.isNotEmpty;
+        posState.ladyluckSummary.available_scratch_cards.isNotEmpty &&
+        posState.ladyluckSummary.account.points_balance >=
+            PosConstant.LADYLUCK_POINTS_PER_CARD;
     final isLoading =
         posState.loadLadyluckInfo.status == OperationStatus.loading;
     final isScratching =

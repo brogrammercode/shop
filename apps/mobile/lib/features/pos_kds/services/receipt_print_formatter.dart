@@ -105,21 +105,14 @@ class ReceiptPrintFormatter {
     _separator(bytes);
     _amount(
       bytes,
-      PosConstant.RECEIPT_TOTAL_AMOUNT_LABEL.toUpperCase(),
-      order.total_amount,
+      PosConstant.RECEIPT_SUBTOTAL_LABEL.toUpperCase(),
+      order.subtotal > 0 ? order.subtotal : order.total_amount,
     );
-    if (order.subtotal > 0 && order.subtotal != order.total_amount) {
+    if (_savedAmount(order) > 0) {
       _amount(
         bytes,
-        PosConstant.RECEIPT_SUBTOTAL_LABEL.toUpperCase(),
-        order.subtotal,
-      );
-    }
-    if (order.discount_amount > 0) {
-      _amount(
-        bytes,
-        PosConstant.RECEIPT_DISCOUNT_LABEL.toUpperCase(),
-        -order.discount_amount,
+        _discountLabel(order).toUpperCase(),
+        -_savedAmount(order),
       );
     }
     if (order.tax_amount > 0) {
@@ -128,6 +121,14 @@ class ReceiptPrintFormatter {
         PosConstant.RECEIPT_TAX_LABEL.toUpperCase(),
         order.tax_amount,
       );
+    }
+    _amount(
+      bytes,
+      PosConstant.RECEIPT_TOTAL_AMOUNT_LABEL.toUpperCase(),
+      order.total_amount,
+    );
+    if (_savedAmount(order) > 0) {
+      await _savingsStamp(bytes, _savedAmount(order));
     }
     _bold(bytes, true);
     _amount(
@@ -239,6 +240,99 @@ class ReceiptPrintFormatter {
     } finally {
       image.dispose();
     }
+  }
+
+  Future<void> _savingsStamp(List<int> bytes, double amount) async {
+    final recorder = ui.PictureRecorder();
+    final canvas = ui.Canvas(recorder);
+    final width = PosConstant.RECEIPT_SAVINGS_STAMP_WIDTH.toDouble();
+    final height = PosConstant.RECEIPT_SAVINGS_STAMP_HEIGHT.toDouble();
+    final paint = ui.Paint()
+      ..color = const ui.Color(0xFFFFFFFF)
+      ..style = ui.PaintingStyle.fill;
+    final strokePaint = ui.Paint()
+      ..color = const ui.Color(0xFF000000)
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 4;
+    final rect = ui.Rect.fromLTWH(8, 8, width - 16, height - 16);
+    canvas.drawRRect(
+      ui.RRect.fromRectAndRadius(rect, const ui.Radius.circular(10)),
+      paint,
+    );
+    canvas.drawRRect(
+      ui.RRect.fromRectAndRadius(rect, const ui.Radius.circular(10)),
+      strokePaint,
+    );
+    _drawStampText(
+      canvas,
+      PosConstant.RECEIPT_YOU_SAVED_LABEL,
+      26,
+      20,
+      width,
+      ui.FontWeight.w900,
+      letterSpacing: 2,
+    );
+    _drawStampText(
+      canvas,
+      '₹${amount.toStringAsFixed(0)}',
+      56,
+      52,
+      width,
+      ui.FontWeight.w900,
+    );
+    _drawStampText(
+      canvas,
+      PosConstant.RECEIPT_SAVED_WITH_LADYLUCK_LABEL,
+      20,
+      114,
+      width,
+      ui.FontWeight.w800,
+    );
+    final image = await recorder.endRecording().toImage(
+      width.toInt(),
+      height.toInt(),
+    );
+    try {
+      final byteData = await image.toByteData(
+        format: ui.ImageByteFormat.rawRgba,
+      );
+      final rgbaBytes = byteData?.buffer.asUint8List();
+      if (rgbaBytes == null) {
+        return;
+      }
+      _blank(bytes);
+      _center(bytes);
+      _raster(bytes, rgbaBytes, image.width, image.height);
+      _left(bytes);
+      _blank(bytes);
+    } finally {
+      image.dispose();
+    }
+  }
+
+  void _drawStampText(
+    ui.Canvas canvas,
+    String text,
+    double fontSize,
+    double top,
+    double width,
+    ui.FontWeight weight, {
+    double letterSpacing = 0,
+  }) {
+    final paragraphBuilder =
+        ui.ParagraphBuilder(ui.ParagraphStyle(textAlign: ui.TextAlign.center))
+          ..pushStyle(
+            ui.TextStyle(
+              color: const ui.Color(0xFF000000),
+              fontSize: fontSize,
+              fontWeight: weight,
+              letterSpacing: letterSpacing,
+            ),
+          )
+          ..addText(text);
+    final paragraph = paragraphBuilder.build()
+      ..layout(ui.ParagraphConstraints(width: width));
+    canvas.drawParagraph(paragraph, ui.Offset(0, top));
   }
 
   Future<ui.Image?> _loadAssetImage(
@@ -393,6 +487,20 @@ class ReceiptPrintFormatter {
       return order.final_paying_price;
     }
     return order.total_amount;
+  }
+
+  double _savedAmount(OrderModel order) {
+    if (order.ladyluck_discount_amount > 0) {
+      return order.ladyluck_discount_amount;
+    }
+    return order.discount_amount > 0 ? order.discount_amount : 0;
+  }
+
+  String _discountLabel(OrderModel order) {
+    return order.ladyluck_discount_id.isNotEmpty ||
+            order.ladyluck_discount_amount > 0
+        ? PosConstant.RECEIPT_LADYLUCK_DISCOUNT_LABEL
+        : PosConstant.RECEIPT_DISCOUNT_LABEL;
   }
 
   String _formatOrderDate(String value) {

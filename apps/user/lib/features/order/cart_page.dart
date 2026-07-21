@@ -639,7 +639,10 @@ class _CartPageState extends State<CartPage> {
 
   Widget _buildLadyluckCard(OrderState state) {
     final discount = state.activeLadyluckDiscount;
-    final hasScratchCard = state.ladyluckSummary.available_scratch_cards.isNotEmpty;
+    final hasScratchCard =
+        state.ladyluckSummary.available_scratch_cards.isNotEmpty &&
+        state.ladyluckSummary.account.points_balance >=
+            OrderConstants.LADYLUCK_POINTS_PER_CARD;
     final isLoading = state.ladyluckLoadInfo.status == OperationStatus.loading;
     final isScratching = state.ladyluckScratchInfo.status == OperationStatus.loading;
 

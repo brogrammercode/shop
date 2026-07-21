@@ -56,6 +56,7 @@ class PosConstant {
   static const String LADYLUCK_MIN_ORDER = 'Min order';
   static const String LADYLUCK_SELECT_CUSTOMER = 'Select a customer to view Ladyluck rewards';
   static const String LADYLUCK_SCRATCH_FAILED = 'Unable to scratch card';
+  static const int LADYLUCK_POINTS_PER_CARD = 500;
 
   static const String ORDER_LIST_TITLE = 'All Orders';
   static const String ORDER_DETAIL_TITLE = 'Order Receipt';
@@ -125,6 +126,10 @@ class PosConstant {
   static const String RECEIPT_ITEM_FALLBACK = 'Item';
   static const String RECEIPT_SUBTOTAL_LABEL = 'Subtotal';
   static const String RECEIPT_DISCOUNT_LABEL = 'Discount';
+  static const String RECEIPT_LADYLUCK_DISCOUNT_LABEL = 'Ladyluck Discount';
+  static const String RECEIPT_YOU_SAVED_LABEL = 'YOU SAVED';
+  static const String RECEIPT_SAVED_WITH_LADYLUCK_LABEL =
+      'Saved with Ladyluck';
   static const String RECEIPT_TAX_LABEL = 'Tax/GST';
   static const String RECEIPT_TOTAL_AMOUNT_LABEL = 'Total Amount';
   static const String RECEIPT_FINAL_PAYING_LABEL = 'Final Paying';
@@ -179,6 +184,8 @@ class PosConstant {
   static const int RECEIPT_LOGO_CROP_PADDING = 2;
   static const int RECEIPT_PAID_STAMP_WIDTH = 360;
   static const int RECEIPT_PAID_STAMP_HEIGHT = 140;
+  static const int RECEIPT_SAVINGS_STAMP_WIDTH = 360;
+  static const int RECEIPT_SAVINGS_STAMP_HEIGHT = 150;
   static const int RECEIPT_IMAGE_THRESHOLD = 210;
 
   static const String ADVANCE_PAYMENT_TITLE = 'Advance Payment';

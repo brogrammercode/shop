@@ -119,7 +119,10 @@ class PosKdsCubit extends Cubit<PosKdsState> {
 
   Future<void> scratchCustomerLadyluckCard() async {
     final customer = state.selectedCustomer;
-    if (customer == null || state.ladyluckSummary.available_scratch_cards.isEmpty) {
+    if (customer == null ||
+        state.ladyluckSummary.available_scratch_cards.isEmpty ||
+        state.ladyluckSummary.account.points_balance <
+            PosConstant.LADYLUCK_POINTS_PER_CARD) {
       return;
     }
     final scratchCard = state.ladyluckSummary.available_scratch_cards.first;

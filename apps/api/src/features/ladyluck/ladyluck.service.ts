@@ -12,8 +12,8 @@ import { ladyluckRepo } from './ladyluck.repo';
 
 export class LadyluckService {
   async getSummary(uid: string, branchId: string) {
-    const [account, scratchCards, activeDiscounts, transactions] = await Promise.all([
-      ladyluckRepo.findAccount(uid, branchId),
+    const account = await this.ensureScratchCardAvailability(uid, branchId);
+    const [scratchCards, activeDiscounts, transactions] = await Promise.all([
       ladyluckRepo.findAvailableScratchCards(uid, branchId),
       ladyluckRepo.findActiveDiscounts(uid, branchId),
       ladyluckRepo.findTransactions(uid, branchId),
@@ -25,7 +25,9 @@ export class LadyluckService {
         points_balance: _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.ZERO,
         lifetime_points: _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.ZERO,
       },
-      available_scratch_cards: scratchCards,
+      available_scratch_cards: account && account.points_balance >= _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD
+        ? scratchCards
+        : [],
       active_discounts: activeDiscounts,
       transactions,
     };
@@ -45,6 +47,13 @@ export class LadyluckService {
 
     const reward = this.pickReward();
     const discount = await prisma.$transaction(async (tx) => {
+      const account = await tx.ladyluckAccount.findUnique({
+        where: { branch_id_uid: { branch_id: branchId, uid } },
+      });
+      if (!account || account.points_balance < _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD) {
+        throw new BadRequestError(_LADYLUCK_CONSTANTS._E_R_R_O_R_S.INSUFFICIENT_POINTS);
+      }
+
       await tx.ladyluckScratchCard.update({
         where: { id: cardId },
         data: {
@@ -53,7 +62,7 @@ export class LadyluckService {
         },
       });
 
-      return tx.ladyluckDiscount.create({
+      const discount = await tx.ladyluckDiscount.create({
         data: {
           branch_id: branchId,
           uid,
@@ -66,6 +75,52 @@ export class LadyluckService {
         },
         include: { scratch_card: true },
       });
+
+      const updatedAccount = await tx.ladyluckAccount.update({
+        where: { branch_id_uid: { branch_id: branchId, uid } },
+        data: {
+          points_balance: {
+            decrement: _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD,
+          },
+        },
+      });
+
+      await tx.loyaltyTrans.create({
+        data: {
+          branch_id: branchId,
+          uid,
+          scratch_card_id: cardId,
+          points: _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD,
+          trans_type: LoyaltyTransType.SCRATCH_CARD_CREATED,
+          balance_after: updatedAccount.points_balance,
+        },
+      });
+
+      if (updatedAccount.points_balance >= _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD) {
+        const availableCardCount = await tx.ladyluckScratchCard.count({
+          where: {
+            branch_id: branchId,
+            uid,
+            status: LadyluckScratchCardStatus.AVAILABLE,
+            OR: [
+              { expires_at: null },
+              { expires_at: { gt: now } },
+            ],
+          },
+        });
+        if (availableCardCount === _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.ZERO) {
+          await tx.ladyluckScratchCard.create({
+            data: {
+              branch_id: branchId,
+              uid,
+              points_spent: _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD,
+              expires_at: this.addDays(now, _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.CARD_VALID_DAYS),
+            },
+          });
+        }
+      }
+
+      return discount;
     });
 
     return discount;
@@ -156,33 +211,29 @@ export class LadyluckService {
         },
       });
 
-      let balance = account.points_balance;
-      while (balance >= _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD) {
-        balance -= _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD;
-        const card = await tx.ladyluckScratchCard.create({
-          data: {
+      if (account.points_balance >= _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD) {
+        const availableCardCount = await tx.ladyluckScratchCard.count({
+          where: {
             branch_id: order.branch_id,
             uid: order.uid,
-            created_from_order_id: order.id,
-            points_spent: _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD,
-            expires_at: this.addDays(new Date(), _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.CARD_VALID_DAYS),
+            status: LadyluckScratchCardStatus.AVAILABLE,
+            OR: [
+              { expires_at: null },
+              { expires_at: { gt: new Date() } },
+            ],
           },
         });
-        account = await tx.ladyluckAccount.update({
-          where: { branch_id_uid: { branch_id: order.branch_id, uid: order.uid } },
-          data: { points_balance: balance },
-        });
-        await tx.loyaltyTrans.create({
-          data: {
-            branch_id: order.branch_id,
-            uid: order.uid,
-            order_id: order.id,
-            scratch_card_id: card.id,
-            points: _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD,
-            trans_type: LoyaltyTransType.SCRATCH_CARD_CREATED,
-            balance_after: account.points_balance,
-          },
-        });
+        if (availableCardCount === _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.ZERO) {
+          await tx.ladyluckScratchCard.create({
+            data: {
+              branch_id: order.branch_id,
+              uid: order.uid,
+              created_from_order_id: order.id,
+              points_spent: _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD,
+              expires_at: this.addDays(new Date(), _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.CARD_VALID_DAYS),
+            },
+          });
+        }
       }
 
       return tx.order.update({
@@ -238,6 +289,28 @@ export class LadyluckService {
       }
     }
     return _LADYLUCK_CONSTANTS._R_E_W_A_R_D_S[0];
+  }
+
+  private async ensureScratchCardAvailability(uid: string, branchId: string) {
+    const account = await ladyluckRepo.findAccount(uid, branchId);
+    if (!account || account.points_balance < _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD) {
+      return account;
+    }
+
+    const availableCards = await ladyluckRepo.findAvailableScratchCards(uid, branchId);
+    if (availableCards.length > _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.ZERO) {
+      return account;
+    }
+
+    await prisma.ladyluckScratchCard.create({
+      data: {
+        branch_id: branchId,
+        uid,
+        points_spent: _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD,
+        expires_at: this.addDays(new Date(), _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.CARD_VALID_DAYS),
+      },
+    });
+    return account;
   }
 
   private discountAmount(type: LadyluckDiscountType, value: number, maxDiscount: number, subtotal: number) {

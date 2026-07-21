@@ -91,7 +91,9 @@ class OrderCubit extends Cubit<OrderState> {
   }
 
   Future<void> scratchLadyluckCard() async {
-    if (state.ladyluckSummary.available_scratch_cards.isEmpty) {
+    if (state.ladyluckSummary.available_scratch_cards.isEmpty ||
+        state.ladyluckSummary.account.points_balance <
+            OrderConstants.LADYLUCK_POINTS_PER_CARD) {
       return;
     }
     final scratchCard = state.ladyluckSummary.available_scratch_cards.first;

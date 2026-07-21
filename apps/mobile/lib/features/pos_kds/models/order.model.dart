@@ -21,6 +21,8 @@ class OrderModel {
   final double subtotal;
   final double tax_amount;
   final double discount_amount;
+  final String ladyluck_discount_id;
+  final double ladyluck_discount_amount;
   final double total_amount;
   final double final_paying_price;
   final String fulfillment_date;
@@ -49,6 +51,8 @@ class OrderModel {
     required this.subtotal,
     required this.tax_amount,
     required this.discount_amount,
+    required this.ladyluck_discount_id,
+    required this.ladyluck_discount_amount,
     required this.total_amount,
     required this.final_paying_price,
     required this.fulfillment_date,
@@ -83,6 +87,9 @@ class OrderModel {
       subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0.0,
       tax_amount: (json['tax_amount'] as num?)?.toDouble() ?? 0.0,
       discount_amount: (json['discount_amount'] as num?)?.toDouble() ?? 0.0,
+      ladyluck_discount_id: json['ladyluck_discount_id'] ?? '',
+      ladyluck_discount_amount:
+          (json['ladyluck_discount_amount'] as num?)?.toDouble() ?? 0.0,
       total_amount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
       final_paying_price:
           (json['final_paying_price'] as num?)?.toDouble() ?? 0.0,
@@ -123,6 +130,8 @@ class OrderModel {
       'subtotal': subtotal,
       'tax_amount': tax_amount,
       'discount_amount': discount_amount,
+      'ladyluck_discount_id': ladyluck_discount_id,
+      'ladyluck_discount_amount': ladyluck_discount_amount,
       'total_amount': total_amount,
       'final_paying_price': final_paying_price,
       'fulfillment_date': fulfillment_date,
@@ -153,6 +162,8 @@ class OrderModel {
     double? subtotal,
     double? tax_amount,
     double? discount_amount,
+    String? ladyluck_discount_id,
+    double? ladyluck_discount_amount,
     double? total_amount,
     double? final_paying_price,
     String? fulfillment_date,
@@ -181,6 +192,10 @@ class OrderModel {
       subtotal: subtotal ?? this.subtotal,
       tax_amount: tax_amount ?? this.tax_amount,
       discount_amount: discount_amount ?? this.discount_amount,
+      ladyluck_discount_id:
+          ladyluck_discount_id ?? this.ladyluck_discount_id,
+      ladyluck_discount_amount:
+          ladyluck_discount_amount ?? this.ladyluck_discount_amount,
       total_amount: total_amount ?? this.total_amount,
       final_paying_price: final_paying_price ?? this.final_paying_price,
       fulfillment_date: fulfillment_date ?? this.fulfillment_date,

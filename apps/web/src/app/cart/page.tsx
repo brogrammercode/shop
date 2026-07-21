@@ -285,8 +285,13 @@ export default function CartPage() {
   };
 
   const scratchLadyluckCard = async () => {
+    const points = ladyluckSummary?.account.points_balance || 0;
     const scratchCard = ladyluckSummary?.available_scratch_cards[0];
-    if (!orderingContext?.branchId || !scratchCard) return;
+    if (
+      !orderingContext?.branchId ||
+      !scratchCard ||
+      points < CUSTOMER_ORDERING_DEFAULTS.LADYLUCK_POINTS_PER_CARD
+    ) return;
 
     setIsScratching(true);
     setError("");
@@ -534,8 +539,9 @@ const LadyluckPanel = ({
     return null;
   }
 
-  const scratchCard = summary.available_scratch_cards[0];
   const points = summary.account.points_balance || 0;
+  const canScratch = points >= CUSTOMER_ORDERING_DEFAULTS.LADYLUCK_POINTS_PER_CARD;
+  const scratchCard = canScratch ? summary.available_scratch_cards[0] : null;
   const needsMinimum = activeDiscount && subtotal < activeDiscount.min_order_amount;
 
   return (

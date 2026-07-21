@@ -22,6 +22,7 @@ export const _LADYLUCK_CONSTANTS = {
     DISCOUNT_NOT_FOUND: 'Ladyluck discount not found',
     DISCOUNT_NOT_ACTIVE: 'Ladyluck discount is not active',
     DISCOUNT_MINIMUM_NOT_MET: 'Minimum order amount is not met for this Ladyluck discount',
+    INSUFFICIENT_POINTS: 'Earn 500 Ladyluck points to scratch a card',
     ORDER_NOT_REWARDABLE: 'Order cannot earn Ladyluck points',
   },
   _D_E_F_A_U_L_T_S: {

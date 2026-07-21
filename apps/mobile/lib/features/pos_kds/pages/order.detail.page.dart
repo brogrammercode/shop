@@ -186,6 +186,98 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return '₹ ${amount.toStringAsFixed(2)}';
   }
 
+  double _savedAmount(OrderModel order) {
+    if (order.ladyluck_discount_amount > 0) {
+      return order.ladyluck_discount_amount;
+    }
+    return order.discount_amount > 0 ? order.discount_amount : 0;
+  }
+
+  String _discountLabel(OrderModel order) {
+    return order.ladyluck_discount_id.isNotEmpty ||
+            order.ladyluck_discount_amount > 0
+        ? PosConstant.RECEIPT_LADYLUCK_DISCOUNT_LABEL
+        : PosConstant.RECEIPT_DISCOUNT_LABEL;
+  }
+
+  Widget _buildSavingsCallout(OrderModel order, {bool receiptMode = false}) {
+    final savedAmount = _savedAmount(order);
+    if (savedAmount <= 0) {
+      return const SizedBox.shrink();
+    }
+
+    final titleStyle = TextStyle(
+      fontFamily: receiptMode ? 'Courier' : null,
+      fontSize: receiptMode ? 18.sp : 20.sp,
+      fontWeight: FontWeight.w900,
+      color: receiptMode ? Colors.black : const Color(0xFF166534),
+      letterSpacing: 1,
+    );
+    final amountStyle = TextStyle(
+      fontFamily: receiptMode ? 'Courier' : null,
+      fontSize: receiptMode ? 30.sp : 34.sp,
+      fontWeight: FontWeight.w900,
+      color: receiptMode ? Colors.black : AppColors.primaryGreen,
+      height: 1,
+    );
+
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.symmetric(vertical: receiptMode ? 14.h : 12.h),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+      decoration: BoxDecoration(
+        color: receiptMode ? AppColors.pureWhite : const Color(0xFFF0FDF4),
+        borderRadius: BorderRadius.circular(receiptMode ? 0.r : 14.r),
+        border: Border.all(
+          color: receiptMode ? Colors.black : AppColors.primaryGreen,
+          width: receiptMode ? 1.2 : 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(PosConstant.RECEIPT_YOU_SAVED_LABEL, style: titleStyle),
+          SizedBox(height: 8.h),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.currency_rupee,
+                size: receiptMode ? 30.w : 34.w,
+                color: receiptMode ? Colors.black : AppColors.primaryGreen,
+              ),
+              Text(savedAmount.toStringAsFixed(0), style: amountStyle),
+            ],
+          ),
+          SizedBox(height: 6.h),
+          Text(
+            PosConstant.RECEIPT_SAVED_WITH_LADYLUCK_LABEL,
+            style: TextStyle(
+              fontFamily: receiptMode ? 'Courier' : null,
+              fontSize: receiptMode ? 11.sp : 12.sp,
+              fontWeight: FontWeight.w800,
+              color: receiptMode ? Colors.black : const Color(0xFF166534),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReceiptAmountRow(
+    String label,
+    String amount, {
+    bool strong = false,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: strong ? _boldStyle() : _itemStyle()),
+        Text(amount, style: strong ? _boldStyle() : _itemStyle()),
+      ],
+    );
+  }
+
   void _goBack() {
     Navigator.pushReplacementNamed(context, AppRoutes.home);
   }
@@ -818,11 +910,24 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                             'Subtotal: ${_formatAmount(order.subtotal)}',
                                             style: TextStyle(fontSize: 12.sp),
                                           ),
-                                          if (order.discount_amount > 0)
+                                          if (_savedAmount(order) > 0)
                                             Text(
-                                              'Discount: -${_formatAmount(order.discount_amount)}',
+                                              '${_discountLabel(order)}: -${_formatAmount(_savedAmount(order))}',
                                               style: TextStyle(fontSize: 12.sp),
                                             ),
+                                          if (order.tax_amount > 0)
+                                            Text(
+                                              '${PosConstant.RECEIPT_TAX_LABEL}: ${_formatAmount(order.tax_amount)}',
+                                              style: TextStyle(fontSize: 12.sp),
+                                            ),
+                                          Text(
+                                            '${PosConstant.RECEIPT_FINAL_PAYING_LABEL}: ${_formatAmount(finalPayingPrice)}',
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w900,
+                                            ),
+                                          ),
+                                          _buildSavingsCallout(order),
                                         ],
                                       ),
                                     ),
@@ -1179,36 +1284,37 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                                           SizedBox(height: 16.h),
                                           _buildDashedLine(),
                                           SizedBox(height: 16.h),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                'TOTAL AMOUNT',
-                                                style: _boldStyle(),
-                                              ),
-                                              Text(
-                                                _formatAmount(
-                                                  order.total_amount,
-                                                ),
-                                                style: _boldStyle(),
-                                              ),
-                                            ],
+                                          _buildReceiptAmountRow(
+                                            PosConstant.RECEIPT_SUBTOTAL_LABEL
+                                                .toUpperCase(),
+                                            _formatAmount(order.subtotal),
                                           ),
                                           SizedBox(height: 8.h),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                'FINAL PAYING',
-                                                style: _boldStyle(),
-                                              ),
-                                              Text(
-                                                _formatAmount(finalPayingPrice),
-                                                style: _boldStyle(),
-                                              ),
-                                            ],
+                                          if (_savedAmount(order) > 0) ...[
+                                            _buildReceiptAmountRow(
+                                              _discountLabel(order)
+                                                  .toUpperCase(),
+                                              '-${_formatAmount(_savedAmount(order))}',
+                                            ),
+                                            SizedBox(height: 8.h),
+                                          ],
+                                          if (order.tax_amount > 0) ...[
+                                            _buildReceiptAmountRow(
+                                              PosConstant.RECEIPT_TAX_LABEL
+                                                  .toUpperCase(),
+                                              _formatAmount(order.tax_amount),
+                                            ),
+                                            SizedBox(height: 8.h),
+                                          ],
+                                          _buildReceiptAmountRow(
+                                            PosConstant.RECEIPT_FINAL_PAYING_LABEL
+                                                .toUpperCase(),
+                                            _formatAmount(finalPayingPrice),
+                                            strong: true,
+                                          ),
+                                          _buildSavingsCallout(
+                                            order,
+                                            receiptMode: true,
                                           ),
                                           SizedBox(height: 20.h),
                                           Center(
