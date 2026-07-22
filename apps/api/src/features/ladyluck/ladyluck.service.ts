@@ -6,6 +6,7 @@ import {
   OrderStatus,
 } from '@prisma/client';
 import prisma from '../../infra/database/client';
+import { withDatabaseRetry } from '../../infra/database/retry';
 import { BadRequestError, NotFoundError } from '../../utils/error';
 import { _LADYLUCK_CONSTANTS } from './ladyluck.constant';
 import { ladyluckRepo } from './ladyluck.repo';
@@ -46,7 +47,7 @@ export class LadyluckService {
     }
 
     const reward = this.pickReward();
-    const discount = await prisma.$transaction(async (tx) => {
+    const discount = await withDatabaseRetry(() => prisma.$transaction(async (tx) => {
       const account = await tx.ladyluckAccount.findUnique({
         where: { branch_id_uid: { branch_id: branchId, uid } },
       });
@@ -121,7 +122,7 @@ export class LadyluckService {
       }
 
       return discount;
-    });
+    }));
 
     return discount;
   }
@@ -160,18 +161,18 @@ export class LadyluckService {
       return;
     }
 
-    await prisma.ladyluckDiscount.update({
+    await withDatabaseRetry(() => prisma.ladyluckDiscount.update({
       where: { id: discountId },
       data: {
         status: LadyluckDiscountStatus.USED,
         used_at: new Date(),
         applied_amount: amount,
       },
-    });
+    }));
   }
 
   async awardOrderPoints(orderId: string) {
-    return prisma.$transaction(async (tx) => {
+    return withDatabaseRetry(() => prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({ where: { id: orderId } });
       if (!order || !order.uid || order.ladyluck_points_awarded_at) {
         return order;
@@ -243,11 +244,11 @@ export class LadyluckService {
           ladyluck_points_awarded_at: new Date(),
         },
       });
-    });
+    }));
   }
 
   async reverseOrderPoints(orderId: string) {
-    return prisma.$transaction(async (tx) => {
+    return withDatabaseRetry(() => prisma.$transaction(async (tx) => {
       const order = await tx.order.findUnique({ where: { id: orderId } });
       if (!order || !order.uid || !order.ladyluck_points_awarded_at || order.ladyluck_points_earned <= 0) {
         return order;
@@ -276,7 +277,7 @@ export class LadyluckService {
         },
       });
       return order;
-    });
+    }));
   }
 
   private pickReward() {
@@ -302,14 +303,14 @@ export class LadyluckService {
       return account;
     }
 
-    await prisma.ladyluckScratchCard.create({
+    await withDatabaseRetry(() => prisma.ladyluckScratchCard.create({
       data: {
         branch_id: branchId,
         uid,
         points_spent: _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.POINTS_PER_CARD,
         expires_at: this.addDays(new Date(), _LADYLUCK_CONSTANTS._D_E_F_A_U_L_T_S.CARD_VALID_DAYS),
       },
-    });
+    }));
     return account;
   }
 

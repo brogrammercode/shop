@@ -1,10 +1,11 @@
 import { LadyluckDiscountStatus, LadyluckScratchCardStatus, LoyaltyTransType } from '@prisma/client';
 import prisma from '../../infra/database/client';
+import { withDatabaseRetry } from '../../infra/database/retry';
 
 export class LadyluckRepo {
   async expireRewards(uid: string, branchId: string) {
     const now = new Date();
-    await prisma.ladyluckScratchCard.updateMany({
+    await withDatabaseRetry(() => prisma.ladyluckScratchCard.updateMany({
       where: {
         uid,
         branch_id: branchId,
@@ -12,8 +13,8 @@ export class LadyluckRepo {
         expires_at: { lt: now },
       },
       data: { status: LadyluckScratchCardStatus.EXPIRED },
-    });
-    await prisma.ladyluckDiscount.updateMany({
+    }));
+    await withDatabaseRetry(() => prisma.ladyluckDiscount.updateMany({
       where: {
         uid,
         branch_id: branchId,
@@ -21,18 +22,18 @@ export class LadyluckRepo {
         valid_until: { lt: now },
       },
       data: { status: LadyluckDiscountStatus.EXPIRED },
-    });
+    }));
   }
 
   async findAccount(uid: string, branchId: string) {
-    return prisma.ladyluckAccount.findUnique({
+    return withDatabaseRetry(() => prisma.ladyluckAccount.findUnique({
       where: { branch_id_uid: { branch_id: branchId, uid } },
-    });
+    }));
   }
 
   async findAvailableScratchCards(uid: string, branchId: string) {
     const now = new Date();
-    return prisma.ladyluckScratchCard.findMany({
+    return withDatabaseRetry(() => prisma.ladyluckScratchCard.findMany({
       where: {
         uid,
         branch_id: branchId,
@@ -43,12 +44,12 @@ export class LadyluckRepo {
         ],
       },
       orderBy: { created_at: 'asc' },
-    });
+    }));
   }
 
   async findActiveDiscounts(uid: string, branchId: string) {
     const now = new Date();
-    return prisma.ladyluckDiscount.findMany({
+    return withDatabaseRetry(() => prisma.ladyluckDiscount.findMany({
       where: {
         uid,
         branch_id: branchId,
@@ -61,29 +62,29 @@ export class LadyluckRepo {
       },
       include: { scratch_card: true },
       orderBy: { created_at: 'asc' },
-    });
+    }));
   }
 
   async findTransactions(uid: string, branchId: string) {
-    return prisma.loyaltyTrans.findMany({
+    return withDatabaseRetry(() => prisma.loyaltyTrans.findMany({
       where: { uid, branch_id: branchId },
       orderBy: { created_at: 'desc' },
       take: 20,
-    });
+    }));
   }
 
   async findScratchCard(id: string) {
-    return prisma.ladyluckScratchCard.findUnique({
+    return withDatabaseRetry(() => prisma.ladyluckScratchCard.findUnique({
       where: { id },
       include: { discount: true },
-    });
+    }));
   }
 
   async findDiscount(id: string) {
-    return prisma.ladyluckDiscount.findUnique({
+    return withDatabaseRetry(() => prisma.ladyluckDiscount.findUnique({
       where: { id },
       include: { scratch_card: true },
-    });
+    }));
   }
 
   async createLoyaltyTrans(data: {
@@ -95,7 +96,7 @@ export class LadyluckRepo {
     trans_type: LoyaltyTransType;
     balance_after?: number;
   }) {
-    return prisma.loyaltyTrans.create({ data });
+    return withDatabaseRetry(() => prisma.loyaltyTrans.create({ data }));
   }
 }
 

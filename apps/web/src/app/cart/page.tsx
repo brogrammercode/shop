@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { BadgePercent, ChevronLeft, X } from "lucide-react";
+import { SamosaIcon } from "@/components/ui/SamosaIcon";
 import { useUserStore } from "@/core/store/user.store";
 import { AuthRepo } from "@/features/auth/repo/auth.repo";
 import { CustomerContextPanel } from "@/features/customer_ordering/components/CustomerContextPanel";
@@ -632,24 +633,11 @@ const SavingsCallout = ({ amount }: { amount: number }) => {
 
 const LadyluckLogoMark = ({ size = "large" }: { size?: "small" | "large" }) => {
   const wrapperClass = size === "small" ? "h-8 w-8" : "h-14 w-14";
-  const backgroundSize = size === "small" ? "122px 122px" : "214px 214px";
-  const backgroundPosition = size === "small" ? "-24px -48px" : "-42px -84px";
+  const iconSize = size === "small" ? 18 : 34;
 
   return (
-    <span
-      role="img"
-      aria-label={CUSTOMER_ORDERING_TEXT.LADYLUCK_MASCOT}
-      className={`block ${wrapperClass} shrink-0 rounded-full bg-[#1C1C1C]`}
-      style={{
-        backgroundImage: "url('/logo_transparent.png')",
-        backgroundSize,
-        backgroundPosition,
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      <span className="sr-only">
-        {CUSTOMER_ORDERING_TEXT.LADYLUCK_MASCOT}
-      </span>
+    <span className={`flex ${wrapperClass} shrink-0 items-center justify-center rounded-full bg-[#D8FF1F]`}>
+      <SamosaIcon size={iconSize} />
     </span>
   );
 };

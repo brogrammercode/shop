@@ -86,6 +86,12 @@ export const CustomerMenuPage = () => {
     const category = categories.find((item) => item.id === activeCategoryId);
     return category ? [category] : [];
   }, [categories, activeCategoryId]);
+  const featuredItem = useMemo(() => {
+    return visibleCategorySections.flatMap((category) => category.items)[0] || allItems[0] || null;
+  }, [allItems, visibleCategorySections]);
+  const visibleItemCount = useMemo(() => (
+    visibleCategorySections.reduce((total, category) => total + category.items.length, 0)
+  ), [visibleCategorySections]);
   const cartItems = useMemo(() => buildCartItems(allItems, cart), [allItems, cart]);
   const cartItemsByMenuItem = useMemo(() => cartItems.reduce<Record<string, CustomerCartItem[]>>((next, cartItem) => {
     next[cartItem.item.id] = [...(next[cartItem.item.id] || []), cartItem];
@@ -169,18 +175,51 @@ export const CustomerMenuPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-pure-white pb-32">
+    <div className="min-h-screen overflow-hidden bg-[#F8F2E6] pb-32">
       <CustomerOrderHeader context={orderingContext} />
+
+      <section className="relative -mt-[64px] min-h-[520px] overflow-hidden bg-[#111A14]">
+          {featuredItem && imageForItem(featuredItem) ? (
+            <img
+              src={imageForItem(featuredItem)}
+              alt={featuredItem.display_name}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : null}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#111A14] via-[#111A14]/55 to-[#111A14]/28" />
+        <div className="absolute inset-y-0 left-0 w-[76%] bg-gradient-to-r from-[#111A14] via-[#111A14]/82 to-transparent" />
+        <div className="relative z-10 flex min-h-[520px] max-w-[880px] flex-col justify-end px-5 pb-9 pt-28 md:px-10">
+            <div>
+            <p className="inline-flex rounded-full border border-pure-white/18 bg-pure-white/10 px-4 py-2 text-[12px] font-semibold text-[#D8FF1F] backdrop-blur-xl">
+                {CUSTOMER_ORDERING_TEXT.FEATURED_DISH}
+              </p>
+            <h1 className="mt-5 max-w-[720px] text-[52px] font-semibold leading-[0.95] text-pure-white md:text-[78px]">
+                {featuredItem?.display_name || CUSTOMER_ORDERING_TEXT.MENU_HERO_TITLE}
+              </h1>
+            <p className="mt-5 max-w-[440px] text-[15px] font-medium leading-relaxed text-pure-white/72">
+              {CUSTOMER_ORDERING_TEXT.MENU_HERO_SUBTITLE}
+            </p>
+            </div>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-pure-white px-4 py-2.5 text-[13px] font-semibold text-[#111A14]">
+                {visibleItemCount} {CUSTOMER_ORDERING_TEXT.ITEMS_AVAILABLE}
+              </span>
+            <span className="rounded-full bg-[#D8FF1F] px-4 py-2.5 text-[13px] font-semibold text-[#111A14]">
+                {formatAmount(payable)}
+              </span>
+            </div>
+          </div>
+      </section>
 
       <PosCategoryScroll
         categories={categoryTabs}
         activeId={activeCategoryId}
         onSelect={setActiveCategoryId}
+        activeLabel={CUSTOMER_ORDERING_TEXT.CATEGORY_SELECTED}
+        inactiveLabel={CUSTOMER_ORDERING_TEXT.CATEGORY_BROWSE}
       />
 
-      <div className="w-full h-[8px] bg-soft-grey my-2" />
-
-      <div className="px-4 py-2">
+      <div className="px-4 py-6 md:px-10">
         {error ? (
           <div className="mb-3 rounded-xl bg-[#FFF5F5] border border-[#FFD1D1] px-4 py-3 text-[12px] font-medium text-[#B91C1C]">
             {error}
@@ -191,13 +230,18 @@ export const CustomerMenuPage = () => {
             {CUSTOMER_ORDERING_TEXT.EMPTY_MENU}
           </div>
         ) : (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-10">
             {visibleCategorySections.map((category) => (
-              <section key={category.id} className="flex flex-col gap-3">
-                <h2 className="text-[16px] font-black text-text-primary">
-                  {category.name}
-                </h2>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <section key={category.id} className="flex flex-col gap-4">
+                <div className="flex items-end justify-between border-b border-black/10 pb-3">
+                  <h2 className="text-[28px] font-semibold text-[#111A14]">
+                    {category.name}
+                  </h2>
+                  <span className="rounded-full bg-[#111A14] px-3 py-1.5 text-[12px] font-semibold text-[#D8FF1F]">
+                    {category.items.length} {CUSTOMER_ORDERING_TEXT.ITEM_COUNT}
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
                   {category.items.map((item) => {
                     const cartItem = primaryCartItemFor(item);
                     const saleMode = cartItem?.saleMode || defaultSaleMode(item);
@@ -232,21 +276,19 @@ export const CustomerMenuPage = () => {
         )}
       </div>
 
-      <div className="w-full h-[8px] bg-soft-grey my-4" />
-
       {totalItems > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 pointer-events-none">
+        <div className="fixed bottom-0 left-0 right-0 z-50 p-4 pointer-events-none md:p-6">
           <button
             type="button"
             onClick={() => router.push('/cart')}
-            className="w-full h-14 bg-primary-green rounded-[16px] shadow-elevated flex items-center justify-between px-5 pointer-events-auto active:scale-95 transition-transform"
+            className="mx-auto flex h-[72px] w-full max-w-5xl items-center justify-between rounded-[26px] border border-pure-white/12 bg-[#111A14]/96 px-5 shadow-[0_24px_70px_rgba(17,26,20,0.34)] backdrop-blur-2xl pointer-events-auto active:scale-[0.99] transition-transform md:px-6"
           >
             <div className="flex items-center gap-2">
               <span className="text-[14px] font-semibold text-pure-white">
                 {totalItems} {totalItems === 1 ? 'Item' : 'Items'}
               </span>
-              <div className="w-[1px] h-3 bg-pure-white/30" />
-              <span className="text-[14px] font-semibold text-pure-white">
+              <div className="w-[1px] h-4 bg-pure-white/25" />
+              <span className="text-[15px] font-semibold text-[#D8FF1F]">
                 {formatAmount(payable)}
               </span>
             </div>

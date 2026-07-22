@@ -1,4 +1,5 @@
-import prisma from '../../infra/database/client';
+import prisma, { pool } from '../../infra/database/client';
+import { withDatabaseRetry } from '../../infra/database/retry';
 import { MenuCategoryDTO } from './menu_category.type';
 import { MenuItemDTO } from './menu_item.type';
 import { ModifierGroupDTO } from './modifier_group.type';
@@ -314,17 +315,157 @@ export class CatalogRepo {
   }
 
   async getFullMenu(branch_id: string): Promise<MenuCategoryDTO[]> {
-    return prisma.menuCategory.findMany({
-      where: { branch_id, is_deleted: false, status: 'ACTIVE' },
-      orderBy: { display_order: 'asc' },
-      include: {
-        items: {
-          where: { is_deleted: false, status: 'ACTIVE' },
-          orderBy: { created_at: 'asc' },
-          include: menuItemInclude,
-        },
-      },
-    }) as unknown as MenuCategoryDTO[];
+    return withDatabaseRetry(async () => {
+      const [categoryResult, itemResult, saleModeResult] = await Promise.all([
+        pool.query(`
+          SELECT
+            id,
+            branch_id,
+            name,
+            description,
+            images,
+            display_order,
+            status,
+            created_at,
+            updated_at,
+            is_deleted
+          FROM menu_categories
+          WHERE branch_id = $1
+            AND is_deleted = false
+            AND status = 'ACTIVE'
+          ORDER BY display_order ASC
+        `, [branch_id]),
+        pool.query(`
+          SELECT
+            mi.id,
+            mi.branch_id,
+            mi.category_id,
+            mi.variant_id,
+            mi.display_name,
+            mi.description,
+            mi.selling_price,
+            mi.images,
+            mi.videos,
+            mi.status,
+            mi.created_at,
+            mi.updated_at,
+            mi.created_by,
+            mi.is_deleted,
+            iv.item_id AS variant_item_id,
+            iv.uom_id AS variant_uom_id,
+            vu.code AS variant_uom_code,
+            vu.description AS variant_uom_description
+          FROM menu_items mi
+          LEFT JOIN item_variants iv ON iv.id = mi.variant_id
+          LEFT JOIN units_of_measure vu ON vu.id = iv.uom_id
+          WHERE mi.branch_id = $1
+            AND mi.is_deleted = false
+            AND mi.status = 'ACTIVE'
+          ORDER BY mi.created_at ASC
+        `, [branch_id]),
+        pool.query(`
+          SELECT
+            sm.id,
+            sm.branch_id,
+            sm.menu_item_id,
+            sm.uom_id,
+            sm.label,
+            sm.price_per_unit,
+            sm.min_qty,
+            sm.step_qty,
+            sm.allow_decimal,
+            sm.is_default,
+            sm.sort_order,
+            sm.status,
+            sm.created_at,
+            sm.updated_at,
+            sm.is_deleted,
+            u.code AS uom_code,
+            u.description AS uom_description
+          FROM menu_item_sale_modes sm
+          LEFT JOIN units_of_measure u ON u.id = sm.uom_id
+          WHERE sm.branch_id = $1
+            AND sm.is_deleted = false
+          ORDER BY sm.sort_order ASC
+        `, [branch_id]),
+      ]);
+
+      const saleModesByItem = saleModeResult.rows.reduce<Record<string, any[]>>((next, row) => {
+        next[row.menu_item_id] = [
+          ...(next[row.menu_item_id] || []),
+          {
+            id: row.id,
+            branch_id: row.branch_id,
+            menu_item_id: row.menu_item_id,
+            uom_id: row.uom_id,
+            label: row.label,
+            price_per_unit: Number(row.price_per_unit),
+            min_qty: Number(row.min_qty),
+            step_qty: Number(row.step_qty),
+            allow_decimal: row.allow_decimal,
+            is_default: row.is_default,
+            sort_order: row.sort_order,
+            status: row.status,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            is_deleted: row.is_deleted,
+            uom: {
+              id: row.uom_id,
+              code: row.uom_code,
+              description: row.uom_description,
+            },
+          },
+        ];
+        return next;
+      }, {});
+
+      const itemsByCategory = itemResult.rows.reduce<Record<string, any[]>>((next, row) => {
+        next[row.category_id] = [
+          ...(next[row.category_id] || []),
+          {
+            id: row.id,
+            branch_id: row.branch_id,
+            category_id: row.category_id,
+            variant_id: row.variant_id,
+            display_name: row.display_name,
+            description: row.description,
+            selling_price: Number(row.selling_price),
+            images: row.images || [],
+            videos: row.videos || [],
+            status: row.status,
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            created_by: row.created_by,
+            is_deleted: row.is_deleted,
+            variant: {
+              item_id: row.variant_item_id,
+              uom_id: row.variant_uom_id,
+              uom: {
+                id: row.variant_uom_id,
+                code: row.variant_uom_code,
+                description: row.variant_uom_description,
+              },
+            },
+            sale_modes: saleModesByItem[row.id] || [],
+          },
+        ];
+        return next;
+      }, {});
+
+      return categoryResult.rows.map((row) => ({
+        id: row.id,
+        branch_id: row.branch_id,
+        name: row.name,
+        description: row.description,
+        images: row.images || [],
+        display_order: row.display_order,
+        status: row.status,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+        is_deleted: row.is_deleted,
+        items: itemsByCategory[row.id] || [],
+      })) as unknown as MenuCategoryDTO[];
+    });
   }
 }
 

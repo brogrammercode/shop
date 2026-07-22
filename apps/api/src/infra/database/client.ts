@@ -7,7 +7,19 @@ import { requestContext } from '../../core/request_context';
 const modelsWithCreatedBy = new Set(Prisma.dmmf.datamodel.models.filter(m => m.fields.some(f => f.name === 'created_by')).map(m => m.name));
 const modelsWithUpdatedBy = new Set(Prisma.dmmf.datamodel.models.filter(m => m.fields.some(f => f.name === 'updated_by')).map(m => m.name));
 
-const pool = new pg.Pool({ connectionString: config.DB_STRING });
+const databaseConnection = buildDatabaseConnection(config.DB_STRING);
+
+const pool = new pg.Pool({
+  connectionString: databaseConnection.connectionString,
+  ssl: databaseConnection.ssl,
+  connectionTimeoutMillis: 30000,
+  idleTimeoutMillis: 15000,
+  keepAlive: true,
+  max: 5,
+  min: 0,
+  maxUses: 250,
+});
+pool.on('error', () => undefined);
 const adapter = new PrismaPg(pool);
 const prismaClient = new PrismaClient({ adapter });
 
@@ -53,3 +65,20 @@ const prisma = prismaClient.$extends({
 
 export { pool };
 export default prisma;
+
+function buildDatabaseConnection(connectionString: string): { connectionString: string; ssl?: pg.ConnectionConfig['ssl'] } {
+  const parsedUrl = new URL(connectionString);
+  const sslMode = parsedUrl.searchParams.get('sslmode');
+  parsedUrl.searchParams.delete('sslmode');
+
+  if (!sslMode || sslMode === 'disable') {
+    return { connectionString: parsedUrl.toString() };
+  }
+
+  return {
+    connectionString: parsedUrl.toString(),
+    ssl: {
+      rejectUnauthorized: sslMode === 'verify-full',
+    },
+  };
+}

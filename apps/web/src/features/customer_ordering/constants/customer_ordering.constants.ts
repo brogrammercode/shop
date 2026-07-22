@@ -44,6 +44,12 @@ export const CUSTOMER_ORDERING_ENDPOINTS = {
 
 export const CUSTOMER_ORDERING_TEXT = {
   APP_TITLE: "POS Terminal",
+  MENU_HERO_TITLE: "Menu",
+  MENU_HERO_SUBTITLE: "Fresh picks from LadyLuck kitchen",
+  FEATURED_DISH: "Featured dish",
+  ITEMS_AVAILABLE: "items available",
+  CATEGORY_SELECTED: "Selected",
+  CATEGORY_BROWSE: "Browse",
   ALL_ITEMS: "All Items",
   EMPTY_MENU: "No menu items found",
   CART_EMPTY: "Cart is empty",

@@ -20,8 +20,22 @@
   --font-sans: var(--font-outfit), sans-serif;
 }
 
+:root {
+  --web-ui-scale: 0.90;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--color-pure-white);
   color: var(--color-text-primary);
+  zoom: var(--web-ui-scale);
+}
+
+@supports not (zoom: 1) {
+  body {
+    width: calc(100% / var(--web-ui-scale));
+    min-height: calc(100vh / var(--web-ui-scale));
+    transform: scale(var(--web-ui-scale));
+    transform-origin: top center;
+  }
 }
