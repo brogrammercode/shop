@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import {
   CUSTOMER_ORDERING_DEFAULTS,
-  CUSTOMER_ORDERING_STORAGE_KEYS,
   CUSTOMER_ORDERING_TEXT,
 } from "../constants/customer_ordering.constants";
 import { CustomerOrderingApi } from "../services/customer_ordering.api";
@@ -32,6 +31,7 @@ import {
   buildCartItems,
   calculateSubtotal,
   cartKeyFor,
+  cartStorageKeyFor,
   defaultSaleMode,
   flattenItems,
   formatAmount,
@@ -62,17 +62,6 @@ type DisplayProduct = {
 
 const getOrderingContext = (): CustomerOrderingContext | null =>
   typeof window === "undefined" ? null : readOrderingContext();
-
-const cartStorageKeyFor = (context: CustomerOrderingContext | null): string =>
-  [
-    CUSTOMER_ORDERING_STORAGE_KEYS.CART,
-    context?.branchId,
-    context?.orderType,
-    context?.tableId,
-    context?.tableSideId,
-  ]
-    .filter(Boolean)
-    .join(":");
 
 const addressLabelFor = (address?: AddressModel): string =>
   [
@@ -291,8 +280,8 @@ export const CustomerMenuPage = () => {
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#fbfbfb] text-[#111111]">
-      <section className="relative mx-auto min-h-screen w-full max-w-[358px] overflow-hidden bg-[#fbfbfb]">
+    <main className="min-h-screen w-screen overflow-x-hidden bg-[#fbfbfb] text-[#111111]">
+      <section className="relative min-h-screen w-screen overflow-hidden bg-[#fbfbfb]">
         <div className="relative z-10 flex min-h-screen flex-col overflow-y-auto px-[12px] pb-[112px] pt-[28px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <header className="flex items-center justify-between">
             <div className="flex min-w-0 items-center gap-2">

@@ -143,6 +143,20 @@ export const cartKeyFor = (
   return `${item.id}:${saleMode.id}`;
 };
 
+export const cartStorageKeyFor = (
+  context: CustomerOrderingContext | null,
+): string => {
+  return [
+    CUSTOMER_ORDERING_STORAGE_KEYS.CART,
+    context?.branchId,
+    context?.orderType,
+    context?.tableId,
+    context?.tableSideId,
+  ]
+    .filter(Boolean)
+    .join(":");
+};
+
 export const formatQuantity = (quantity: number): string => {
   return formatCoreQuantity(quantity);
 };

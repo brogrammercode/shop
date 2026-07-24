@@ -29,6 +29,7 @@ import {
 import {
   buildCartItems,
   calculateSubtotal,
+  cartStorageKeyFor,
   flattenItems,
   formatQuantity,
   formatAmount,
@@ -46,12 +47,13 @@ export default function CartPage() {
   const [orderingContext] = useState<CustomerOrderingContext | null>(() =>
     typeof window === "undefined" ? null : readOrderingContext(),
   );
+  const cartStorageKey = cartStorageKeyFor(orderingContext);
   const [categories, setCategories] = useState<CustomerMenuCategory[]>([]);
   const [tables, setTables] = useState<CustomerTable[]>([]);
   const [cart, setCart] = useState<Record<string, CustomerCartLine>>(() => {
     if (typeof window === "undefined") return {};
     const storedCart = sessionStorage.getItem(
-      CUSTOMER_ORDERING_STORAGE_KEYS.CART,
+      cartStorageKeyFor(typeof window === "undefined" ? null : readOrderingContext()),
     );
     return storedCart ? normalizeStoredCart(JSON.parse(storedCart)) : {};
   });
@@ -110,10 +112,10 @@ export default function CartPage() {
 
   useEffect(() => {
     sessionStorage.setItem(
-      CUSTOMER_ORDERING_STORAGE_KEYS.CART,
+      cartStorageKey,
       JSON.stringify(cart),
     );
-  }, [cart]);
+  }, [cart, cartStorageKey]);
 
   useEffect(() => {
     if (!hasHydrated || !token || !orderingContext?.branchId) return;
@@ -285,7 +287,7 @@ export default function CartPage() {
 
     try {
       setCart({});
-      sessionStorage.removeItem(CUSTOMER_ORDERING_STORAGE_KEYS.CART);
+      sessionStorage.removeItem(cartStorageKey);
       sessionStorage.removeItem(CUSTOMER_ORDERING_STORAGE_KEYS.LADYLUCK_DISCOUNT_ID);
       router.push(CUSTOMER_ORDERING_ROUTES.MENU);
     } finally {
@@ -328,17 +330,17 @@ export default function CartPage() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
-        <div className="bg-[#FAFAFA] px-4 py-3 flex items-center">
+      <div className="flex min-h-screen w-screen flex-col bg-[#FAFAFA]">
+        <div className="flex items-center bg-[#FAFAFA] px-0 py-3">
           <button
             type="button"
             onClick={() => router.back()}
-            className="p-2 -ml-2"
+            className="p-2"
           >
             <ChevronLeft size={24} className="text-text-primary" />
           </button>
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center px-0 text-center">
           <p className="text-[15px] font-medium text-text-secondary">
             {CUSTOMER_ORDERING_TEXT.CART_EMPTY}
           </p>
@@ -355,17 +357,17 @@ export default function CartPage() {
 
   if (!orderingContext) {
     return (
-      <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
-        <div className="bg-[#FAFAFA] px-4 py-3 flex items-center">
+      <div className="flex min-h-screen w-screen flex-col bg-[#FAFAFA]">
+        <div className="flex items-center bg-[#FAFAFA] px-0 py-3">
           <button
             type="button"
             onClick={() => router.back()}
-            className="p-2 -ml-2"
+            className="p-2"
           >
             <ChevronLeft size={24} className="text-text-primary" />
           </button>
         </div>
-        <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center px-0 text-center">
           <p className="text-[15px] font-medium text-text-secondary">
             {CUSTOMER_ORDERING_TEXT.CONTEXT_MISSING}
           </p>
@@ -381,18 +383,18 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] pb-32">
-      <div className="bg-[#FAFAFA] px-4 py-3 flex items-center">
+    <div className="min-h-screen w-screen overflow-x-hidden bg-[#FAFAFA] pb-32">
+      <div className="flex items-center bg-[#FAFAFA] px-0 py-3">
         <button
           type="button"
           onClick={() => router.back()}
-          className="p-2 -ml-2"
+          className="p-2"
         >
           <ChevronLeft size={24} className="text-text-primary" />
         </button>
       </div>
 
-      <div className="mx-auto max-w-lg px-4 mb-6">
+      <div className="mb-6 w-full px-0">
         <h2 className="text-[20px] font-semibold text-text-primary mb-4">
           {CUSTOMER_ORDERING_TEXT.CART_TITLE}
         </h2>
@@ -482,7 +484,7 @@ export default function CartPage() {
         onSelectAddress={setSelectedAddressId}
       />
 
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-6 pointer-events-none">
+      <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-50 p-0">
         <div className="w-full relative shadow-upward bg-transparent pointer-events-auto">
           {error ? (
             <div className="absolute bottom-full left-0 right-0 mb-3 rounded-xl bg-[#FFF5F5] border border-[#FFD1D1] px-4 py-3 text-[12px] font-medium text-[#B91C1C] shadow-sm">

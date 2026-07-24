@@ -19,8 +19,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${outfit.variable} font-sans antialiased`}>
+    <html lang="en" className="m-0 min-h-full w-full overflow-x-hidden p-0">
+      <body
+        className={`${outfit.variable} m-0 min-h-screen w-full overflow-x-hidden p-0 font-sans antialiased`}
+      >
         {children}
         <RootNavigation />
       </body>
