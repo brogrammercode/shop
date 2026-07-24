@@ -137,6 +137,8 @@ export const CUSTOMER_ORDERING_TEXT = {
   EMPTY_CATEGORY_TITLE: "No items available",
   EMPTY_CATEGORY_BODY: "This category does not have active menu items yet.",
   ADD_ACTION: "ADD",
+  ADD_ACTION_TITLE: "Add",
+  CARD_DISCOUNT_LABEL: "20% Off",
   ADDRESS_SEPARATOR: ", ",
   SALE_MODE_SEPARATOR: " / ",
 } as const;

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useUserStore, type AddressModel } from "@/core/store/user.store";
 import {
   Bell,
+  Heart,
   Minus,
   Plus,
   Search,
@@ -59,6 +60,46 @@ type DisplayProduct = {
   saleMode?: CustomerMenuItemSaleMode;
   quantityLabel?: string;
 };
+
+type FoodCardTone = {
+  cardClassName: string;
+  actionClassName: string;
+  bottomClassName: string;
+  splashClassName: string;
+};
+
+const FOOD_CARD_TONES: FoodCardTone[] = [
+  {
+    cardClassName: "bg-[#d6ef7a] ring-[#c5df68]",
+    actionClassName: "bg-white/58 text-black hover:bg-white/78",
+    bottomClassName: "bg-white/34 ring-white/38",
+    splashClassName: "bg-[#b9da52]/42",
+  },
+  {
+    cardClassName: "bg-[#c9f2a2] ring-[#b5de8c]",
+    actionClassName: "bg-white/58 text-black hover:bg-white/78",
+    bottomClassName: "bg-white/34 ring-white/38",
+    splashClassName: "bg-[#8ccd5c]/36",
+  },
+  {
+    cardClassName: "bg-[#e4ee86] ring-[#d2dc73]",
+    actionClassName: "bg-white/58 text-black hover:bg-white/78",
+    bottomClassName: "bg-white/34 ring-white/38",
+    splashClassName: "bg-[#c1d65e]/38",
+  },
+  {
+    cardClassName: "bg-[#cff08a] ring-[#bddc78]",
+    actionClassName: "bg-white/58 text-black hover:bg-white/78",
+    bottomClassName: "bg-white/34 ring-white/38",
+    splashClassName: "bg-[#a8d45b]/36",
+  },
+  {
+    cardClassName: "bg-[#dced94] ring-[#c8d97e]",
+    actionClassName: "bg-white/58 text-black hover:bg-white/78",
+    bottomClassName: "bg-white/34 ring-white/38",
+    splashClassName: "bg-[#b5ce5a]/36",
+  },
+];
 
 const getOrderingContext = (): CustomerOrderingContext | null =>
   typeof window === "undefined" ? null : readOrderingContext();
@@ -355,9 +396,9 @@ export const CustomerMenuPage = () => {
             </button>
           </div>
 
-          <section className="relative mt-[24px] h-[150px]">
-            <div className="pointer-events-none absolute -left-[46px] top-[11px] h-[172px] w-[438px] rounded-t-[70%] bg-[#f0f0f0]" />
-            <div className="relative z-10 flex items-start gap-[13px] overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <section className="relative mt-[24px] h-[166px]">
+            <div className="pointer-events-none absolute -left-[46px] top-[11px] h-[188px] w-[438px] rounded-t-[70%] bg-[#f0f0f0]" />
+            <div className="relative z-10 flex items-start gap-[16px] overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {categoryTabs.map((category) => (
                 <CategoryButton
                   key={category.id}
@@ -369,12 +410,13 @@ export const CustomerMenuPage = () => {
             </div>
           </section>
 
-          <section className="relative mt-[3px] grid grid-cols-2 gap-x-[8px] gap-y-[27px]">
+          <section className="relative mt-[6px] flex flex-col gap-4">
             {productTiles.length > 0 ? (
               productTiles.map((product, index) => (
                 <FoodTile
                   key={`${product.id}-${index}`}
                   product={product}
+                  tone={FOOD_CARD_TONES[index % FOOD_CARD_TONES.length]}
                   onAdd={() => {
                     if (product.item) {
                       handleAdd(product.item);
@@ -393,7 +435,7 @@ export const CustomerMenuPage = () => {
                 />
               ))
             ) : (
-              <div className="col-span-2 rounded-[14px] bg-white px-5 py-10 text-center shadow-[0_15px_32px_rgba(0,0,0,0.06)]">
+              <div className="rounded-[14px] bg-white px-5 py-10 text-center shadow-[0_15px_32px_rgba(0,0,0,0.06)]">
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#f4f4f2] text-[#8c8c8c]">
                   <Utensils size={21} strokeWidth={1.8} />
                 </div>
@@ -476,17 +518,19 @@ const CategoryButton = ({
     <button
       type="button"
       onClick={onSelect}
-      className={`flex w-[58px] shrink-0 flex-col items-center gap-2 ${
-        isActive ? "pt-0" : "pt-[9px]"
+      className={`flex w-[76px] shrink-0 flex-col items-center gap-2 ${
+        isActive ? "pt-0" : "pt-[7px]"
       }`}
     >
       <span
-        className={`flex items-center justify-center rounded-full bg-white shadow-[0_12px_24px_rgba(0,0,0,0.07)] ${
-          isActive ? "h-[58px] w-[58px]" : "h-[47px] w-[47px]"
+        className={`relative flex items-center justify-center overflow-hidden rounded-[24px] bg-white/34 shadow-[inset_0_1px_0_rgba(255,255,255,0.42),0_14px_28px_rgba(87,106,34,0.1)] ring-1 ring-white/42 backdrop-blur-md ${
+          isActive ? "h-[76px] w-[76px]" : "h-[66px] w-[66px]"
         }`}
       >
+        <span className="pointer-events-none absolute -right-4 -top-3 h-10 w-10 rounded-full bg-[#d6ef7a]/50 blur-[1px]" />
+        <span className="pointer-events-none absolute -bottom-4 left-2 h-9 w-9 rounded-full bg-white/40" />
         {category.imageUrl ? (
-          <span className="flex h-[35px] w-[35px] items-center justify-center overflow-hidden rounded-full bg-[#fafafa]">
+          <span className="relative z-10 flex h-full w-full items-center justify-center overflow-hidden rounded-[24px] bg-white/18">
             <img
               src={category.imageUrl}
               alt={category.label}
@@ -494,18 +538,18 @@ const CategoryButton = ({
             />
           </span>
         ) : (
-          <Utensils size={19} />
+          <Utensils size={25} className="relative z-10 text-black/58" />
         )}
       </span>
       <span
-        className={`text-[10px] ${
+        className={`max-w-full truncate text-[11px] ${
           isActive ? "font-medium text-black" : "font-normal text-[#777777]"
         }`}
       >
         {category.label}
       </span>
       {isActive ? (
-        <span className="h-[4px] w-[28px] rounded-full bg-black" />
+        <span className="h-[4px] w-[34px] rounded-full bg-black" />
       ) : null}
     </button>
   );
@@ -513,90 +557,107 @@ const CategoryButton = ({
 
 const FoodTile = ({
   product,
+  tone,
   onAdd,
   onIncrement,
   onDecrement,
 }: {
   product: DisplayProduct;
+  tone: FoodCardTone;
   onAdd: () => void;
   onIncrement: () => void;
   onDecrement: () => void;
 }) => {
   const hasQuantity = Boolean(product.quantityLabel);
-  const action = hasQuantity ? "remove" : "add";
 
   return (
-    <article className="relative h-[190px] rounded-[10px] bg-white px-3 pb-3 pt-[96px] shadow-[0_15px_32px_rgba(0,0,0,0.07)]">
-      <div className="absolute -top-[17px] left-1/2 flex h-[104px] w-[122px] -translate-x-1/2 items-center justify-center">
-        <div className="absolute bottom-[4px] h-[58px] w-[104px] rounded-[999px] bg-[#f7f7f5]" />
-        <div className="absolute bottom-[10px] h-[15px] w-[84px] rounded-full bg-black/[0.055] blur-[8px]" />
+    <article
+      className={`relative min-h-[184px] w-full overflow-hidden rounded-[24px] px-4 pb-4 pt-3 shadow-[0_18px_34px_rgba(78,102,24,0.16)] ring-1 ${tone.cardClassName}`}
+    >
+      <div className="pointer-events-none absolute -left-8 top-8 h-[94px] w-[94px] rounded-full bg-white/18 blur-[1px]" />
+      <div className={`pointer-events-none absolute -right-10 bottom-3 h-[118px] w-[118px] rounded-full ${tone.splashClassName}`} />
+      <div className="relative z-20 flex items-center justify-between">
+        <span
+          className="rounded-[14px] bg-white/28 px-4 py-2 text-[10px] font-medium text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_8px_18px_rgba(95,119,32,0.08)] ring-1 ring-white/36 backdrop-blur-md"
+        >
+          {CUSTOMER_ORDERING_TEXT.CARD_DISCOUNT_LABEL}
+        </span>
+        <button
+          type="button"
+          aria-label={`Favorite ${product.title}`}
+          className="flex h-[35px] w-[35px] items-center justify-center rounded-full bg-white/26 text-[#ff5d58] shadow-[inset_0_1px_0_rgba(255,255,255,0.38),0_8px_18px_rgba(95,119,32,0.08)] ring-1 ring-white/36 backdrop-blur-md"
+        >
+          <Heart size={16} strokeWidth={1.9} />
+        </button>
+      </div>
+
+      <div className="relative z-10 mx-auto -mt-2 flex h-[132px] w-full items-center justify-center">
+        <div className="absolute bottom-[4px] h-[34px] w-[218px] rounded-full bg-[#806227]/24 blur-[12px]" />
         {product.imageUrl ? (
-          <img
-            src={product.imageUrl}
-            alt={product.title}
-            className={`relative z-10 h-[102px] w-[122px] drop-shadow-[0_14px_16px_rgba(0,0,0,0.14)] ${
-              product.imageFit === "cover" ? "object-cover rounded-[8px]" : "object-contain"
-            } ${product.imageClassName || ""}`}
-          />
+          <span className="relative z-10 flex h-[142px] w-[142px] items-center justify-center overflow-hidden rounded-full bg-white/16 drop-shadow-[0_18px_18px_rgba(89,67,25,0.2)]">
+            <img
+              src={product.imageUrl}
+              alt={product.title}
+              className={`h-full w-full object-cover ${product.imageClassName || ""}`}
+            />
+          </span>
         ) : (
-          <Utensils size={30} className="relative z-10 text-[#a0a0a0]" />
+          <span className="relative z-10 flex h-[142px] w-[142px] items-center justify-center rounded-full bg-white/16">
+            <Utensils size={46} className="text-black/38" />
+          </span>
         )}
       </div>
 
-      <div className="flex h-full flex-col items-center text-center">
-        <h2 className="max-w-full text-[13px] font-medium leading-[1.05] text-black">
-          {product.title}
-        </h2>
-        <p className="mt-[2px] max-w-full text-[10px] font-normal leading-tight text-[#8c8c8c]">
-          {product.subtitle}
-        </p>
-        <div className="mt-auto flex w-full items-center justify-between">
-          <div className="flex items-baseline gap-1">
-            <span className="text-[22px] font-semibold tracking-normal text-black">
+      <div
+        className={`relative z-20 -mt-1 flex min-h-[58px] items-center justify-between rounded-[18px] px-4 py-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.38),0_12px_26px_rgba(95,119,32,0.1)] ring-1 backdrop-blur-md ${tone.bottomClassName}`}
+      >
+        <div className="min-w-0">
+          <h2 className="truncate text-[13px] font-medium leading-tight text-black">
+            {product.title}
+          </h2>
+          <div className="mt-1 flex items-center gap-2">
+            <p className="text-[11px] font-normal text-black/72">
+              {product.subtitle}
+            </p>
+            <span className="h-1 w-1 rounded-full bg-black/28" />
+            <p className="text-[11px] font-medium text-black">
               {formatAmount(product.price)}
-            </span>
+            </p>
           </div>
-          {hasQuantity ? (
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                aria-label={`Decrease ${product.title}`}
-                onClick={onDecrement}
-                className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-black text-white"
-              >
-                <Minus size={13} strokeWidth={2.6} />
-              </button>
-              <span className="min-w-[18px] text-[11px] font-medium">
-                {product.quantityLabel}
-              </span>
-              <button
-                type="button"
-                aria-label={`Increase ${product.title}`}
-                onClick={onIncrement}
-                className="flex h-[26px] w-[26px] items-center justify-center rounded-full bg-[#f8f8f8] text-black"
-              >
-                <Plus size={13} strokeWidth={2.6} />
-              </button>
-            </div>
-          ) : (
+        </div>
+        {hasQuantity ? (
+          <div className="ml-3 flex shrink-0 items-center gap-2 rounded-full bg-white/42 px-2 py-1.5 ring-1 ring-white/40 backdrop-blur-md">
             <button
               type="button"
-              aria-label={`${action === "add" ? "Add" : "Remove"} ${product.title}`}
-              onClick={onAdd}
-              className={`flex h-[27px] w-[27px] items-center justify-center rounded-full shadow-[0_5px_12px_rgba(0,0,0,0.08)] ${
-                action === "remove"
-                  ? "bg-black text-white"
-                  : "bg-[#f8f8f8] text-black"
-              }`}
+              aria-label={`Decrease ${product.title}`}
+              onClick={onDecrement}
+              className="flex h-[28px] w-[28px] items-center justify-center rounded-full bg-black text-white"
             >
-              {action === "remove" ? (
-                <Minus size={13} strokeWidth={2.6} />
-              ) : (
-                <Plus size={13} strokeWidth={2.6} />
-              )}
+              <Minus size={13} strokeWidth={2.6} />
             </button>
-          )}
-        </div>
+            <span className="min-w-[22px] text-center text-[11px] font-medium text-black">
+              {product.quantityLabel}
+            </span>
+            <button
+              type="button"
+              aria-label={`Increase ${product.title}`}
+              onClick={onIncrement}
+              className={`flex h-[28px] w-[28px] items-center justify-center rounded-full ${tone.actionClassName}`}
+            >
+              <Plus size={13} strokeWidth={2.6} />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            aria-label={`Add ${product.title}`}
+            onClick={onAdd}
+            className={`ml-3 flex h-[36px] shrink-0 items-center justify-center gap-1.5 rounded-[14px] px-4 text-[13px] font-medium shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] ring-1 ring-white/34 backdrop-blur-md ${tone.actionClassName}`}
+          >
+            <Plus size={15} strokeWidth={2.2} />
+            {CUSTOMER_ORDERING_TEXT.ADD_ACTION_TITLE}
+          </button>
+        )}
       </div>
     </article>
   );
