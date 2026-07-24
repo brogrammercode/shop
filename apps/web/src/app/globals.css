@@ -20,6 +20,12 @@
   --font-sans: var(--font-outfit), sans-serif;
 }
 
+:root {
+  --root-nav-bottom: calc(env(safe-area-inset-bottom) + 28px);
+  --root-nav-height: 59px;
+  --root-nav-clearance: calc(var(--root-nav-bottom) + var(--root-nav-height) + 20px);
+}
+
 html,
 body {
   width: 100%;

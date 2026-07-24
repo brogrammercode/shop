@@ -38,7 +38,7 @@ export const RootNavigation = () => {
   return (
     <nav
       aria-label="Platform navigation"
-      className="fixed bottom-[calc(env(safe-area-inset-bottom)+28px)] left-1/2 z-50 flex h-[59px] w-[280px] max-w-[calc(100vw-32px)] -translate-x-1/2 items-center justify-between rounded-full bg-black px-[18px] text-white shadow-[0_18px_34px_rgba(0,0,0,0.35)]"
+      className="fixed bottom-[var(--root-nav-bottom)] left-1/2 z-50 flex h-[var(--root-nav-height)] w-[280px] max-w-[calc(100vw-32px)] -translate-x-1/2 items-center justify-between rounded-full bg-black px-[18px] text-white shadow-[0_18px_34px_rgba(0,0,0,0.35)]"
     >
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;

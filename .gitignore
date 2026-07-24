@@ -107,6 +107,8 @@ firebase_options.dart
 debug/
 profile/
 release/
+!apps/web/src/app/profile/
+!apps/web/src/app/profile/**
 
 # ----------------------------------------------------------------------------
 # Node / API

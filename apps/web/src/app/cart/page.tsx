@@ -330,17 +330,17 @@ export default function CartPage() {
 
   if (cartItems.length === 0) {
     return (
-      <div className="flex min-h-screen w-screen flex-col bg-[#FAFAFA]">
-        <div className="flex items-center bg-[#FAFAFA] px-0 py-3">
+      <div className="flex min-h-screen flex-col bg-[#FAFAFA]">
+        <div className="flex items-center bg-[#FAFAFA] px-4 py-3">
           <button
             type="button"
             onClick={() => router.back()}
-            className="p-2"
+            className="p-2 -ml-2"
           >
             <ChevronLeft size={24} className="text-text-primary" />
           </button>
         </div>
-        <div className="flex flex-1 flex-col items-center justify-center px-0 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
           <p className="text-[15px] font-medium text-text-secondary">
             {CUSTOMER_ORDERING_TEXT.CART_EMPTY}
           </p>
@@ -357,17 +357,17 @@ export default function CartPage() {
 
   if (!orderingContext) {
     return (
-      <div className="flex min-h-screen w-screen flex-col bg-[#FAFAFA]">
-        <div className="flex items-center bg-[#FAFAFA] px-0 py-3">
+      <div className="flex min-h-screen flex-col bg-[#FAFAFA]">
+        <div className="flex items-center bg-[#FAFAFA] px-4 py-3">
           <button
             type="button"
             onClick={() => router.back()}
-            className="p-2"
+            className="p-2 -ml-2"
           >
             <ChevronLeft size={24} className="text-text-primary" />
           </button>
         </div>
-        <div className="flex flex-1 flex-col items-center justify-center px-0 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
           <p className="text-[15px] font-medium text-text-secondary">
             {CUSTOMER_ORDERING_TEXT.CONTEXT_MISSING}
           </p>
@@ -383,18 +383,18 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen w-screen overflow-x-hidden bg-[#FAFAFA] pb-32">
-      <div className="flex items-center bg-[#FAFAFA] px-0 py-3">
+    <div className="min-h-screen overflow-x-hidden bg-[#FAFAFA] pb-[220px]">
+      <div className="flex items-center bg-[#FAFAFA] px-4 py-3">
         <button
           type="button"
           onClick={() => router.back()}
-          className="p-2"
+          className="p-2 -ml-2"
         >
           <ChevronLeft size={24} className="text-text-primary" />
         </button>
       </div>
 
-      <div className="mb-6 w-full px-0">
+      <div className="mx-auto mb-6 w-full max-w-lg px-4">
         <h2 className="text-[20px] font-semibold text-text-primary mb-4">
           {CUSTOMER_ORDERING_TEXT.CART_TITLE}
         </h2>
@@ -484,7 +484,7 @@ export default function CartPage() {
         onSelectAddress={setSelectedAddressId}
       />
 
-      <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-50 p-0">
+      <div className="pointer-events-none fixed bottom-[var(--root-nav-clearance)] left-0 right-0 z-40 px-6">
         <div className="w-full relative shadow-upward bg-transparent pointer-events-auto">
           {error ? (
             <div className="absolute bottom-full left-0 right-0 mb-3 rounded-xl bg-[#FFF5F5] border border-[#FFD1D1] px-4 py-3 text-[12px] font-medium text-[#B91C1C] shadow-sm">

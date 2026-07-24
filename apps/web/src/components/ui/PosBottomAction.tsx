@@ -11,7 +11,7 @@ interface PosBottomActionProps {
 
 export const PosBottomAction = ({ totalItems, totalPrice, onPlaceOrder, isOrdering }: PosBottomActionProps) => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 pointer-events-none pb-8 px-6">
+    <div className="pointer-events-none fixed bottom-[var(--root-nav-clearance)] left-0 right-0 z-40 px-6">
       <div className="mx-auto max-w-md pointer-events-auto shadow-deep rounded-full bg-pure-white p-2">
         <div className="flex items-center justify-between w-full">
           <button 
