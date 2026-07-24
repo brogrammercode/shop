@@ -95,6 +95,10 @@ export class InventoryRepo {
     return prisma.itemVariant.update({ where: { id }, data: updateData });
   }
 
+  async deleteVariant(id: string) {
+    return prisma.itemVariant.update({ where: { id }, data: { is_deleted: true } });
+  }
+
   async createPurchaseOrder(data: { branch_id: string; supplier_id: string; created_by: string; total_amount: number; notes?: string }) {
     return prisma.purchaseOrder.create({ data });
   }

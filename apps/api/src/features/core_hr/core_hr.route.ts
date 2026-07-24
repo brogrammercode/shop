@@ -40,7 +40,14 @@ router.patch(_CORE_HR_CONSTANTS._R_O_U_T_E_S.EMPLOYEE_BY_ID, requirePermission(_
 router.delete(_CORE_HR_CONSTANTS._R_O_U_T_E_S.EMPLOYEE_BY_ID, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.EMPLOYEE_WRITE), coreHrController.deleteEmployee);
 
 router.get(_CORE_HR_CONSTANTS._R_O_U_T_E_S.USERS, coreHrController.listUsers);
+router.post(_CORE_HR_CONSTANTS._R_O_U_T_E_S.USERS, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.EMPLOYEE_WRITE), coreHrController.createUser);
+router.patch(_CORE_HR_CONSTANTS._R_O_U_T_E_S.USER_BY_ID, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.EMPLOYEE_WRITE), coreHrController.updateUser);
 router.delete(_CORE_HR_CONSTANTS._R_O_U_T_E_S.USER_BY_ID, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.EMPLOYEE_WRITE), coreHrController.deleteUser);
+
+router.get(_CORE_HR_CONSTANTS._R_O_U_T_E_S.BRANCHES, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S._A_L_L), coreHrController.listBranches);
+router.post(_CORE_HR_CONSTANTS._R_O_U_T_E_S.BRANCHES, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S._A_L_L), coreHrController.createAdminBranch);
+router.patch(_CORE_HR_CONSTANTS._R_O_U_T_E_S.BRANCH_BY_ID, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S._A_L_L), coreHrController.updateBranch);
+router.delete(_CORE_HR_CONSTANTS._R_O_U_T_E_S.BRANCH_BY_ID, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S._A_L_L), coreHrController.deleteBranch);
 
 router.get(_CORE_HR_CONSTANTS._R_O_U_T_E_S._D_E_P_A_R_T_M_E_N_T_S, coreHrController.listDepartments);
 router.post(_CORE_HR_CONSTANTS._R_O_U_T_E_S._D_E_P_A_R_T_M_E_N_T_S, requirePermission(_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S._A_L_L), coreHrController.createDepartment);

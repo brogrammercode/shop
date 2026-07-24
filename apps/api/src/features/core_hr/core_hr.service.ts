@@ -265,6 +265,18 @@ export class CoreHrService {
     return coreHrRepo.findUsersWithDetails();
   }
 
+  async createUser(actorUid: string, data: { name: string; phone: string; email?: string | null; avatar?: string | null; status?: any }) {
+    return coreHrRepo.createAdminUser(actorUid, data);
+  }
+
+  async updateUser(actorUid: string, uid: string, data: { name?: string; phone?: string; email?: string | null; avatar?: string | null; status?: any }) {
+    const user = await coreHrRepo.findUserById(uid);
+    if (!user) {
+      throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.USER_NOT_FOUND);
+    }
+    return coreHrRepo.updateUser(actorUid, uid, data);
+  }
+
   async deleteUser(actorUid: string, uid: string) {
     if (actorUid === uid) {
       throw new BadRequestError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.CANNOT_DELETE_SELF);
@@ -281,6 +293,36 @@ export class CoreHrService {
     const role = await coreHrRepo.createRole(uid, branch.id, _CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S.OWNER_ROLE, [_CORE_HR_CONSTANTS._P_E_R_M_I_S_S_I_O_N_S._A_L_L]);
     const employee = await coreHrRepo.createEmployee(uid, branch.id, uid, role.id);
     return { branch, employee };
+  }
+
+  async createAdminBranch(actorUid: string, data: { name: string; is_hq?: boolean; addresses?: any[]; bank_details?: any[] }) {
+    const branch = await coreHrRepo.createBranch(actorUid, {
+      name: data.name,
+      is_hq: data.is_hq ?? false,
+      addresses: data.addresses,
+      bank_details: data.bank_details,
+    });
+    return { branch };
+  }
+
+  async listBranches() {
+    return coreHrRepo.findBranchesWithDetails();
+  }
+
+  async updateBranch(actorUid: string, id: string, data: { name?: string; is_hq?: boolean; status?: any; addresses?: any[]; bank_details?: any[] }) {
+    const branch = await coreHrRepo.findBranchById(id);
+    if (!branch || branch.is_deleted) {
+      throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.BRANCH_NOT_FOUND);
+    }
+    return coreHrRepo.updateBranch(actorUid, id, data);
+  }
+
+  async deleteBranch(actorUid: string, id: string) {
+    const branch = await coreHrRepo.findBranchById(id);
+    if (!branch || branch.is_deleted) {
+      throw new NotFoundError(_CORE_HR_CONSTANTS._E_R_R_O_R_S.BRANCH_NOT_FOUND);
+    }
+    return coreHrRepo.deleteBranch(actorUid, id);
   }
 
   async searchBranches(uid: string, query: string) {

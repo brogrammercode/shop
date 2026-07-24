@@ -47,6 +47,7 @@ export const _INVENTORY_CONSTANTS = {
     VARIANT_CREATED: 'Item variant created successfully',
     VARIANTS_LISTED: 'Item variants fetched successfully',
     VARIANT_UPDATED: 'Item variant updated successfully',
+    VARIANT_DELETED: 'Item variant deleted successfully',
     PO_CREATED: 'Purchase order created successfully',
     POS_LISTED: 'Purchase orders fetched successfully',
     PO_SENT: 'Purchase order sent successfully',

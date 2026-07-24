@@ -77,6 +77,19 @@ export const listUsers = asyncHandler(async (req: Request, res: Response) => {
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.USERS_LISTED, HttpStatus.OK);
 });
 
+export const createUser = asyncHandler(async (req: Request, res: Response) => {
+  const { name, phone, email, avatar, status } = req.body;
+  const result = await coreHrService.createUser(req.user!.uid, { name, phone, email, avatar, status });
+  return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.USER_CREATED, HttpStatus.CREATED);
+});
+
+export const updateUser = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as Record<string, string>;
+  const { name, phone, email, avatar, status } = req.body;
+  const result = await coreHrService.updateUser(req.user!.uid, id, { name, phone, email, avatar, status });
+  return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.USER_UPDATED, HttpStatus.OK);
+});
+
 export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params as Record<string, string>;
   const result = await coreHrService.deleteUser(req.user!.uid, id);
@@ -87,6 +100,30 @@ export const createBranch = asyncHandler(async (req: Request, res: Response) => 
   const { name, is_hq, addresses, bank_details } = req.body;
   const result = await coreHrService.createBranch(req.user!.uid, name, is_hq, addresses, bank_details);
   return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.BRANCH_CREATED, HttpStatus.CREATED);
+});
+
+export const createAdminBranch = asyncHandler(async (req: Request, res: Response) => {
+  const { name, is_hq, addresses, bank_details } = req.body;
+  const result = await coreHrService.createAdminBranch(req.user!.uid, { name, is_hq, addresses, bank_details });
+  return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.BRANCH_CREATED, HttpStatus.CREATED);
+});
+
+export const listBranches = asyncHandler(async (_req: Request, res: Response) => {
+  const result = await coreHrService.listBranches();
+  return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.BRANCHES_FOUND, HttpStatus.OK);
+});
+
+export const updateBranch = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as Record<string, string>;
+  const { name, is_hq, status, addresses, bank_details } = req.body;
+  const result = await coreHrService.updateBranch(req.user!.uid, id, { name, is_hq, status, addresses, bank_details });
+  return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.BRANCH_UPDATED, HttpStatus.OK);
+});
+
+export const deleteBranch = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as Record<string, string>;
+  const result = await coreHrService.deleteBranch(req.user!.uid, id);
+  return sendSuccess(res, result, _CORE_HR_CONSTANTS._M_E_S_S_A_G_E_S.BRANCH_DELETED, HttpStatus.OK);
 });
 
 export const searchBranches = asyncHandler(async (req: Request, res: Response) => {

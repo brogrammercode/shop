@@ -125,6 +125,30 @@ export class CoreHrRepo {
     });
   }
 
+  async createAdminUser(actorUid: string, data: { name: string; phone: string; email?: string | null; avatar?: string | null; status?: any }) {
+    return prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          name: data.name,
+          phone: data.phone,
+          email: data.email || null,
+          avatar: data.avatar || null,
+          status: data.status || 'ACTIVE',
+        },
+      });
+      await this._logAction(tx, actorUid, 'CREATE_USER', 'User Created', `Created user ${data.phone}`, { user_id: user.id, phone: data.phone }, `/user/${user.id}`);
+      return user;
+    });
+  }
+
+  async updateUser(actorUid: string, uid: string, data: { name?: string; phone?: string; email?: string | null; avatar?: string | null; status?: any }) {
+    return prisma.$transaction(async (tx) => {
+      const user = await tx.user.update({ where: { id: uid }, data });
+      await this._logAction(tx, actorUid, 'UPDATE_USER', 'User Updated', `Updated user ${uid}`, { user_id: uid, changes: data }, `/user/${uid}`);
+      return user;
+    });
+  }
+
   async deleteUserCascade(actorUid: string, uid: string) {
     return prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({
@@ -344,6 +368,19 @@ export class CoreHrRepo {
     return prisma.branch.findUnique({ where: { id } });
   }
 
+  async findBranchesWithDetails() {
+    const branches = await prisma.branch.findMany({
+      where: { is_deleted: false },
+      include: {
+        _count: {
+          select: { employees: true },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+    return this.attachBranchDetails(branches);
+  }
+
   async searchBranches(query: string) {
     const branches = await prisma.branch.findMany({
       where: {
@@ -362,10 +399,71 @@ export class CoreHrRepo {
 
     if (branches.length === 0) return [];
 
+    return this.attachBranchDetails(branches);
+  }
+
+  async updateBranch(actorUid: string, id: string, data: { name?: string; is_hq?: boolean; status?: any; addresses?: any[]; bank_details?: any[] }) {
+    return prisma.$transaction(async (tx) => {
+      const { addresses, bank_details, ...branchData } = data;
+      const branch = await tx.branch.update({
+        where: { id },
+        data: branchData,
+      });
+      if (Array.isArray(addresses)) {
+        await tx.address.deleteMany({
+          where: { entity_type: AddressType.BRANCH, entity_id: id },
+        });
+        if (addresses.length) {
+          await tx.address.createMany({
+            data: addresses.map((address) => ({
+              ...address,
+              entity_type: AddressType.BRANCH,
+              entity_id: id,
+            })),
+          });
+        }
+      }
+      if (Array.isArray(bank_details)) {
+        await tx.bankDetail.deleteMany({
+          where: { entity_type: BankDetailType.BRANCH, entity_id: id },
+        });
+        if (bank_details.length) {
+          await tx.bankDetail.createMany({
+            data: bank_details.map((bankDetail) => ({
+              ...bankDetail,
+              entity_type: BankDetailType.BRANCH,
+              entity_id: id,
+            })),
+          });
+        }
+      }
+      await this._logAction(tx, actorUid, 'UPDATE_BRANCH', 'Branch Updated', `Updated branch ${id}`, { branch_id: id, changes: data }, `/branch/${id}`);
+      return branch;
+    });
+  }
+
+  async deleteBranch(actorUid: string, id: string) {
+    return prisma.$transaction(async (tx) => {
+      const branch = await tx.branch.update({
+        where: { id },
+        data: { is_deleted: true },
+      });
+      await this._logAction(tx, actorUid, 'DELETE_BRANCH', 'Branch Deleted', `Deleted branch ${id}`, { branch_id: id }, `/branch/${id}`);
+      return branch;
+    });
+  }
+
+  private async attachBranchDetails(branches: any[]) {
     const branchIds = branches.map(b => b.id);
     const addresses = await prisma.address.findMany({
       where: {
-        entity_type: 'BRANCH',
+        entity_type: AddressType.BRANCH,
+        entity_id: { in: branchIds },
+      }
+    });
+    const bankDetails = await prisma.bankDetail.findMany({
+      where: {
+        entity_type: BankDetailType.BRANCH,
         entity_id: { in: branchIds },
       }
     });
@@ -381,6 +479,7 @@ export class CoreHrRepo {
       return {
         ...branch,
         addresses: addresses.filter(a => a.entity_id === branch.id),
+        bank_details: bankDetails.filter(b => b.entity_id === branch.id),
         employee_count: branch._count.employees,
         owner: owner ? { name: owner.name, phone: owner.phone } : null
       };

@@ -136,6 +136,12 @@ export const updateVariant = asyncHandler(async (req: Request, res: Response) =>
   return sendSuccess(res, result, _INVENTORY_CONSTANTS._M_E_S_S_A_G_E_S.VARIANT_UPDATED, HttpStatus.OK);
 });
 
+export const deleteVariant = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as Record<string, string>;
+  const result = await inventoryService.deleteVariant(id, req.employee.branch_id);
+  return sendSuccess(res, result, _INVENTORY_CONSTANTS._M_E_S_S_A_G_E_S.VARIANT_DELETED, HttpStatus.OK);
+});
+
 export const listPurchaseOrders = asyncHandler(async (req: Request, res: Response) => {
   const result = await inventoryService.listPurchaseOrders(req.employee.branch_id);
   return sendSuccess(res, result, _INVENTORY_CONSTANTS._M_E_S_S_A_G_E_S.POS_LISTED, HttpStatus.OK);

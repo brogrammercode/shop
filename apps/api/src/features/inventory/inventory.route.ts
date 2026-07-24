@@ -78,6 +78,10 @@ router.patch(
   _INVENTORY_CONSTANTS._R_O_U_T_E_S.VARIANT_BY_ID,
   inventoryController.updateVariant,
 );
+router.delete(
+  _INVENTORY_CONSTANTS._R_O_U_T_E_S.VARIANT_BY_ID,
+  inventoryController.deleteVariant,
+);
 
 router.get(
   _INVENTORY_CONSTANTS._R_O_U_T_E_S._U_O_M,

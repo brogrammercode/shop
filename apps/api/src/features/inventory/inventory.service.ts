@@ -128,6 +128,11 @@ export class InventoryService {
     return inventoryRepo.updateVariant(id, data);
   }
 
+  async deleteVariant(id: string, branchId: string) {
+    await this.getVariantById(id, branchId);
+    return inventoryRepo.deleteVariant(id);
+  }
+
   async createPurchaseOrder(branchId: string, supplier_id: string, created_by: string, items: { variant_id: string; qty_ordered: number; unit_price: number }[], notes?: string) {
     let totalAmount = 0;
     const poItems = items.map(item => {
