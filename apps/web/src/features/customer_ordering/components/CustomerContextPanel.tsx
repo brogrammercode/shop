@@ -69,7 +69,11 @@ export const CustomerContextPanel = ({
           ) : (
             <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
               <button
-                onClick={() => router.push('/profile')}
+                onClick={() =>
+                  router.push(
+                    `${CUSTOMER_ORDERING_ROUTES.PROFILE}?tab=addresses&addAddress=1&next=${encodeURIComponent(window.location.pathname + window.location.search)}`,
+                  )
+                }
                 className="shrink-0 w-[140px] border-2 border-dashed border-primary-green/50 bg-[#E8F5E9]/30 rounded-xl flex flex-col items-center justify-center text-primary-green gap-1 active:scale-95 transition-transform"
               >
                 <span className="text-[20px]">+</span>

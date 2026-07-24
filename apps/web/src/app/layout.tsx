@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
+import { RootNavigation } from "@/components/platform/RootNavigation";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -19,7 +20,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${outfit.variable} font-sans antialiased`}>{children}</body>
+      <body className={`${outfit.variable} font-sans antialiased`}>
+        {children}
+        <RootNavigation />
+      </body>
     </html>
   );
 }

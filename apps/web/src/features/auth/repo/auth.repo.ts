@@ -10,6 +10,14 @@ export interface VerifyOtpResponse {
   requires_phone?: boolean;
 }
 
+export interface CreateAddressInput {
+  area: string;
+  locality?: string;
+  city?: string;
+  state?: string;
+  pin_code?: string;
+}
+
 interface UserSessionResponse {
   user: UserModel;
   employee?: unknown;
@@ -63,6 +71,11 @@ export class AuthRepo {
       store.setBankDetails(data.bankDetails as BankDetailModel[]);
     }
     return data;
+  }
+
+  static async createAddress(input: CreateAddressInput): Promise<AddressModel> {
+    const response = await apiClient.post('/hr/auth/addresses', input);
+    return normalizeAddress(response.data?.data);
   }
 }
 

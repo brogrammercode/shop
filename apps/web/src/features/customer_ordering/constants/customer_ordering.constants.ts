@@ -2,6 +2,7 @@ export const CUSTOMER_ORDERING_ROUTES = {
   MENU: "/menu",
   LOGIN: "/login",
   COMPLETE_PHONE: "/complete-phone",
+  PROFILE: "/profile",
 } as const;
 
 export const CUSTOMER_ORDERING_CARD_QR = {
@@ -128,6 +129,16 @@ export const CUSTOMER_ORDERING_TEXT = {
   CONTEXT_MISSING: "Scan a valid QR code to load this restaurant menu.",
   SELECT_SALE_MODE: "Select sale mode",
   DEFAULT_SALE_MODE: "Regular",
+  DELIVERY_TO: "Delivery to",
+  MENU_TITLE_PRIMARY: "Hungry?",
+  MENU_TITLE_SECONDARY: "Order & Eat.",
+  MENU_SEARCH_PLACEHOLDER: "Search for fast food...",
+  ALL_CATEGORY_LABEL: "All",
+  EMPTY_CATEGORY_TITLE: "No items available",
+  EMPTY_CATEGORY_BODY: "This category does not have active menu items yet.",
+  ADD_ACTION: "ADD",
+  ADDRESS_SEPARATOR: ", ",
+  SALE_MODE_SEPARATOR: " / ",
 } as const;
 
 export const CUSTOMER_ORDER_TYPES = {

@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { LogOut, Settings, UserCircle2, ShoppingBag } from 'lucide-react';
 import { SamosaIcon } from '@/components/ui/SamosaIcon';
 import { useUserStore } from '@/core/store/user.store';
-import { CUSTOMER_ORDERING_DEFAULTS, CUSTOMER_ORDERING_ROUTES, CUSTOMER_ORDERING_TEXT } from '../constants/customer_ordering.constants';
+import { CUSTOMER_ORDERING_DEFAULTS, CUSTOMER_ORDERING_ROUTES } from '../constants/customer_ordering.constants';
 import { CustomerOrderingApi } from '../services/customer_ordering.api';
 import { CustomerOrderingContext } from '../types/customer_ordering.types';
 
