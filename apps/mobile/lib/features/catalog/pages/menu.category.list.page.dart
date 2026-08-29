@@ -8,6 +8,7 @@ import 'package:mobile/features/catalog/controllers/catalog.state.dart';
 import 'package:mobile/utils/error.dart';
 import 'package:mobile/components/ui/loader.dart';
 import 'package:mobile/core/routes.dart';
+import 'package:mobile/features/catalog/constants/catalog.constant.dart';
 
 class MenuCategoryListPage extends StatefulWidget {
   const MenuCategoryListPage({super.key});
@@ -17,6 +18,8 @@ class MenuCategoryListPage extends StatefulWidget {
 }
 
 class _MenuCategoryListPageState extends State<MenuCategoryListPage> {
+  bool _showInactive = false;
+
   @override
   void initState() {
     super.initState();
@@ -71,19 +74,41 @@ class _MenuCategoryListPageState extends State<MenuCategoryListPage> {
   Widget _buildPageTitle() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Menu Categories',
-            style: TextStyle(
-              fontSize: 22.sp,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-              letterSpacing: -0.5,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Menu Categories',
+                style: TextStyle(
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: 4.h),
+              Text(
+                'Manage your menu categories',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 16.h),
+          Row(
+            children: [
+              Text('Show Inactive', style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary)),
+              SizedBox(width: 8.w),
+              Switch(
+                value: _showInactive,
+                onChanged: (val) => setState(() => _showInactive = val),
+                activeColor: AppColors.primaryGreen,
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -97,7 +122,7 @@ class _MenuCategoryListPageState extends State<MenuCategoryListPage> {
           return const Center(child: AppLoader(size: 24, strokeWidth: 2));
         }
 
-        final categories = state.menuCategories.where((c) => !c.is_deleted).toList();
+        final categories = state.menuCategories.where((c) => !c.is_deleted && (_showInactive || c.status == CatalogConstant.ACTIVE)).toList();
 
         if (categories.isEmpty) {
           return Center(

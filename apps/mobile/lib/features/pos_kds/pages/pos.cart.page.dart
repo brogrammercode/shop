@@ -38,6 +38,7 @@ class _PosCartPageState extends State<PosCartPage> {
   final TextEditingController _orderNotesController = TextEditingController();
   Timer? _debounce;
   String? _customerName;
+  bool _orderNotesExpanded = false;
 
   @override
   void initState() {
@@ -356,8 +357,7 @@ class _PosCartPageState extends State<PosCartPage> {
                 final activeDineInBill = activeDineInBills.length == 1
                     ? activeDineInBills.first
                     : null;
-                final ladyluckDiscountAmount =
-                    posState.ladyluckDiscountAmount;
+                final ladyluckDiscountAmount = posState.ladyluckDiscountAmount;
                 final payableAmount = posState.cartPayable;
 
                 return Column(
@@ -887,32 +887,76 @@ class _PosCartPageState extends State<PosCartPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.sticky_note_2_outlined,
-                                        size: 14.w,
-                                        color: AppColors.textSecondary,
+                                  GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _orderNotesExpanded =
+                                            !_orderNotesExpanded;
+                                      });
+                                    },
+                                    behavior: HitTestBehavior.opaque,
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 4.h,
                                       ),
-                                      SizedBox(width: 6.w),
-                                      Text(
-                                        'ORDER NOTES',
-                                        style: TextStyle(
-                                          fontSize: 12.sp,
-                                          fontWeight: FontWeight.w800,
-                                          color: AppColors.textTertiary,
-                                          letterSpacing: 0.8,
-                                        ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.sticky_note_2_outlined,
+                                            size: 14.w,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                          SizedBox(width: 6.w),
+                                          Text(
+                                            'ORDER NOTES',
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w800,
+                                              color: AppColors.textTertiary,
+                                              letterSpacing: 0.8,
+                                            ),
+                                          ),
+                                          if (!_orderNotesExpanded &&
+                                              _orderNotesController
+                                                  .text
+                                                  .isNotEmpty) ...[
+                                            SizedBox(width: 8.w),
+                                            Expanded(
+                                              child: Text(
+                                                _orderNotesController.text,
+                                                style: TextStyle(
+                                                  fontSize: 12.sp,
+                                                  color:
+                                                      AppColors.textSecondary,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ] else
+                                            const Spacer(),
+                                          Icon(
+                                            _orderNotesExpanded
+                                                ? Icons.keyboard_arrow_up
+                                                : Icons.keyboard_arrow_down,
+                                            color: AppColors.textTertiary,
+                                            size: 20.w,
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
                                   ),
-                                  SizedBox(height: 8.h),
-                                  AppInput(
-                                    hintText:
-                                        'Add special instructions, allergies, preferences…',
-                                    controller: _orderNotesController,
-                                    maxLines: 3,
-                                  ),
+                                  if (_orderNotesExpanded) ...[
+                                    SizedBox(height: 8.h),
+                                    AppInput(
+                                      hintText:
+                                          'Add special instructions, allergies, preferences…',
+                                      controller: _orderNotesController,
+                                      maxLines: 3,
+                                      onChanged: (val) => setState(() {}),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

@@ -141,9 +141,9 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
     );
   }
 
-  Widget _buildPrimaryNavBar() {
+  Widget _buildPrimaryNavBar(double bottomInset) {
     return Positioned(
-      bottom: 24.h,
+      bottom: (24.h) + bottomInset,
       left: 0,
       right: 0,
       child: Center(
@@ -237,31 +237,33 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
     );
   }
 
-  Widget _buildDenaryNavBar() {
+  Widget _buildDenaryNavBar(double bottomInset) {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutBack,
-      bottom: _showMoreNav
-          ? (24.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h)
-          : -600.h,
+      bottom:
+          (_showMoreNav
+              ? (24.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h)
+              : -600.h) +
+          bottomInset,
       left: 0,
       right: 0,
       child: AnimatedOpacity(
@@ -307,29 +309,31 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
     );
   }
 
-  Widget _buildNonaryNavBar() {
+  Widget _buildNonaryNavBar(double bottomInset) {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutBack,
-      bottom: _showMoreNav
-          ? (24.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h)
-          : -480.h,
+      bottom:
+          (_showMoreNav
+              ? (24.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h)
+              : -480.h) +
+          bottomInset,
       left: 0,
       right: 0,
       child: AnimatedOpacity(
@@ -387,27 +391,29 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
     );
   }
 
-  Widget _buildOctonaryNavBar() {
+  Widget _buildOctonaryNavBar(double bottomInset) {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutBack,
-      bottom: _showMoreNav
-          ? (24.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h)
-          : -420.h,
+      bottom:
+          (_showMoreNav
+              ? (24.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h)
+              : -420.h) +
+          bottomInset,
       left: 0,
       right: 0,
       child: AnimatedOpacity(
@@ -484,25 +490,27 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
     );
   }
 
-  Widget _buildSeptenaryNavBar() {
+  Widget _buildSeptenaryNavBar(double bottomInset) {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutBack,
-      bottom: _showMoreNav
-          ? (24.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h)
-          : -360.h,
+      bottom:
+          (_showMoreNav
+              ? (24.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h)
+              : -360.h) +
+          bottomInset,
       left: 0,
       right: 0,
       child: AnimatedOpacity(
@@ -578,23 +586,25 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
     );
   }
 
-  Widget _buildSenaryNavBar() {
+  Widget _buildSenaryNavBar(double bottomInset) {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutBack,
-      bottom: _showMoreNav
-          ? (24.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h +
-                60.h +
-                6.h)
-          : -300.h,
+      bottom:
+          (_showMoreNav
+              ? (24.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h +
+                    60.h +
+                    6.h)
+              : -300.h) +
+          bottomInset,
       left: 0,
       right: 0,
       child: AnimatedOpacity(
@@ -666,13 +676,15 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
     );
   }
 
-  Widget _buildQuinaryNavBar() {
+  Widget _buildQuinaryNavBar(double bottomInset) {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutBack,
-      bottom: _showMoreNav
-          ? (24.h + 60.h + 6.h + 60.h + 6.h + 60.h + 6.h + 60.h + 6.h)
-          : -240.h,
+      bottom:
+          (_showMoreNav
+              ? (24.h + 60.h + 6.h + 60.h + 6.h + 60.h + 6.h + 60.h + 6.h)
+              : -240.h) +
+          bottomInset,
       left: 0,
       right: 0,
       child: AnimatedOpacity(
@@ -749,13 +761,15 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
     );
   }
 
-  Widget _buildQuaternaryNavBar() {
+  Widget _buildQuaternaryNavBar(double bottomInset) {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutBack,
-      bottom: _showMoreNav
-          ? (24.h + 60.h + 6.h + 60.h + 6.h + 60.h + 6.h)
-          : -180.h,
+      bottom:
+          (_showMoreNav
+              ? (24.h + 60.h + 6.h + 60.h + 6.h + 60.h + 6.h)
+              : -180.h) +
+          bottomInset,
       left: 0,
       right: 0,
       child: AnimatedOpacity(
@@ -831,11 +845,13 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
     );
   }
 
-  Widget _buildTertiaryNavBar() {
+  Widget _buildTertiaryNavBar(double bottomInset) {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutBack,
-      bottom: _showMoreNav ? (24.h + 60.h + 6.h + 60.h + 6.h) : -120.h,
+      bottom:
+          (_showMoreNav ? (24.h + 60.h + 6.h + 60.h + 6.h) : -120.h) +
+          bottomInset,
       left: 0,
       right: 0,
       child: AnimatedOpacity(
@@ -913,11 +929,11 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
     );
   }
 
-  Widget _buildSecondaryNavBar() {
+  Widget _buildSecondaryNavBar(double bottomInset) {
     return AnimatedPositioned(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeOutBack,
-      bottom: _showMoreNav ? (24.h + 60.h + 6.h) : -60.h,
+      bottom: (_showMoreNav ? (24.h + 60.h + 6.h) : -60.h) + bottomInset,
       left: 0,
       right: 0,
       child: AnimatedOpacity(
@@ -992,6 +1008,7 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).padding.bottom;
     return Scaffold(
       backgroundColor: AppColors.softGrey,
       body: Stack(
@@ -1009,16 +1026,16 @@ class _HomeLayoutPageState extends State<HomeLayoutPage> {
                 child: Container(color: Colors.black.withOpacity(0.1)),
               ),
             ),
-          _buildDenaryNavBar(),
-          _buildNonaryNavBar(),
-          _buildOctonaryNavBar(),
-          _buildSeptenaryNavBar(),
-          _buildSenaryNavBar(),
-          _buildQuinaryNavBar(),
-          _buildQuaternaryNavBar(),
-          _buildTertiaryNavBar(),
-          _buildSecondaryNavBar(),
-          _buildPrimaryNavBar(),
+          _buildDenaryNavBar(bottomInset),
+          _buildNonaryNavBar(bottomInset),
+          _buildOctonaryNavBar(bottomInset),
+          _buildSeptenaryNavBar(bottomInset),
+          _buildSenaryNavBar(bottomInset),
+          _buildQuinaryNavBar(bottomInset),
+          _buildQuaternaryNavBar(bottomInset),
+          _buildTertiaryNavBar(bottomInset),
+          _buildSecondaryNavBar(bottomInset),
+          _buildPrimaryNavBar(bottomInset),
         ],
       ),
     );

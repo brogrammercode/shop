@@ -131,7 +131,9 @@ class InventoryRepo {
 
   TaskResult<dynamic> deleteItemCategory(String id) async {
     return tryCatchAsync(() async {
-      final response = await _apiClient.delete(InventoryEndpoints.itemCategory(id));
+      final response = await _apiClient.delete(
+        InventoryEndpoints.itemCategory(id),
+      );
       return response.data['data'];
     });
   }
@@ -204,6 +206,13 @@ class InventoryRepo {
         data: data,
       );
       return ItemVariantModel.fromJson(response.data['data']);
+    });
+  }
+
+  TaskResult<dynamic> deleteVariant(String id) async {
+    return tryCatchAsync(() async {
+      final response = await _apiClient.delete(InventoryEndpoints.variant(id));
+      return response.data['data'];
     });
   }
 

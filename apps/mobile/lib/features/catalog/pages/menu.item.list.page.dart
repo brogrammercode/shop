@@ -19,6 +19,7 @@ class MenuItemListPage extends StatefulWidget {
 
 class _MenuItemListPageState extends State<MenuItemListPage> {
   String _selectedCategoryId = 'all';
+  bool _showInactive = false;
 
   @override
   void initState() {
@@ -70,19 +71,41 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
   Widget _buildPageTitle() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            'Menu Items',
-            style: TextStyle(
-              fontSize: 22.sp,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-              letterSpacing: -0.5,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Menu Items',
+                style: TextStyle(
+                  fontSize: 22.sp,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              SizedBox(height: 4.h),
+              Text(
+                'Manage your menu items',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: 16.h),
+          Row(
+            children: [
+              Text('Show Inactive', style: TextStyle(fontSize: 12.sp, color: AppColors.textSecondary)),
+              SizedBox(width: 8.w),
+              Switch(
+                value: _showInactive,
+                onChanged: (val) => setState(() => _showInactive = val),
+                activeColor: AppColors.primaryGreen,
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -160,7 +183,7 @@ class _MenuItemListPageState extends State<MenuItemListPage> {
           return const Center(child: AppLoader(size: 24, strokeWidth: 2));
         }
 
-        var items = state.menuItems.where((i) => !i.is_deleted).toList();
+        var items = state.menuItems.where((i) => !i.is_deleted && (_showInactive || i.status == CatalogConstant.ACTIVE)).toList();
         if (_selectedCategoryId != 'all') {
           items = items
               .where((i) => i.category_id == _selectedCategoryId)

@@ -6,12 +6,22 @@ class CatalogConstant {
   static const String CREATE_ITEM_TITLE = 'Create New Item';
   static const String ITEM_NAME = 'Item Name';
   static const String SELECT_CATEGORY = 'Select Category';
+  static const String SELECT_INVENTORY_CATEGORY =
+      'Filter by Item Category (Optional)';
   static const String ITEM_TYPE = 'Item Type (e.g., Raw Material)';
   static const String SHELF_LIFE = 'Shelf Life (Days)';
   static const String SAVE_ITEM = 'Save Item';
   static const String ITEM_DETAIL_TITLE = 'Item Details';
+  static const String DELETE_ITEM_TITLE = 'Delete Item';
+  static const String DELETE_ITEM_MESSAGE =
+      'This will permanently delete the item and all its variants. This action cannot be undone.';
+  static const String DELETE_ITEM_CONFIRM = 'Delete';
   static const String VARIANTS_SECTION = 'VARIANTS';
   static const String ADD_VARIANT = 'Add Variant';
+  static const String DELETE_VARIANT_TITLE = 'Delete Variant';
+  static const String DELETE_VARIANT_MESSAGE =
+      'This variant will be permanently removed. This action cannot be undone.';
+  static const String DELETE_VARIANT_CONFIRM = 'Delete';
   static const String SALE_MODES_SECTION = 'SALE MODES';
   static const String ADD_SALE_MODE = 'Add Sale Mode';
   static const String EDIT_SALE_MODE = 'Edit Sale Mode';
@@ -33,7 +43,7 @@ class CatalogConstant {
   static const String SALE_MODE_REQUIRED = 'Please add at least one sale mode';
   static const String SALE_MODE_INVALID = 'Please complete sale mode details';
   static const String REGULAR_SALE_MODE = 'Regular';
-  
+
   // Variants
   static const String CREATE_VARIANT_TITLE = 'Add Variant';
   static const String VARIANT_DETAIL_TITLE = 'Variant Details';
@@ -59,7 +69,7 @@ class CatalogConstant {
   static const String UOM_CODE = 'Unit Code (e.g., KG, LTR)';
   static const String UOM_DESC = 'Full Description';
   static const String SAVE_UOM = 'Save Unit';
-  
+
   // Common
   static const String ACTIVE = 'ACTIVE';
   static const String INACTIVE = 'INACTIVE';

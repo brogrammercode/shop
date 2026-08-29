@@ -28,6 +28,7 @@ class _CreateMenuCategoryPageState extends State<CreateMenuCategoryPage> {
   List<String> _remoteImages = [];
   bool _isUploading = false;
   final _displayOrderCtrl = TextEditingController(text: '0');
+  bool _isActive = true;
 
   MenuCategoryModel? _categoryToEdit;
   bool _isInit = true;
@@ -43,7 +44,7 @@ class _CreateMenuCategoryPageState extends State<CreateMenuCategoryPage> {
         _descCtrl.text = _categoryToEdit!.description;
         _displayOrderCtrl.text = _categoryToEdit!.display_order.toString();
         _remoteImages = List.from(_categoryToEdit!.images);
-        // Ignoring existing remote images for UI simplicity here, just append new ones
+        _isActive = _categoryToEdit!.status == 'ACTIVE';
       }
       _isInit = false;
     }
@@ -87,7 +88,7 @@ class _CreateMenuCategoryPageState extends State<CreateMenuCategoryPage> {
         'name': _nameCtrl.text.trim(),
         'description': _descCtrl.text.trim(),
         'display_order': displayOrder,
-        'status': _categoryToEdit?.status ?? 'ACTIVE',
+        'status': _isActive ? 'ACTIVE' : 'INACTIVE',
       };
       if (_categoryToEdit != null) {
         if (uploadedUrls.isEmpty && _categoryToEdit!.images.isNotEmpty) {
@@ -132,6 +133,21 @@ class _CreateMenuCategoryPageState extends State<CreateMenuCategoryPage> {
                         AppInput(controller: _descCtrl, hintText: 'Description (Optional)', maxLines: 3),
                         SizedBox(height: 16.h),
                         AppInput(controller: _displayOrderCtrl, hintText: 'Display Order', keyboardType: TextInputType.number),
+                        
+                        SizedBox(height: 16.h),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.softGrey,
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          child: SwitchListTile(
+                            title: Text('Active Status', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                            subtitle: Text('Inactive categories are hidden from the POS', style: TextStyle(fontSize: 12.sp, color: AppColors.textTertiary)),
+                            value: _isActive,
+                            activeColor: AppColors.primaryGreen,
+                            onChanged: (val) => setState(() => _isActive = val),
+                          ),
+                        ),
                         
                         SizedBox(height: 24.h),
                         Text('IMAGES', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary, letterSpacing: 0.8)),

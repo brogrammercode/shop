@@ -34,18 +34,20 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
   final _priceCtrl = TextEditingController();
 
   String? _selectedCategoryId;
+  String? _selectedInventoryCategoryId;
   String? _selectedItemId;
   String? _selectedVariantId;
   final List<MenuItemSaleModeModel> _saleModes = [];
 
   final List<String> _localImages = [];
   List<String> _remoteImages = [];
-  
+
   final List<String> _localVideos = [];
   List<String> _remoteVideos = [];
-  
+
   bool _isUploading = false;
   MenuItemModel? _itemToEdit;
+  bool _isActive = true;
   bool _isInit = true;
 
   @override
@@ -54,11 +56,13 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
     if (_isInit) {
       context.read<CatalogCubit>().listMenuCategories();
       context.read<InventoryCubit>().listItems();
+      context.read<InventoryCubit>().listItemCategories();
       context.read<InventoryCubit>().listUoms();
-      
+
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is MenuItemModel) {
         _itemToEdit = args;
+        _isActive = _itemToEdit!.status == CatalogConstant.ACTIVE;
         _displayNameCtrl.text = _itemToEdit!.display_name;
         _descCtrl.text = _itemToEdit!.description;
         _priceCtrl.text = _itemToEdit!.selling_price.toString();
@@ -72,6 +76,15 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
         if (_itemToEdit!.item_id != null) {
           _selectedItemId = _itemToEdit!.item_id;
           context.read<InventoryCubit>().listVariants(_selectedItemId!);
+          final linkedItem = context
+              .read<InventoryCubit>()
+              .state
+              .items
+              .where((i) => i.id == _itemToEdit!.item_id)
+              .firstOrNull;
+          if (linkedItem != null) {
+            _selectedInventoryCategoryId = linkedItem.category_id;
+          }
         }
       } else if (args is MenuCategoryModel) {
         _selectedCategoryId = args.id;
@@ -101,8 +114,11 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
       Fluttertoast.showToast(msg: 'Please select a category');
       return;
     }
-    if (_itemToEdit == null && (_selectedItemId == null || _selectedVariantId == null)) {
-      Fluttertoast.showToast(msg: 'Please select an inventory item and variant');
+    if (_itemToEdit == null &&
+        (_selectedItemId == null || _selectedVariantId == null)) {
+      Fluttertoast.showToast(
+        msg: 'Please select an inventory item and variant',
+      );
       return;
     }
     if (_displayNameCtrl.text.isEmpty || _priceCtrl.text.isEmpty) {
@@ -119,16 +135,16 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
     setState(() => _isUploading = true);
     List<String> uploadedImages = [];
     List<String> uploadedVideos = [];
-    
+
     try {
       final inventoryCubit = context.read<InventoryCubit>();
-      
+
       // Upload Images
       for (final path in _localImages) {
         final result = await inventoryCubit.uploadImage(path);
         if (result != null) uploadedImages.add(result);
       }
-      
+
       // Upload Videos
       for (final path in _localVideos) {
         final result = await inventoryCubit.uploadImage(path);
@@ -140,34 +156,37 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
 
       final data = {
         'display_name': _displayNameCtrl.text.trim(),
+        'status': _isActive ? CatalogConstant.ACTIVE : 'INACTIVE',
         'description': _descCtrl.text.trim(),
         'selling_price': price,
         'images': allImages,
         'videos': allVideos,
         'sale_modes': _saleModes
-            .map((mode) => {
-                  'uom_id': mode.uom_id,
-                  'label': mode.label,
-                  'price_per_unit': mode.price_per_unit,
-                  'min_qty': mode.min_qty,
-                  'step_qty': mode.step_qty,
-                  'allow_decimal': mode.allow_decimal,
-                  'is_default': mode.is_default,
-                  'sort_order': mode.sort_order,
-                  'status': mode.status.isEmpty
-                      ? CatalogConstant.ACTIVE
-                      : mode.status,
-                })
+            .map(
+              (mode) => {
+                'uom_id': mode.uom_id,
+                'label': mode.label,
+                'price_per_unit': mode.price_per_unit,
+                'min_qty': mode.min_qty,
+                'step_qty': mode.step_qty,
+                'allow_decimal': mode.allow_decimal,
+                'is_default': mode.is_default,
+                'sort_order': mode.sort_order,
+                'status': mode.status.isEmpty
+                    ? CatalogConstant.ACTIVE
+                    : mode.status,
+              },
+            )
             .toList(),
-        'status': 'ACTIVE',
+        
       };
-      
+
       if (_selectedCategoryId != null) {
         data['category_id'] = _selectedCategoryId!;
       } else if (_itemToEdit != null) {
         data['category_id'] = _itemToEdit!.category_id;
       }
-      
+
       if (_selectedVariantId != null) {
         data['variant_id'] = _selectedVariantId!;
       }
@@ -176,7 +195,11 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
 
       if (!mounted) return;
       if (_itemToEdit != null) {
-        await context.read<CatalogCubit>().updateMenuItem(_itemToEdit!.id, data, catId);
+        await context.read<CatalogCubit>().updateMenuItem(
+          _itemToEdit!.id,
+          data,
+          catId,
+        );
       } else {
         await context.read<CatalogCubit>().createMenuItem(data, catId);
       }
@@ -204,10 +227,25 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(CatalogConstant.SALE_MODES_SECTION, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary, letterSpacing: 0.8)),
+            Text(
+              CatalogConstant.SALE_MODES_SECTION,
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textTertiary,
+                letterSpacing: 0.8,
+              ),
+            ),
             GestureDetector(
               onTap: () => _showSaleModeSheet(uoms),
-              child: Text(CatalogConstant.ADD_SALE_MODE, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w900, color: AppColors.primaryGreen)),
+              child: Text(
+                CatalogConstant.ADD_SALE_MODE,
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.primaryGreen,
+                ),
+              ),
             ),
           ],
         ),
@@ -216,37 +254,76 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
           Container(
             width: double.infinity,
             padding: EdgeInsets.all(14.w),
-            decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(12.r), border: Border.all(color: AppColors.borderGrey)),
-            child: Text(CatalogConstant.NO_SALE_MODES, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+            decoration: BoxDecoration(
+              color: AppColors.pureWhite,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: AppColors.borderGrey),
+            ),
+            child: Text(
+              CatalogConstant.NO_SALE_MODES,
+              style: TextStyle(
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textSecondary,
+              ),
+            ),
           )
         else
           ..._saleModes.asMap().entries.map((entry) {
             final index = entry.key;
             final mode = entry.value;
-            final uom = uoms.where((item) => item.id == mode.uom_id).firstOrNull;
+            final uom = uoms
+                .where((item) => item.id == mode.uom_id)
+                .firstOrNull;
             return Container(
               margin: EdgeInsets.only(bottom: 10.h),
               padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(12.r), border: Border.all(color: AppColors.borderGrey)),
+              decoration: BoxDecoration(
+                color: AppColors.pureWhite,
+                borderRadius: BorderRadius.circular(12.r),
+                border: Border.all(color: AppColors.borderGrey),
+              ),
               child: Row(
                 children: [
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('${mode.label}${mode.is_default ? ' • Default' : ''}', style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                        Text(
+                          '${mode.label}${mode.is_default ? ' • Default' : ''}',
+                          style: TextStyle(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
                         SizedBox(height: 4.h),
-                        Text('₹ ${mode.price_per_unit.toStringAsFixed(2)} / ${uom?.code ?? mode.uom_code} • Step ${mode.step_qty}', style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+                        Text(
+                          '₹ ${mode.price_per_unit.toStringAsFixed(2)} / ${uom?.code ?? mode.uom_code} • Step ${mode.step_qty}',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                   IconButton(
                     onPressed: () => _showSaleModeSheet(uoms, index: index),
-                    icon: Icon(Icons.edit, size: 18.w, color: AppColors.primaryGreen),
+                    icon: Icon(
+                      Icons.edit,
+                      size: 18.w,
+                      color: AppColors.primaryGreen,
+                    ),
                   ),
                   IconButton(
                     onPressed: () => setState(() => _saleModes.removeAt(index)),
-                    icon: Icon(Icons.delete_outline, size: 18.w, color: AppColors.error),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      size: 18.w,
+                      color: AppColors.error,
+                    ),
                   ),
                 ],
               ),
@@ -259,12 +336,20 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
   void _showSaleModeSheet(List<UnitOfMeasureModel> uoms, {int? index}) {
     final existing = index == null ? null : _saleModes[index];
     final labelController = TextEditingController(text: existing?.label ?? '');
-    final priceController = TextEditingController(text: existing?.price_per_unit.toString() ?? _priceCtrl.text);
-    final minQtyController = TextEditingController(text: existing?.min_qty.toString() ?? '1');
-    final stepQtyController = TextEditingController(text: existing?.step_qty.toString() ?? '1');
-    var selectedUomId = existing?.uom_id ?? (uoms.isNotEmpty ? uoms.first.id : null);
+    final priceController = TextEditingController(
+      text: existing?.price_per_unit.toString() ?? _priceCtrl.text,
+    );
+    final minQtyController = TextEditingController(
+      text: existing?.min_qty.toString() ?? '1',
+    );
+    final stepQtyController = TextEditingController(
+      text: existing?.step_qty.toString() ?? '1',
+    );
+    var selectedUomId =
+        existing?.uom_id ?? (uoms.isNotEmpty ? uoms.first.id : null);
     var allowDecimal = existing?.allow_decimal ?? false;
     var isDefault = existing?.is_default ?? _saleModes.isEmpty;
+    var isModeActive = existing == null ? true : existing.status == CatalogConstant.ACTIVE;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -273,64 +358,162 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
         return StatefulBuilder(
           builder: (context, setSheetState) {
             return Padding(
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
               child: Container(
                 padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 24.h),
-                decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.vertical(top: Radius.circular(24.r))),
+                decoration: BoxDecoration(
+                  color: AppColors.pureWhite,
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(24.r),
+                  ),
+                ),
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Center(child: Container(width: 40.w, height: 4.h, decoration: BoxDecoration(color: AppColors.borderGrey, borderRadius: BorderRadius.circular(2.r)))),
+                      Center(
+                        child: Container(
+                          width: 40.w,
+                          height: 4.h,
+                          decoration: BoxDecoration(
+                            color: AppColors.borderGrey,
+                            borderRadius: BorderRadius.circular(2.r),
+                          ),
+                        ),
+                      ),
                       SizedBox(height: 20.h),
-                      Text(index == null ? CatalogConstant.ADD_SALE_MODE : CatalogConstant.EDIT_SALE_MODE, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+                      Text(
+                        index == null
+                            ? CatalogConstant.ADD_SALE_MODE
+                            : CatalogConstant.EDIT_SALE_MODE,
+                        style: TextStyle(
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
                       SizedBox(height: 16.h),
-                      AppInput(controller: labelController, hintText: CatalogConstant.SALE_MODE_LABEL),
+                      AppInput(
+                        controller: labelController,
+                        hintText: CatalogConstant.SALE_MODE_LABEL,
+                      ),
                       SizedBox(height: 12.h),
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 12.w),
-                        decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(10.r), border: Border.all(color: const Color(0xFFCCCCCC))),
+                        decoration: BoxDecoration(
+                          color: AppColors.pureWhite,
+                          borderRadius: BorderRadius.circular(10.r),
+                          border: Border.all(color: const Color(0xFFCCCCCC)),
+                        ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             isExpanded: true,
                             value: selectedUomId,
                             hint: Text(CatalogConstant.SELECT_UOM),
-                            items: uoms.map((uom) => DropdownMenuItem(value: uom.id, child: Text('${uom.code} - ${uom.description}'))).toList(),
-                            onChanged: (value) => setSheetState(() => selectedUomId = value),
+                            items: uoms
+                                .map(
+                                  (uom) => DropdownMenuItem(
+                                    value: uom.id,
+                                    child: Text(
+                                      '${uom.code} - ${uom.description}',
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) =>
+                                setSheetState(() => selectedUomId = value),
                           ),
                         ),
                       ),
                       SizedBox(height: 12.h),
-                      AppInput(controller: priceController, hintText: CatalogConstant.PRICE_PER_UNIT, keyboardType: const TextInputType.numberWithOptions(decimal: true)),
+                      AppInput(
+                        controller: priceController,
+                        hintText: CatalogConstant.PRICE_PER_UNIT,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                      ),
                       SizedBox(height: 12.h),
                       Row(
                         children: [
-                          Expanded(child: AppInput(controller: minQtyController, hintText: CatalogConstant.MIN_QTY, keyboardType: const TextInputType.numberWithOptions(decimal: true))),
+                          Expanded(
+                            child: AppInput(
+                              controller: minQtyController,
+                              hintText: CatalogConstant.MIN_QTY,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                            ),
+                          ),
                           SizedBox(width: 12.w),
-                          Expanded(child: AppInput(controller: stepQtyController, hintText: CatalogConstant.STEP_QTY, keyboardType: const TextInputType.numberWithOptions(decimal: true))),
+                          Expanded(
+                            child: AppInput(
+                              controller: stepQtyController,
+                              hintText: CatalogConstant.STEP_QTY,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                            ),
+                          ),
                         ],
                       ),
                       SizedBox(height: 12.h),
-                      AppToggle(label: CatalogConstant.ALLOW_DECIMAL, value: allowDecimal, onChanged: (value) => setSheetState(() => allowDecimal = value)),
+                      AppToggle(
+                        label: CatalogConstant.ALLOW_DECIMAL,
+                        value: allowDecimal,
+                        onChanged: (value) =>
+                            setSheetState(() => allowDecimal = value),
+                      ),
                       SizedBox(height: 12.h),
-                      AppToggle(label: CatalogConstant.DEFAULT_SALE_MODE, value: isDefault, onChanged: (value) => setSheetState(() => isDefault = value)),
+                      AppToggle(
+                        label: CatalogConstant.DEFAULT_SALE_MODE,
+                        value: isDefault,
+                        onChanged: (value) =>
+                            setSheetState(() => isDefault = value),
+                      ),
+                        SizedBox(height: 12.h),
+                        AppToggle(
+                          label: 'Show in POS / Active',
+                          value: isModeActive,
+                          onChanged: (value) => setSheetState(() => isModeActive = value),
+                        ),
                       SizedBox(height: 18.h),
                       AppButton(
-                        text: index == null ? CatalogConstant.ADD_SALE_MODE : CatalogConstant.EDIT_SALE_MODE,
+                        text: index == null
+                            ? CatalogConstant.ADD_SALE_MODE
+                            : CatalogConstant.EDIT_SALE_MODE,
                         onPressed: () {
                           final price = double.tryParse(priceController.text);
                           final minQty = double.tryParse(minQtyController.text);
-                          final stepQty = double.tryParse(stepQtyController.text);
-                          if (selectedUomId == null || labelController.text.trim().isEmpty || price == null || minQty == null || stepQty == null) {
-                            Fluttertoast.showToast(msg: CatalogConstant.SALE_MODE_INVALID);
+                          final stepQty = double.tryParse(
+                            stepQtyController.text,
+                          );
+                          if (selectedUomId == null ||
+                              labelController.text.trim().isEmpty ||
+                              price == null ||
+                              minQty == null ||
+                              stepQty == null) {
+                            Fluttertoast.showToast(
+                              msg: CatalogConstant.SALE_MODE_INVALID,
+                            );
                             return;
                           }
-                          final uom = uoms.firstWhere((item) => item.id == selectedUomId);
+                          final uom = uoms.firstWhere(
+                            (item) => item.id == selectedUomId,
+                          );
                           final mode = MenuItemSaleModeModel(
-                            id: existing?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+                            id:
+                                existing?.id ??
+                                DateTime.now().millisecondsSinceEpoch
+                                    .toString(),
                             branch_id: existing?.branch_id ?? '',
-                            menu_item_id: existing?.menu_item_id ?? _itemToEdit?.id ?? '',
+                            menu_item_id:
+                                existing?.menu_item_id ?? _itemToEdit?.id ?? '',
                             uom_id: selectedUomId!,
                             uom_code: uom.code,
                             label: labelController.text.trim(),
@@ -340,7 +523,7 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
                             allow_decimal: allowDecimal,
                             is_default: isDefault,
                             sort_order: index ?? _saleModes.length,
-                            status: CatalogConstant.ACTIVE,
+                            status: isModeActive ? CatalogConstant.ACTIVE : 'INACTIVE',
                             created_at: existing?.created_at ?? '',
                             updated_at: existing?.updated_at ?? '',
                             is_deleted: false,
@@ -348,7 +531,9 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
                           setState(() {
                             if (mode.is_default) {
                               for (var i = 0; i < _saleModes.length; i += 1) {
-                                _saleModes[i] = _saleModes[i].copyWith(is_default: false);
+                                _saleModes[i] = _saleModes[i].copyWith(
+                                  is_default: false,
+                                );
                               }
                             }
                             if (index == null) {
@@ -380,12 +565,17 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
   Widget build(BuildContext context) {
     return BlocBuilder<CatalogCubit, CatalogState>(
       builder: (context, catalogState) {
-        final isSaving = catalogState.saveMenuItemsInfo.status == OperationStatus.loading;
-        
+        final isSaving =
+            catalogState.saveMenuItemsInfo.status == OperationStatus.loading;
+
         // Auto-select category if we are editing and haven't selected one yet
-        if (_itemToEdit != null && _selectedCategoryId == null && catalogState.menuCategories.isNotEmpty) {
+        if (_itemToEdit != null &&
+            _selectedCategoryId == null &&
+            catalogState.menuCategories.isNotEmpty) {
           try {
-            _selectedCategoryId = catalogState.menuCategories.firstWhere((c) => c.id == _itemToEdit!.category_id).id;
+            _selectedCategoryId = catalogState.menuCategories
+                .firstWhere((c) => c.id == _itemToEdit!.category_id)
+                .id;
           } catch (_) {}
         }
 
@@ -399,87 +589,248 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
                   child: BlocBuilder<InventoryCubit, InventoryState>(
                     builder: (context, inventoryState) {
                       return SingleChildScrollView(
-                        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 24.w,
+                          vertical: 24.h,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('CATEGORY SELECTION', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary, letterSpacing: 0.8)),
+                            Text(
+                              'CATEGORY SELECTION',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textTertiary,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
                             SizedBox(height: 12.h),
-                            if (catalogState.loadMenuCategoriesInfo.status == OperationStatus.loading && catalogState.menuCategories.isEmpty)
+                            if (catalogState.loadMenuCategoriesInfo.status ==
+                                    OperationStatus.loading &&
+                                catalogState.menuCategories.isEmpty)
                               const Center(child: AppLoader())
                             else
                               Container(
                                 padding: EdgeInsets.symmetric(horizontal: 16.w),
-                                decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(12.r), border: Border.all(color: AppColors.borderGrey)),
+                                decoration: BoxDecoration(
+                                  color: AppColors.pureWhite,
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  border: Border.all(
+                                    color: AppColors.borderGrey,
+                                  ),
+                                ),
                                 child: DropdownButtonHideUnderline(
                                   child: DropdownButton<String>(
                                     isExpanded: true,
                                     hint: const Text('Select Menu Category'),
                                     value: _selectedCategoryId,
-                                    items: catalogState.menuCategories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-                                    onChanged: (catId) => setState(() => _selectedCategoryId = catId),
-                                  ),
-                                ),
-                              ),
-                            
-                            SizedBox(height: 24.h),
-                            Text('LINK INVENTORY (OPTIONAL IF EDITING)', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary, letterSpacing: 0.8)),
-                            if (_itemToEdit != null && _selectedVariantId == null) ...[
-                              SizedBox(height: 8.h),
-                              Text('Currently linked to a variant. Select below ONLY if you wish to change the linkage.', style: TextStyle(fontSize: 11.sp, color: AppColors.textSecondary)),
-                            ],
-                            SizedBox(height: 12.h),
-                            if (inventoryState.loadItemsInfo.status == OperationStatus.loading && inventoryState.items.isEmpty)
-                              const Center(child: AppLoader())
-                            else
-                              Container(
-                                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                                decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(12.r), border: Border.all(color: AppColors.borderGrey)),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButton<String>(
-                                    isExpanded: true,
-                                    hint: const Text('Select Inventory Item'),
-                                    value: _selectedItemId,
-                                    items: inventoryState.items.map((item) => DropdownMenuItem(value: item.id, child: Text(item.name))).toList(),
-                                    onChanged: (itemId) {
-                                      setState(() {
-                                        _selectedItemId = itemId;
-                                        _selectedVariantId = null;
-                                        if (itemId != null) {
-                                          final item = inventoryState.items.firstWhere((i) => i.id == itemId);
-                                          if (_displayNameCtrl.text.isEmpty) _displayNameCtrl.text = item.name;
-                                        }
-                                      });
-                                      if (itemId != null) context.read<InventoryCubit>().listVariants(itemId);
-                                    },
+                                    items: catalogState.menuCategories
+                                        .map(
+                                          (c) => DropdownMenuItem(
+                                            value: c.id,
+                                            child: Text(c.name),
+                                          ),
+                                        )
+                                        .toList(),
+                                    onChanged: (catId) => setState(
+                                      () => _selectedCategoryId = catId,
+                                    ),
                                   ),
                                 ),
                               ),
 
+                            SizedBox(height: 24.h),
+                            Text(
+                              'LINK INVENTORY (OPTIONAL IF EDITING)',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textTertiary,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                            if (_itemToEdit != null &&
+                                _selectedVariantId == null) ...[
+                              SizedBox(height: 8.h),
+                              Text(
+                                'Currently linked to a variant. Select below ONLY if you wish to change the linkage.',
+                                style: TextStyle(
+                                  fontSize: 11.sp,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                            SizedBox(height: 12.h),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 16.w),
+                              decoration: BoxDecoration(
+                                color: AppColors.pureWhite,
+                                borderRadius: BorderRadius.circular(12.r),
+                                border: Border.all(color: AppColors.borderGrey),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  isExpanded: true,
+                                  hint: Text(
+                                    CatalogConstant.SELECT_INVENTORY_CATEGORY,
+                                  ),
+                                  value: _selectedInventoryCategoryId,
+                                  items: [
+                                    const DropdownMenuItem<String>(
+                                      value: null,
+                                      child: Text('All Categories'),
+                                    ),
+                                    ...inventoryState.itemCategories.map(
+                                      (c) => DropdownMenuItem(
+                                        value: c.id,
+                                        child: Text(c.name),
+                                      ),
+                                    ),
+                                  ],
+                                  onChanged: (catId) {
+                                    setState(() {
+                                      _selectedInventoryCategoryId = catId;
+                                      _selectedItemId = null;
+                                      _selectedVariantId = null;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 12.h),
+                            if (inventoryState.loadItemsInfo.status ==
+                                    OperationStatus.loading &&
+                                inventoryState.items.isEmpty)
+                              const Center(child: AppLoader())
+                            else
+                              Builder(
+                                builder: (context) {
+                                  final filteredItems =
+                                      _selectedInventoryCategoryId != null
+                                      ? inventoryState.items
+                                            .where(
+                                              (item) =>
+                                                  item.category_id ==
+                                                  _selectedInventoryCategoryId,
+                                            )
+                                            .toList()
+                                      : inventoryState.items;
+                                  return Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 16.w,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.pureWhite,
+                                      borderRadius: BorderRadius.circular(12.r),
+                                      border: Border.all(
+                                        color: AppColors.borderGrey,
+                                      ),
+                                    ),
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton<String>(
+                                        isExpanded: true,
+                                        hint: const Text(
+                                          'Select Inventory Item',
+                                        ),
+                                        value:
+                                            filteredItems.any(
+                                              (i) => i.id == _selectedItemId,
+                                            )
+                                            ? _selectedItemId
+                                            : null,
+                                        items: filteredItems
+                                            .map(
+                                              (item) => DropdownMenuItem(
+                                                value: item.id,
+                                                child: Text(item.name),
+                                              ),
+                                            )
+                                            .toList(),
+                                        onChanged: (itemId) {
+                                          setState(() {
+                                            _selectedItemId = itemId;
+                                            _selectedVariantId = null;
+                                            if (itemId != null) {
+                                              final item = inventoryState.items
+                                                  .firstWhere(
+                                                    (i) => i.id == itemId,
+                                                  );
+                                              if (_displayNameCtrl
+                                                  .text
+                                                  .isEmpty) {
+                                                _displayNameCtrl.text =
+                                                    item.name;
+                                              }
+                                            }
+                                          });
+                                          if (itemId != null) {
+                                            context
+                                                .read<InventoryCubit>()
+                                                .listVariants(itemId);
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+
                             if (_selectedItemId != null) ...[
                               SizedBox(height: 16.h),
-                              if (inventoryState.loadVariantsInfo.status == OperationStatus.loading)
+                              if (inventoryState.loadVariantsInfo.status ==
+                                  OperationStatus.loading)
                                 const Center(child: AppLoader())
                               else
                                 Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 16.w),
-                                  decoration: BoxDecoration(color: AppColors.pureWhite, borderRadius: BorderRadius.circular(12.r), border: Border.all(color: AppColors.borderGrey)),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 16.w,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.pureWhite,
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    border: Border.all(
+                                      color: AppColors.borderGrey,
+                                    ),
+                                  ),
                                   child: DropdownButtonHideUnderline(
                                     child: DropdownButton<String>(
                                       isExpanded: true,
                                       hint: const Text('Select Variant'),
                                       value: _selectedVariantId,
-                                      items: inventoryState.variants.map((variant) => DropdownMenuItem(value: variant.id, child: Text((variant.name?.isNotEmpty ?? false) ? variant.name! : variant.sku))).toList(),
+                                      items: inventoryState.variants
+                                          .map(
+                                            (variant) => DropdownMenuItem(
+                                              value: variant.id,
+                                              child: Text(
+                                                (variant.name?.isNotEmpty ??
+                                                        false)
+                                                    ? variant.name!
+                                                    : variant.sku,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
                                       onChanged: (variantId) {
                                         setState(() {
                                           _selectedVariantId = variantId;
                                           if (variantId != null) {
-                                            final variant = inventoryState.variants.firstWhere((v) => v.id == variantId);
-                                            if ((variant.name?.isNotEmpty ?? false) && _displayNameCtrl.text.isEmpty) {
-                                              _displayNameCtrl.text = '\${item.name} - \${variant.name ?? ''}';
+                                            final variant = inventoryState
+                                                .variants
+                                                .firstWhere(
+                                                  (v) => v.id == variantId,
+                                                );
+                                            if ((variant.name?.isNotEmpty ??
+                                                    false) &&
+                                                _displayNameCtrl.text.isEmpty) {
+                                              _displayNameCtrl.text =
+                                                  '\${item.name} - \${variant.name ?? '
+                                                  '}';
                                             }
                                             if (_priceCtrl.text.isEmpty) {
-                                              _priceCtrl.text = (variant.base_cost * 1.5).toStringAsFixed(2);
+                                              _priceCtrl.text =
+                                                  (variant.base_cost * 1.5)
+                                                      .toStringAsFixed(2);
                                             }
                                           }
                                         });
@@ -490,73 +841,154 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
                             ],
 
                             SizedBox(height: 32.h),
-                            Text('MENU DETAILS', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary, letterSpacing: 0.8)),
+                            Text(
+                              'MENU DETAILS',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textTertiary,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
                             SizedBox(height: 12.h),
-                            AppInput(controller: _displayNameCtrl, hintText: 'Display Name on Menu'),
+                            AppInput(
+                              controller: _displayNameCtrl,
+                              hintText: 'Display Name on Menu',
+                            ),
                             SizedBox(height: 16.h),
-                            AppInput(controller: _descCtrl, hintText: 'Description (Optional)', maxLines: 3),
+                            AppInput(
+                              controller: _descCtrl,
+                              hintText: 'Description (Optional)',
+                              maxLines: 3,
+                            ),
                             SizedBox(height: 16.h),
-                            AppInput(controller: _priceCtrl, hintText: 'Selling Price', keyboardType: const TextInputType.numberWithOptions(decimal: true), prefixIcon: Icon(Icons.currency_rupee, color: AppColors.textTertiary, size: 20.w)),
+                            AppInput(
+                              controller: _priceCtrl,
+                              hintText: 'Selling Price',
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              prefixIcon: Icon(
+                                Icons.currency_rupee,
+                                color: AppColors.textTertiary,
+                                size: 20.w,
+                              ),
+                            ),
+                            SizedBox(height: 16.h),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: AppColors.softGrey,
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
+                              child: SwitchListTile(
+                                title: Text('Active Status', style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+                                subtitle: Text('Inactive items are hidden from the POS', style: TextStyle(fontSize: 12.sp, color: AppColors.textTertiary)),
+                                value: _isActive,
+                                activeColor: AppColors.primaryGreen,
+                                onChanged: (val) => setState(() => _isActive = val),
+                              ),
+                            ),
                             SizedBox(height: 24.h),
                             _buildSaleModesSection(inventoryState.uoms),
-                            
+
                             SizedBox(height: 24.h),
-                            Text('IMAGES', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary, letterSpacing: 0.8)),
+                            Text(
+                              'IMAGES',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textTertiary,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
                             SizedBox(height: 12.h),
                             Wrap(
                               spacing: 8.w,
                               runSpacing: 8.h,
                               children: [
-                                ..._remoteImages.map((url) => Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Container(
-                                      width: 64.w,
-                                      height: 64.w,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12.r),
-                                        image: DecorationImage(image: NetworkImage(url), fit: BoxFit.cover),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: -6.h,
-                                      right: -6.w,
-                                      child: GestureDetector(
-                                        onTap: () => setState(() => _remoteImages.remove(url)),
-                                        child: Container(
-                                          padding: EdgeInsets.all(2.w),
-                                          decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
-                                          child: Icon(Icons.close, size: 12.w, color: AppColors.pureWhite),
+                                ..._remoteImages.map(
+                                  (url) => Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Container(
+                                        width: 64.w,
+                                        height: 64.w,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            12.r,
+                                          ),
+                                          image: DecorationImage(
+                                            image: NetworkImage(url),
+                                            fit: BoxFit.cover,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                )),
-                                ..._localImages.map((path) => Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Container(
-                                      width: 64.w,
-                                      height: 64.w,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12.r),
-                                        image: DecorationImage(image: FileImage(File(path)), fit: BoxFit.cover),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: -6.h,
-                                      right: -6.w,
-                                      child: GestureDetector(
-                                        onTap: () => setState(() => _localImages.remove(path)),
-                                        child: Container(
-                                          padding: EdgeInsets.all(2.w),
-                                          decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
-                                          child: Icon(Icons.close, size: 12.w, color: AppColors.pureWhite),
+                                      Positioned(
+                                        top: -6.h,
+                                        right: -6.w,
+                                        child: GestureDetector(
+                                          onTap: () => setState(
+                                            () => _remoteImages.remove(url),
+                                          ),
+                                          child: Container(
+                                            padding: EdgeInsets.all(2.w),
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.error,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.close,
+                                              size: 12.w,
+                                              color: AppColors.pureWhite,
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                )),
+                                    ],
+                                  ),
+                                ),
+                                ..._localImages.map(
+                                  (path) => Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Container(
+                                        width: 64.w,
+                                        height: 64.w,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            12.r,
+                                          ),
+                                          image: DecorationImage(
+                                            image: FileImage(File(path)),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: -6.h,
+                                        right: -6.w,
+                                        child: GestureDetector(
+                                          onTap: () => setState(
+                                            () => _localImages.remove(path),
+                                          ),
+                                          child: Container(
+                                            padding: EdgeInsets.all(2.w),
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.error,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.close,
+                                              size: 12.w,
+                                              color: AppColors.pureWhite,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 GestureDetector(
                                   onTap: _pickImage,
                                   child: Container(
@@ -565,73 +997,123 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
                                     decoration: BoxDecoration(
                                       color: AppColors.softGrey,
                                       borderRadius: BorderRadius.circular(12.r),
-                                      border: Border.all(color: AppColors.borderGrey, style: BorderStyle.solid),
+                                      border: Border.all(
+                                        color: AppColors.borderGrey,
+                                        style: BorderStyle.solid,
+                                      ),
                                     ),
-                                    child: Icon(Icons.add_a_photo, color: AppColors.textSecondary, size: 24.w),
+                                    child: Icon(
+                                      Icons.add_a_photo,
+                                      color: AppColors.textSecondary,
+                                      size: 24.w,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
 
                             SizedBox(height: 24.h),
-                            Text('VIDEOS (OPTIONAL)', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w800, color: AppColors.textTertiary, letterSpacing: 0.8)),
+                            Text(
+                              'VIDEOS (OPTIONAL)',
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.textTertiary,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
                             SizedBox(height: 12.h),
                             Wrap(
                               spacing: 8.w,
                               runSpacing: 8.h,
                               children: [
-                                ..._remoteVideos.map((url) => Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Container(
-                                      width: 64.w,
-                                      height: 64.w,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.deepOnyx,
-                                        borderRadius: BorderRadius.circular(12.r),
-                                      ),
-                                      child: Icon(Icons.play_circle, color: AppColors.pureWhite, size: 24.w),
-                                    ),
-                                    Positioned(
-                                      top: -6.h,
-                                      right: -6.w,
-                                      child: GestureDetector(
-                                        onTap: () => setState(() => _remoteVideos.remove(url)),
-                                        child: Container(
-                                          padding: EdgeInsets.all(2.w),
-                                          decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
-                                          child: Icon(Icons.close, size: 12.w, color: AppColors.pureWhite),
+                                ..._remoteVideos.map(
+                                  (url) => Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Container(
+                                        width: 64.w,
+                                        height: 64.w,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.deepOnyx,
+                                          borderRadius: BorderRadius.circular(
+                                            12.r,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.play_circle,
+                                          color: AppColors.pureWhite,
+                                          size: 24.w,
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                )),
-                                ..._localVideos.map((path) => Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    Container(
-                                      width: 64.w,
-                                      height: 64.w,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primaryGreen.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(12.r),
-                                      ),
-                                      child: Icon(Icons.movie, color: AppColors.primaryGreen, size: 24.w),
-                                    ),
-                                    Positioned(
-                                      top: -6.h,
-                                      right: -6.w,
-                                      child: GestureDetector(
-                                        onTap: () => setState(() => _localVideos.remove(path)),
-                                        child: Container(
-                                          padding: EdgeInsets.all(2.w),
-                                          decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
-                                          child: Icon(Icons.close, size: 12.w, color: AppColors.pureWhite),
+                                      Positioned(
+                                        top: -6.h,
+                                        right: -6.w,
+                                        child: GestureDetector(
+                                          onTap: () => setState(
+                                            () => _remoteVideos.remove(url),
+                                          ),
+                                          child: Container(
+                                            padding: EdgeInsets.all(2.w),
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.error,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.close,
+                                              size: 12.w,
+                                              color: AppColors.pureWhite,
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                )),
+                                    ],
+                                  ),
+                                ),
+                                ..._localVideos.map(
+                                  (path) => Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      Container(
+                                        width: 64.w,
+                                        height: 64.w,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryGreen
+                                              .withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(
+                                            12.r,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          Icons.movie,
+                                          color: AppColors.primaryGreen,
+                                          size: 24.w,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: -6.h,
+                                        right: -6.w,
+                                        child: GestureDetector(
+                                          onTap: () => setState(
+                                            () => _localVideos.remove(path),
+                                          ),
+                                          child: Container(
+                                            padding: EdgeInsets.all(2.w),
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.error,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.close,
+                                              size: 12.w,
+                                              color: AppColors.pureWhite,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                                 GestureDetector(
                                   onTap: _pickVideo,
                                   child: Container(
@@ -640,9 +1122,16 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
                                     decoration: BoxDecoration(
                                       color: AppColors.softGrey,
                                       borderRadius: BorderRadius.circular(12.r),
-                                      border: Border.all(color: AppColors.borderGrey, style: BorderStyle.solid),
+                                      border: Border.all(
+                                        color: AppColors.borderGrey,
+                                        style: BorderStyle.solid,
+                                      ),
                                     ),
-                                    child: Icon(Icons.video_call, color: AppColors.textSecondary, size: 28.w),
+                                    child: Icon(
+                                      Icons.video_call,
+                                      color: AppColors.textSecondary,
+                                      size: 28.w,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -655,7 +1144,11 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
                   ),
                 ),
                 AppBottomAction(
-                  child: AppButton(text: _itemToEdit != null ? 'Update Item' : 'Add to Menu', onPressed: _onSave, isLoading: isSaving || _isUploading),
+                  child: AppButton(
+                    text: _itemToEdit != null ? 'Update Item' : 'Add to Menu',
+                    onPressed: _onSave,
+                    isLoading: isSaving || _isUploading,
+                  ),
                 ),
               ],
             ),
@@ -678,15 +1171,29 @@ class _CreateMenuItemPageState extends State<CreateMenuItemPage> {
               decoration: const BoxDecoration(
                 color: AppColors.pureWhite,
                 shape: BoxShape.circle,
-                boxShadow: [BoxShadow(color: AppColors.shadowColor, blurRadius: 4, offset: Offset(0, 2))],
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.shadowColor,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
-              child: Icon(Icons.chevron_left, color: AppColors.textPrimary, size: 20.w),
+              child: Icon(
+                Icons.chevron_left,
+                color: AppColors.textPrimary,
+                size: 20.w,
+              ),
             ),
           ),
           SizedBox(width: 16.w),
           Text(
             _itemToEdit != null ? 'Edit Menu Item' : 'Add Menu Item',
-            style: TextStyle(fontSize: 22.sp, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
+            style: TextStyle(
+              fontSize: 22.sp,
+              fontWeight: FontWeight.w900,
+              color: AppColors.textPrimary,
+            ),
           ),
         ],
       ),

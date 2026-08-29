@@ -31,8 +31,10 @@ class InventoryState {
   final OperationInfo saveSuppliersInfo;
   final OperationInfo loadItemsInfo;
   final OperationInfo saveItemsInfo;
+  final OperationInfo deleteItemInfo;
   final OperationInfo loadVariantsInfo;
   final OperationInfo saveVariantsInfo;
+  final OperationInfo deleteVariantInfo;
   final OperationInfo loadPOInfo;
   final OperationInfo savePOInfo;
   final OperationInfo receiveInfo;
@@ -72,10 +74,14 @@ class InventoryState {
     ),
     this.loadItemsInfo = const OperationInfo(status: OperationStatus.initial),
     this.saveItemsInfo = const OperationInfo(status: OperationStatus.initial),
+    this.deleteItemInfo = const OperationInfo(status: OperationStatus.initial),
     this.loadVariantsInfo = const OperationInfo(
       status: OperationStatus.initial,
     ),
     this.saveVariantsInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
+    this.deleteVariantInfo = const OperationInfo(
       status: OperationStatus.initial,
     ),
     this.loadPOInfo = const OperationInfo(status: OperationStatus.initial),
@@ -91,8 +97,12 @@ class InventoryState {
     ),
     this.loadUomsInfo = const OperationInfo(status: OperationStatus.initial),
     this.saveUomsInfo = const OperationInfo(status: OperationStatus.initial),
-    this.loadItemCategoriesInfo = const OperationInfo(status: OperationStatus.initial),
-    this.saveItemCategoriesInfo = const OperationInfo(status: OperationStatus.initial),
+    this.loadItemCategoriesInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
+    this.saveItemCategoriesInfo = const OperationInfo(
+      status: OperationStatus.initial,
+    ),
     this.loadUomConversionsInfo = const OperationInfo(
       status: OperationStatus.initial,
     ),
@@ -120,8 +130,10 @@ class InventoryState {
     OperationInfo? saveSuppliersInfo,
     OperationInfo? loadItemsInfo,
     OperationInfo? saveItemsInfo,
+    OperationInfo? deleteItemInfo,
     OperationInfo? loadVariantsInfo,
     OperationInfo? saveVariantsInfo,
+    OperationInfo? deleteVariantInfo,
     OperationInfo? loadPOInfo,
     OperationInfo? savePOInfo,
     OperationInfo? receiveInfo,
@@ -157,8 +169,10 @@ class InventoryState {
       saveSuppliersInfo: saveSuppliersInfo ?? this.saveSuppliersInfo,
       loadItemsInfo: loadItemsInfo ?? this.loadItemsInfo,
       saveItemsInfo: saveItemsInfo ?? this.saveItemsInfo,
+      deleteItemInfo: deleteItemInfo ?? this.deleteItemInfo,
       loadVariantsInfo: loadVariantsInfo ?? this.loadVariantsInfo,
       saveVariantsInfo: saveVariantsInfo ?? this.saveVariantsInfo,
+      deleteVariantInfo: deleteVariantInfo ?? this.deleteVariantInfo,
       loadPOInfo: loadPOInfo ?? this.loadPOInfo,
       savePOInfo: savePOInfo ?? this.savePOInfo,
       receiveInfo: receiveInfo ?? this.receiveInfo,
@@ -170,8 +184,10 @@ class InventoryState {
       loadTransferInfo: loadTransferInfo ?? this.loadTransferInfo,
       loadUomsInfo: loadUomsInfo ?? this.loadUomsInfo,
       saveUomsInfo: saveUomsInfo ?? this.saveUomsInfo,
-      loadItemCategoriesInfo: loadItemCategoriesInfo ?? this.loadItemCategoriesInfo,
-      saveItemCategoriesInfo: saveItemCategoriesInfo ?? this.saveItemCategoriesInfo,
+      loadItemCategoriesInfo:
+          loadItemCategoriesInfo ?? this.loadItemCategoriesInfo,
+      saveItemCategoriesInfo:
+          saveItemCategoriesInfo ?? this.saveItemCategoriesInfo,
       loadUomConversionsInfo:
           loadUomConversionsInfo ?? this.loadUomConversionsInfo,
       saveUomConversionsInfo:

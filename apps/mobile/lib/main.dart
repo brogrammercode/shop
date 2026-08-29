@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:mobile/core/color.dart';
 import 'package:mobile/core/di.dart';
 import 'package:mobile/core/routes.dart';
 import 'package:mobile/core/theme.dart';
@@ -49,6 +50,18 @@ class MyApp extends StatelessWidget {
             theme: AppTheme.lightTheme,
             initialRoute: AppRoutes.splash,
             routes: AppRoutes.routes,
+            builder: (context, child) {
+              return Container(
+                color: AppColors.pureWhite, // keep it light only
+                child: SafeArea(
+                  top: false,
+                  left: false,
+                  right: false,
+                  bottom: true,
+                  child: child!,
+                ),
+              );
+            },
           );
         },
       ),
